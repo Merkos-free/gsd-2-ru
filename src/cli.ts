@@ -23,9 +23,9 @@ const settingsManager = SettingsManager.create(agentDir)
 if (!settingsManager.getDefaultModel()) {
   const availableModels = modelRegistry.getAvailable()
   if (availableModels.length > 0) {
-    // Prefer Anthropic's default (claude-sonnet-4-20250514), then any Anthropic model, then first available
+    // Prefer Anthropic's claude-sonnet-4-6, then any Anthropic model, then first available
     const preferred =
-      availableModels.find((m) => m.provider === 'anthropic' && m.id === 'claude-sonnet-4-20250514') ||
+      availableModels.find((m) => m.provider === 'anthropic' && m.id === 'claude-sonnet-4-6') ||
       availableModels.find((m) => m.provider === 'anthropic') ||
       availableModels[0]
     settingsManager.setDefaultModelAndProvider(preferred.provider, preferred.id)
