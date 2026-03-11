@@ -30,7 +30,6 @@ import {
   filterDoctorIssues,
 } from "./doctor.js";
 import { loadPrompt } from "./prompt-loader.js";
-import { getSuggestedNextCommands } from "./workspace-index.ts";
 
 function dispatchDoctorHeal(pi: ExtensionAPI, scope: string | undefined, reportText: string, structuredIssues: string): void {
   const workflowPath = process.env.GSD_WORKFLOW_PATH ?? join(process.env.HOME ?? "~", ".pi", "GSD-WORKFLOW.md");
@@ -139,10 +138,6 @@ export function registerGSDCommand(pi: ExtensionAPI): void {
 
       if (trimmed === "") {
         await showSmartEntry(ctx, pi, process.cwd());
-        const next = await getSuggestedNextCommands(process.cwd());
-        if (next.length > 0) {
-          ctx.ui.notify(`Likely next: ${next.join(" · ")}`, "info");
-        }
         return;
       }
 
