@@ -147,6 +147,13 @@ async function updateStateFile(basePath: string, fixesApplied: string[]): Promis
   fixesApplied.push(`updated ${path}`);
 }
 
+/** Rebuild STATE.md from current disk state. Exported for auto-mode post-hooks. */
+export async function rebuildState(basePath: string): Promise<void> {
+  const state = await deriveState(basePath);
+  const path = resolveGsdRootFile(basePath, "STATE");
+  await saveFile(path, buildStateMarkdown(state));
+}
+
 async function ensureSliceSummaryStub(basePath: string, milestoneId: string, sliceId: string, fixesApplied: string[]): Promise<void> {
   const path = join(resolveSlicePath(basePath, milestoneId, sliceId) ?? relSlicePath(basePath, milestoneId, sliceId), `${sliceId}-SUMMARY.md`);
   const absolute = resolveSliceFile(basePath, milestoneId, sliceId, "SUMMARY") ?? join(resolveSlicePath(basePath, milestoneId, sliceId)!, `${sliceId}-SUMMARY.md`);

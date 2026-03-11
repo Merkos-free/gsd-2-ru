@@ -18,7 +18,7 @@ import type {
 
 import { deriveState } from "./state.js";
 import type { GSDState } from "./types.js";
-import { loadFile, parseContinue, parseRoadmap, parseSummary, extractUatType, inlinePriorMilestoneSummary } from "./files.js";
+import { loadFile, parseContinue, parsePlan, parseRoadmap, parseSummary, extractUatType, inlinePriorMilestoneSummary } from "./files.js";
 export { inlinePriorMilestoneSummary };
 import type { UatType } from "./files.js";
 import { loadPrompt } from "./prompt-loader.js";
@@ -48,6 +48,7 @@ import {
   formatValidationIssues,
 } from "./observability-validator.js";
 import { ensureGitignore } from "./gitignore.js";
+import { runGSDDoctor, rebuildState } from "./doctor.js";
 import { snapshotSkills, clearSkillSnapshot } from "./skill-discovery.js";
 import {
   initMetrics, resetMetrics, snapshotUnitMetrics, getLedger,
@@ -373,6 +374,28 @@ export async function handleAgentEnd(
       if (commitMsg) {
         ctx.ui.notify(`Auto-committed uncommitted changes.`, "info");
       }
+    } catch {
+      // Non-fatal
+    }
+
+    // Post-hook: fix mechanical bookkeeping the LLM may have skipped.
+    // 1. Doctor handles: checkbox marking, stub summaries/UATs.
+    // 2. STATE.md is always rebuilt from disk state (purely derived, no LLM needed).
+    // This is more reliable than prompt instructions for mechanical tasks.
+    // Scope to slice level (M001/S01) so doctor checks all tasks within the slice.
+    try {
+      const scopeParts = currentUnit.id.split("/").slice(0, 2);
+      const doctorScope = scopeParts.join("/");
+      const report = await runGSDDoctor(basePath, { fix: true, scope: doctorScope });
+      if (report.fixesApplied.length > 0) {
+        ctx.ui.notify(`Post-hook: applied ${report.fixesApplied.length} fix(es).`, "info");
+      }
+    } catch {
+      // Non-fatal — doctor failure should never block dispatch
+    }
+    try {
+      await rebuildState(basePath);
+      autoCommitCurrentBranch(basePath, currentUnit.type, currentUnit.id);
     } catch {
       // Non-fatal
     }
