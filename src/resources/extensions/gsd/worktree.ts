@@ -156,7 +156,6 @@ export function ensureSliceBranch(basePath: string, milestoneId: string, sliceId
 
   if (current === branch) return false;
 
-  const mainBranch = getMainBranch(basePath);
   let created = false;
 
   if (!branchExists(basePath, branch)) {
@@ -166,6 +165,7 @@ export function ensureSliceBranch(basePath: string, milestoneId: string, sliceId
     // branch and haven't been merged to main yet.
     // If we're already on a slice branch (e.g. creating S02 while S01
     // wasn't merged yet), fall back to main to avoid chaining slice branches.
+    const mainBranch = getMainBranch(basePath);
     const base = SLICE_BRANCH_RE.test(current) ? mainBranch : current;
     runGit(basePath, ["branch", branch, base]);
     created = true;
