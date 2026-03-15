@@ -315,22 +315,41 @@ async function handlePrefsWizard(
   const modelPhases = ["research", "planning", "execution", "completion"] as const;
   const models: Record<string, string> = (prefs.models as Record<string, string>) ?? {};
 
-  for (const phase of modelPhases) {
-    const current = models[phase] ?? "";
-    const input = await ctx.ui.input(
-      `Model for ${phase} phase${current ? ` (current: ${current})` : ""}:`,
-      current || "e.g. claude-sonnet-4-20250514",
-    );
-    if (input !== null && input !== undefined) {
-      const val = input.trim();
-      if (val) {
-        models[phase] = val;
-      } else if (current) {
-        // User cleared it — remove
-        delete models[phase];
+  const availableModels = ctx.modelRegistry.getAvailable();
+  if (availableModels.length > 0) {
+    const modelOptions = availableModels.map(m => `${m.id} · ${m.provider}`);
+    modelOptions.push("(keep current)", "(clear)");
+
+    for (const phase of modelPhases) {
+      const current = models[phase] ?? "";
+      const title = `Model for ${phase} phase${current ? ` (current: ${current})` : ""}:`;
+      const choice = await ctx.ui.select(title, modelOptions);
+
+      if (choice && choice !== "(keep current)") {
+        if (choice === "(clear)") {
+          delete models[phase];
+        } else {
+          models[phase] = choice.split(" · ")[0];
+        }
       }
     }
-    // null/undefined = Escape/skip — keep existing value
+  } else {
+    // No authenticated models available — fall back to text input
+    for (const phase of modelPhases) {
+      const current = models[phase] ?? "";
+      const input = await ctx.ui.input(
+        `Model for ${phase} phase${current ? ` (current: ${current})` : ""}:`,
+        current || "e.g. claude-sonnet-4-20250514",
+      );
+      if (input !== null && input !== undefined) {
+        const val = input.trim();
+        if (val) {
+          models[phase] = val;
+        } else if (current) {
+          delete models[phase];
+        }
+      }
+    }
   }
   if (Object.keys(models).length > 0) {
     prefs.models = models;
