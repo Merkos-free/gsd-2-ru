@@ -391,8 +391,13 @@ function autoCommitDirtyState(cwd: string): boolean {
  * Wraps `git push` in try/catch — failure is always non-fatal.
  */
 export function pushBranchToRemote(basePath: string, branch: string, remote: string = "origin"): boolean {
+  // Validate remote/branch to prevent command injection
+  const safeNamePattern = /^[a-zA-Z0-9._\-/]+$/;
+  if (!safeNamePattern.test(remote) || !safeNamePattern.test(branch)) {
+    return false;
+  }
   try {
-    execSync(`git push ${remote} ${branch}`, {
+    execFileSync("git", ["push", remote, branch], {
       cwd: basePath,
       stdio: ["ignore", "pipe", "pipe"],
       encoding: "utf-8",

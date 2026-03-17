@@ -11,7 +11,7 @@
  * via ctx.ui.notify. Vercel auth tokens are never included in return values.
  */
 
-import { execSync } from "node:child_process";
+import { execFileSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 
@@ -97,7 +97,7 @@ export function vercelDeploy(
   }
 
   try {
-    const stdout = execSync(`vercel ${args.join(" ")}`, {
+    const stdout = execFileSync("vercel", args, {
       cwd: basePath,
       encoding: "utf-8",
       timeout: 300_000, // 5 minute timeout for deploy
@@ -149,7 +149,7 @@ export function waitForDeployReady(
 
   while (Date.now() - start < timeoutMs) {
     try {
-      const stdout = execSync(`vercel inspect "${url}" --json`, {
+      const stdout = execFileSync("vercel", ["inspect", url, "--json"], {
         encoding: "utf-8",
         timeout: 30_000,
         stdio: ["pipe", "pipe", "pipe"],
@@ -164,11 +164,8 @@ export function waitForDeployReady(
       // inspect failed — continue polling unless timed out
     }
 
-    // Sleep for pollIntervalMs using sync approach
-    const sleepUntil = Date.now() + pollIntervalMs;
-    while (Date.now() < sleepUntil) {
-      // busy-wait (acceptable for CLI polling context)
-    }
+    // Sleep without burning CPU
+    try { execFileSync("sleep", [String(pollIntervalMs / 1000)]); } catch { /* non-fatal */ }
   }
 
   return false;

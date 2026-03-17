@@ -9,7 +9,7 @@
  * messages — missing auth or CLI tools warn and skip, never crash.
  */
 
-import { execSync } from "node:child_process";
+import { execFileSync } from "node:child_process";
 import {
   createGitHubClient,
   createPullRequest,
@@ -124,8 +124,9 @@ export function fetchCICheckStatus(
   repo: string,
 ): { checks: CICheckResult[] | null; warning: string | null } {
   try {
-    const output = execSync(
-      `gh pr checks ${prNumber} --repo ${owner}/${repo} --json name,status,conclusion`,
+    const output = execFileSync(
+      "gh",
+      ["pr", "checks", String(prNumber), "--repo", `${owner}/${repo}`, "--json", "name,status,conclusion"],
       {
         encoding: "utf-8",
         stdio: ["ignore", "pipe", "pipe"],
