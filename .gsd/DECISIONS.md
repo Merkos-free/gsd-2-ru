@@ -6,6 +6,8 @@
 
 | # | When | Scope | Decision | Choice | Rationale | Revisable? |
 |---|------|-------|----------|--------|-----------|------------|
+| D021 | M001/S02 | convention | T##-VERIFY.json content scope | Exclude stdout/stderr from JSON evidence; include only check metadata (command, exitCode, verdict, durationMs) | Prevents unbounded file sizes. stdout/stderr can contain secrets (API keys, env vars). Machine querying needs only pass/fail metadata, not raw output. | Yes |
+| D022 | M001/S02 | arch | Evidence write failure behavior in auto.ts gate block | Non-fatal (try/catch with stderr log) — gate continues even if evidence write fails | Evidence writing is observability, not core flow. A disk error shouldn't block task completion when the gate itself passed. | Yes |
 | D001 | M001 | arch | Verification gate implementation | Built-in hardcoded in auto.ts handleAgentEnd, before user hooks | Simpler than adding "built-in" hook concept to hook engine. No risk of user disabling it. Clear separation from user hooks. | Yes — if hook engine gets "built-in" profiles |
 | D002 | M001 | arch | Verification evidence format | Dual: markdown table in summary + T##-VERIFY.json alongside | Markdown for human readability, JSON for machine querying. Both needed. | No |
 | D003 | M001 | convention | Verification command discovery order | Explicit preference → task plan verify field → package.json scripts | Preference override gives control. Auto-detect from package.json is ergonomic fallback. | No |
@@ -26,3 +28,4 @@
 | D018 | M004 | arch | Supervisor recovery session | Same session injection (not fresh session) | Preserves in-session state. Lower overhead. | Yes — if fresh sessions prove more effective |
 | D019 | M004 | arch | Supervisor diagnostic signals | Heuristic signals + brief activity summary | Activity summary gives richer recovery context than heuristics alone. Worth the small latency cost. | No |
 | D020 | M004 | arch | Supervisor escalation path | Pause with structured diagnostic report | User sees what was tried, what was found, supervisor's assessment. Better than silent skip. | No |
+| D023 | M001/S04 | convention | Testability pattern for async capture functions with optional dependencies | Dependency injection via options parameter (getProcesses, getConsoleLogs) instead of module mocking | Avoids complex ESM module mocking. Cleaner test setup. Production code uses dynamic import() as default, tests inject mock functions. Pattern established in captureRuntimeErrors() and should be reused for future capture functions. | Yes |
