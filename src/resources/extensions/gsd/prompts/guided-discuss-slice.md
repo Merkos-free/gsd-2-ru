@@ -1,3 +1,15 @@
+<!--
+  Guided variant of the slice discussion prompt.
+  No full auto-mode equivalent — slice discussion is inherently interactive.
+
+  Selected by guided-flow.ts → showSmartEntry() when:
+    - The user runs /gsd, the active slice's phase is "planning", and the user
+      picks "Discuss first" (available when no context file exists for the slice).
+  Also selected by showDiscuss() for per-slice discussion.
+
+  This prompt contains the full interview protocol because discussion is always
+  interactive — there is no separate auto-mode path for slice discussion.
+-->
 You are interviewing the user to surface behavioural, UX, and usage grey areas for slice **{{sliceId}}: {{sliceTitle}}** of milestone **{{milestoneId}}**.
 
 Your goal is **not** to settle tech stack, naming conventions, or architecture — that happens during research and planning. Your goal is to produce a context file that captures the human decisions: what this slice should feel like, how it should behave, what edge cases matter, where scope begins and ends, and what the user cares about that won't be obvious from the roadmap entry alone.

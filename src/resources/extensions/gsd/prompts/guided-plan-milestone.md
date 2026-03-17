@@ -1,3 +1,15 @@
+<!--
+  Guided variant of plan-milestone.md.
+  Full version: prompts/plan-milestone.md (used by auto-mode via auto-prompts.ts).
+
+  Selected by guided-flow.ts → showSmartEntry() when:
+    - The user runs /gsd, the active milestone has no roadmap yet, and the user
+      picks "Create roadmap".
+
+  This prompt is concise because guided-flow has already confirmed the milestone
+  state and gathered user intent. The full auto-mode prompt inlines context files,
+  research artifacts, and executor constraints.
+-->
 Plan milestone {{milestoneId}} ("{{milestoneTitle}}"). Read `.gsd/DECISIONS.md` if it exists — respect existing decisions. Read `.gsd/REQUIREMENTS.md` if it exists and treat Active requirements as the capability contract. If `REQUIREMENTS.md` is missing, continue in legacy compatibility mode but explicitly note missing requirement coverage. Use the **Roadmap** output template below. Create `{{milestoneId}}-ROADMAP.md` in the milestone directory with slices, risk levels, dependencies, demo sentences, verification classes, milestone definition of done, requirement coverage, and a boundary map. Write success criteria as observable truths, not implementation tasks. If the milestone crosses multiple runtime boundaries, include an explicit final integration slice that proves the assembled system works end-to-end in a real environment. If planning produces structural decisions, append them to `.gsd/DECISIONS.md`. If a `GSD Skill Preferences` block is present in system context, use it to decide which skills to load and follow during planning, without overriding required roadmap formatting.
 
 ## Requirement Rules

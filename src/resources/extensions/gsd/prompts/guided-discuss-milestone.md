@@ -1,3 +1,17 @@
+<!--
+  Guided variant of the milestone discussion prompt.
+  No full auto-mode equivalent — milestone discussion is inherently interactive.
+
+  Selected by guided-flow.ts → showSmartEntry() when:
+    - The user runs /gsd, the active milestone has no roadmap and no context file,
+      and the user picks "Discuss first".
+  Also selected by showDiscuss() when:
+    - The milestone is in "needs-discussion" phase (has CONTEXT-DRAFT.md but no roadmap),
+      and the user picks "Discuss from draft" or "Start fresh discussion".
+
+  This prompt contains the full interview protocol because discussion is always
+  interactive — there is no separate auto-mode path for milestone discussion.
+-->
 Discuss milestone {{milestoneId}} ("{{milestoneTitle}}"). Identify gray areas, ask the user about them, and write `{{milestoneId}}-CONTEXT.md` in the milestone directory with the decisions. Use the **Context** output template below. If a `GSD Skill Preferences` block is present in system context, use it to decide which skills to load and follow; do not override required artifact rules.
 
 **Structured questions available: {{structuredQuestionsAvailable}}**
