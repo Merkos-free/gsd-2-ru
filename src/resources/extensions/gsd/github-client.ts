@@ -23,6 +23,7 @@ export interface PullRequestOptions {
   body: string;
   head: string;
   base: string;
+  draft?: boolean;
 }
 
 export interface PullRequestResult {
@@ -121,6 +122,20 @@ export async function getRepoInfo(cwd: string): Promise<RepoInfo | null> {
 
 // ─── Pull Request Operations ───────────────────────────────────────────────
 
+/** Maximum GitHub PR body length. GitHub's limit is 65,536 chars; we truncate at 65,000 with an ellipsis marker to leave margin. */
+const PR_BODY_MAX_LENGTH = 65_000;
+const PR_BODY_TRUNCATION_MARKER = "\n\n---\n*[body truncated — full content exceeds GitHub's limit]*";
+
+/**
+ * Truncate a PR body string to fit within GitHub's size limit.
+ * If the body exceeds PR_BODY_MAX_LENGTH, it is cut and an ellipsis marker is appended.
+ * Exported for testing and reuse by orchestration code.
+ */
+export function truncatePRBody(body: string): string {
+  if (body.length <= PR_BODY_MAX_LENGTH) return body;
+  return body.slice(0, PR_BODY_MAX_LENGTH) + PR_BODY_TRUNCATION_MARKER;
+}
+
 /**
  * Create a pull request on GitHub.
  */
@@ -136,6 +151,7 @@ export async function createPullRequest(
       body: options.body,
       head: options.head,
       base: options.base,
+      draft: options.draft,
     });
     return { number: data.number, url: data.html_url };
   } catch (error: unknown) {

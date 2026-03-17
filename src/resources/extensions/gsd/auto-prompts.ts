@@ -849,6 +849,28 @@ export async function buildCompleteMilestonePrompt(
 
   const milestoneSummaryPath = join(base, `${relMilestonePath(base, mid)}/${mid}-SUMMARY.md`);
 
+  // Build git automation guidance based on preferences
+  let gitAutomationGuidance = "";
+  try {
+    const prefs = loadEffectiveGSDPreferences();
+    const gitPrefs = prefs?.preferences?.git;
+    if (gitPrefs?.auto_push && gitPrefs?.auto_pr) {
+      gitAutomationGuidance = [
+        "## Git Automation",
+        "",
+        "After milestone completion, GSD will automatically push the milestone branch to remote and create a draft PR with your milestone summary as the body. CI check status will be reported. Do not perform manual git push or PR creation.",
+      ].join("\n");
+    } else if (gitPrefs?.auto_push) {
+      gitAutomationGuidance = [
+        "## Git Automation",
+        "",
+        "After milestone completion, GSD will push to remote automatically. No manual push needed.",
+      ].join("\n");
+    }
+  } catch {
+    // Preferences unavailable — omit guidance silently
+  }
+
   return loadPrompt("complete-milestone", {
     workingDirectory: base,
     milestoneId: mid,
@@ -856,6 +878,7 @@ export async function buildCompleteMilestonePrompt(
     roadmapPath: roadmapRel,
     inlinedContext,
     milestoneSummaryPath,
+    gitAutomationGuidance,
   });
 }
 

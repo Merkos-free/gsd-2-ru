@@ -109,7 +109,13 @@ import {
   mergeMilestoneToMain,
   autoWorktreeBranch,
 } from "./auto-worktree.js";
+import { createMilestonePR, fetchCICheckStatus, formatCICheckSummary } from "./milestone-pr.js";
+import { getRepoInfo } from "./github-client.js";
 import { pruneQueueOrder } from "./queue-order.js";
+import { isVercelLinked, vercelDeploy, waitForDeployReady } from "./deploy-service.js";
+import type { DeployPreferences } from "./deploy-service.js";
+import { runDeployVerification, writeDeployEvidence, buildDeployEvidence } from "./deploy-evidence.js";
+import type { DeployVerifyResult } from "./deploy-evidence.js";
 import { consumeSignal } from "./session-status-io.js";
 import { showNextAction } from "../shared/next-action-ui.js";
 import { debugLog, debugTime, debugCount, debugPeak, enableDebug, isDebugEnabled, writeDebugSummary, getDebugLogPath } from "./debug-logger.js";
@@ -227,6 +233,215 @@ function syncStateToProjectRoot(worktreePath: string, projectRoot: string, miles
       cpSync(srcRuntime, dstRuntime, { recursive: true, force: true });
     }
   } catch { /* non-fatal */ }
+}
+
+// ─── Deploy & Verify Chain ────────────────────────────────────────────────────
+// Runs after milestone merge + PR creation. Deploys to Vercel, waits for
+// readiness, optionally runs smoke tests, and writes evidence JSON.
+// Every external call is individually try/caught for graceful degradation.
+
+/**
+ * Run the deploy → readiness → smoke test → evidence chain.
+ *
+ * All failures degrade gracefully — deploy errors, readiness timeouts, and
+ * smoke test failures are logged but never block milestone completion.
+ *
+ * @param projectBasePath - Project root (for isVercelLinked, evidence writing)
+ * @param milestoneId - Active milestone ID (e.g. "M003")
+ * @param notify - Callback for UI notifications
+ */
+async function runDeployVerifyChain(
+  projectBasePath: string,
+  milestoneId: string,
+  notify: (msg: string, level: "info" | "warning" | "error") => void,
+): Promise<void> {
+  const chainStartMs = Date.now();
+
+  // Load deploy preferences
+  const deployPrefs: DeployPreferences | undefined = loadEffectiveGSDPreferences()?.preferences?.deploy;
+
+  // Gate: auto_deploy must be explicitly true
+  if (!deployPrefs || deployPrefs.auto_deploy !== true) {
+    return; // Silent skip — user hasn't opted in
+  }
+
+  // Gate: provider must be "vercel" (only supported provider)
+  if (deployPrefs.provider !== "vercel") {
+    return; // Silent skip — unsupported or unset provider
+  }
+
+  // Gate: project must be linked to Vercel
+  if (!isVercelLinked(projectBasePath)) {
+    notify(
+      "Project not linked to Vercel — run 'vercel link' first. Skipping deploy.",
+      "warning",
+    );
+    return;
+  }
+
+  const environment = deployPrefs.environment ?? "preview";
+  notify(`Deploying to Vercel (${environment})...`, "info");
+
+  // ── Step 1: Deploy ──────────────────────────────────────────────────────
+  let deployUrl: string | null = null;
+  let deployedAt: string = new Date().toISOString();
+
+  try {
+    const deployResult = vercelDeploy(projectBasePath, environment);
+    if (!deployResult) {
+      notify("Vercel deploy failed — check CLI output. Skipping deploy verification.", "warning");
+      return;
+    }
+    deployUrl = deployResult.url;
+    deployedAt = new Date().toISOString();
+    notify(`Deployed: ${deployUrl}`, "info");
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    if (msg.includes("ENOENT") || msg.includes("command not found")) {
+      notify("Vercel CLI not installed. Skipping deploy.", "warning");
+    } else if (msg.includes("auth") || msg.includes("credentials") || msg.includes("login")) {
+      notify("Vercel authentication required — run `vercel login`. Skipping deploy.", "warning");
+    } else {
+      notify(`Vercel deploy error: ${msg}. Skipping deploy verification.`, "warning");
+    }
+    return;
+  }
+
+  // ── Step 2: Wait for readiness ──────────────────────────────────────────
+  let isReady = false;
+  let readyAt: string = deployedAt;
+
+  try {
+    isReady = waitForDeployReady(deployUrl!, 120_000);
+    readyAt = new Date().toISOString();
+    if (isReady) {
+      notify(`Deployment ready: ${deployUrl}`, "info");
+    } else {
+      notify("Deployment not ready within 120s. Writing partial evidence.", "warning");
+    }
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    notify(`Readiness check error: ${msg}. Writing partial evidence.`, "warning");
+  }
+
+  // ── Step 3: Smoke tests (if configured and deployment is ready) ─────────
+  const smokeChecks = deployPrefs.smoke_checks ?? [];
+  let smokeResult: DeployVerifyResult | null = null;
+
+  if (isReady && smokeChecks.length > 0) {
+    try {
+      // Lazy import browser deps — only needed when smoke tests actually run.
+      // The browser-tools extension constructs ToolDeps at registration time;
+      // we import runVerifyFlow directly and create minimal deps for it.
+      const { runVerifyFlow } = await import("../browser-tools/tools/verify-flow.js");
+      const browserLifecycle = await import("../browser-tools/lifecycle.js");
+      const browserCapture = await import("../browser-tools/capture.js");
+      const browserSettle = await import("../browser-tools/settle.js");
+      const browserRefs = await import("../browser-tools/refs.js");
+      const browserUtils = await import("../browser-tools/utils.js");
+
+      const deps = {
+        ensureBrowser: browserLifecycle.ensureBrowser,
+        closeBrowser: browserLifecycle.closeBrowser,
+        getActivePage: browserLifecycle.getActivePage,
+        getActiveTarget: browserLifecycle.getActiveTarget,
+        getActivePageOrNull: browserLifecycle.getActivePageOrNull,
+        attachPageListeners: browserLifecycle.attachPageListeners,
+        captureCompactPageState: browserCapture.captureCompactPageState,
+        postActionSummary: browserCapture.postActionSummary,
+        constrainScreenshot: browserCapture.constrainScreenshot,
+        captureErrorScreenshot: browserCapture.captureErrorScreenshot,
+        formatCompactStateSummary: browserUtils.formatCompactStateSummary,
+        getRecentErrors: browserUtils.getRecentErrors,
+        settleAfterActionAdaptive: browserSettle.settleAfterActionAdaptive,
+        ensureMutationCounter: browserSettle.ensureMutationCounter,
+        buildRefSnapshot: browserRefs.buildRefSnapshot,
+        resolveRefTarget: browserRefs.resolveRefTarget,
+        parseRef: browserUtils.parseRef,
+        formatVersionedRef: browserUtils.formatVersionedRef,
+        staleRefGuidance: browserUtils.staleRefGuidance,
+        beginTrackedAction: browserUtils.beginTrackedAction,
+        finishTrackedAction: browserUtils.finishTrackedAction,
+        truncateText: browserUtils.truncateText,
+        verificationFromChecks: browserUtils.verificationFromChecks,
+        verificationLine: browserUtils.verificationLine,
+        collectAssertionState: (p: any, checks: any, target?: any) =>
+          browserUtils.collectAssertionState(p, checks, browserCapture.captureCompactPageState, target),
+        formatAssertionText: browserUtils.formatAssertionText,
+        formatDiffText: browserUtils.formatDiffText,
+        getUrlHash: browserUtils.getUrlHash,
+        captureClickTargetState: browserUtils.captureClickTargetState,
+        readInputLikeValue: browserUtils.readInputLikeValue,
+        firstErrorLine: browserUtils.firstErrorLine,
+        captureAccessibilityMarkdown: (selector?: string) =>
+          browserUtils.captureAccessibilityMarkdown(browserLifecycle.getActiveTarget(), selector),
+        resolveAccessibilityScope: browserUtils.resolveAccessibilityScope,
+        getLivePagesSnapshot: browserUtils.createGetLivePagesSnapshot(browserLifecycle.ensureBrowser),
+        getSinceTimestamp: browserUtils.getSinceTimestamp,
+        getConsoleEntriesSince: browserUtils.getConsoleEntriesSince,
+        getNetworkEntriesSince: browserUtils.getNetworkEntriesSince,
+        writeArtifactFile: browserUtils.writeArtifactFile,
+        copyArtifactFile: browserUtils.copyArtifactFile,
+        ensureSessionArtifactDir: browserUtils.ensureSessionArtifactDir,
+        buildSessionArtifactPath: browserUtils.buildSessionArtifactPath,
+        getSessionArtifactMetadata: browserUtils.getSessionArtifactMetadata,
+        sanitizeArtifactName: browserUtils.sanitizeArtifactName,
+        formatArtifactTimestamp: browserUtils.formatArtifactTimestamp,
+      } as any; // ToolDeps — assembled from lazy imports
+
+      smokeResult = await runDeployVerification(
+        deps,
+        runVerifyFlow,
+        deployUrl!,
+        smokeChecks,
+        milestoneId,
+      );
+
+      if (smokeResult.verdict === "PASS") {
+        notify(`Smoke tests passed (${smokeResult.steps} steps).`, "info");
+      } else {
+        notify(
+          `Smoke tests failed at step ${smokeResult.failedStepIndex}.${smokeResult.debugBundlePath ? ` Debug bundle: ${smokeResult.debugBundlePath}` : ""}`,
+          "warning",
+        );
+      }
+
+      // Clean up browser after smoke tests
+      try { await browserLifecycle.closeBrowser(); } catch { /* non-fatal */ }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      notify(`Smoke test error: ${msg}. Continuing without smoke results.`, "warning");
+    }
+  } else if (!isReady && smokeChecks.length > 0) {
+    notify("Skipping smoke tests — deployment not ready.", "warning");
+  }
+
+  // ── Step 4: Write evidence (always, even partial) ───────────────────────
+  try {
+    const totalDurationMs = Date.now() - chainStartMs;
+    const effectiveSmokeResult: DeployVerifyResult = smokeResult ?? {
+      verdict: isReady ? "PASS" : "FAIL",
+      steps: 0,
+      durationMs: 0,
+      ...(isReady ? {} : { failedStepIndex: undefined }),
+    };
+
+    const evidence = buildDeployEvidence({
+      milestoneId,
+      deployUrl: deployUrl!,
+      environment,
+      deployedAt,
+      readyAt,
+      smokeResult: effectiveSmokeResult,
+      totalDurationMs,
+    });
+
+    const evidencePath = writeDeployEvidence(projectBasePath, milestoneId, evidence);
+    notify(`Deploy evidence written: ${evidencePath}`, "info");
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    notify(`Failed to write deploy evidence: ${msg}`, "warning");
+  }
 }
 
 // ─── State ────────────────────────────────────────────────────────────────────
@@ -740,7 +955,6 @@ export async function pauseAuto(ctx?: ExtensionContext, _pi?: ExtensionAPI): Pro
   active = false;
   paused = true;
   pendingVerificationRetry = null;
-  verificationRetryCount.clear();
   // Preserve: unitDispatchCount, currentUnit, basePath, verbose, cmdCtx,
   // completedUnits, autoStartTime, currentMilestoneId, originalModelId
   // — all needed for resume and dashboard display
@@ -2196,9 +2410,68 @@ async function dispatchNextUnit(
           const roadmapContent = readFileSync(roadmapPath, "utf-8");
           const mergeResult = mergeMilestoneToMain(originalBasePath, currentMilestoneId, roadmapContent);
           ctx.ui.notify(
-            `Milestone ${currentMilestoneId} merged to main.${mergeResult.pushed ? " Pushed to remote." : ""}`,
+            `Milestone ${currentMilestoneId} merged to main.${mergeResult.pushed ? " Pushed to remote." : ""}${mergeResult.branchPushed ? " Milestone branch pushed." : ""}`,
             "info",
           );
+
+          // ── Draft PR creation (preference-gated) ──────────────────────
+          const gitPrefs = loadEffectiveGSDPreferences()?.preferences?.git ?? {};
+          if (mergeResult.branchPushed && gitPrefs.auto_pr === true) {
+            try {
+              // Load milestone summary for PR body
+              const summaryPath = resolveMilestoneFile(originalBasePath, currentMilestoneId, "SUMMARY");
+              const summaryContent = summaryPath ? readFileSync(summaryPath, "utf-8") : roadmapContent;
+              const milestoneTitle = parseRoadmap(roadmapContent).title.replace(/^M\d+:\s*/, "").trim() || currentMilestoneId;
+
+              const prOutcome = await createMilestonePR({
+                basePath: originalBasePath,
+                milestoneId: currentMilestoneId,
+                milestoneTitle,
+                summaryContent,
+                milestoneBranch: mergeResult.milestoneBranch,
+                integrationBranch: mergeResult.integrationBranch,
+              });
+
+              if (prOutcome.warning) {
+                ctx.ui.notify(prOutcome.warning, "warning");
+              }
+              if (prOutcome.result) {
+                ctx.ui.notify(
+                  `Draft PR #${prOutcome.result.number} created: ${prOutcome.result.url}`,
+                  "info",
+                );
+
+                // Fetch CI check status (best-effort)
+                try {
+                  const repoInfo = await getRepoInfo(originalBasePath);
+                  if (repoInfo) {
+                    const ciResult = fetchCICheckStatus(prOutcome.result.number, repoInfo.owner, repoInfo.repo);
+                    if (ciResult.warning) {
+                      ctx.ui.notify(ciResult.warning, "info");
+                    }
+                    if (ciResult.checks) {
+                      ctx.ui.notify(formatCICheckSummary(ciResult.checks), "info");
+                    }
+                  }
+                } catch {
+                  // CI check fetch is strictly best-effort
+                }
+              }
+            } catch (prErr) {
+              ctx.ui.notify(
+                `PR creation failed: ${prErr instanceof Error ? prErr.message : String(prErr)}`,
+                "warning",
+              );
+            }
+          } else if (gitPrefs.auto_pr === true && !mergeResult.branchPushed) {
+            ctx.ui.notify(
+              "Failed to push milestone branch — skipping PR creation.",
+              "warning",
+            );
+          }
+
+          // ── Deploy & Verify (preference-gated) ──────────────────────────
+          await runDeployVerifyChain(originalBasePath, currentMilestoneId, (msg, level) => ctx.ui.notify(msg, level));
         } else {
           // No roadmap found — teardown worktree without merge
           teardownAutoWorktree(originalBasePath, currentMilestoneId);
@@ -2388,6 +2661,10 @@ async function dispatchNextUnit(
         );
       }
     }
+
+    // ── Deploy & Verify (preference-gated) ──────────────────────────────
+    await runDeployVerifyChain(originalBasePath || basePath, mid, (msg, level) => ctx.ui.notify(msg, level));
+
     sendDesktopNotification("GSD", `Milestone ${mid} complete!`, "success", "milestone");
     await stopAuto(ctx, pi, `Milestone ${mid} complete`);
     return;

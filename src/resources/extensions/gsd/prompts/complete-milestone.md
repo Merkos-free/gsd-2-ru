@@ -12,6 +12,8 @@ All slices are done. You are closing out the milestone — verifying that the as
 
 All relevant context has been preloaded below — the roadmap, all slice summaries, requirements, decisions, and project context are inlined. Start working immediately without re-reading these files.
 
+{{gitAutomationGuidance}}
+
 {{inlinedContext}}
 
 Then:

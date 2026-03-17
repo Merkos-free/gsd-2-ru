@@ -4,6 +4,7 @@ import { isAbsolute, join } from "node:path";
 import { getAgentDir } from "@gsd/pi-coding-agent";
 import { parse as parseYaml } from "yaml";
 import type { GitPreferences } from "./git-service.js";
+import type { DeployPreferences } from "./deploy-service.js";
 import type { PostUnitHookConfig, PreDispatchHookConfig, BudgetEnforcementMode, NotificationPreferences, TokenProfile, InlineLevel, PhaseSkipPreferences } from "./types.js";
 import type { DynamicRoutingConfig } from "./model-router.js";
 import { defaultRoutingConfig } from "./model-router.js";
@@ -79,6 +80,7 @@ const KNOWN_PREFERENCE_KEYS = new Set<string>([
   "verification_commands",
   "verification_auto_fix",
   "verification_max_retries",
+  "deploy",
 ]);
 
 export interface GSDSkillRule {
@@ -179,6 +181,7 @@ export interface GSDPreferences {
   verification_commands?: string[];
   verification_auto_fix?: boolean;
   verification_max_retries?: number;
+  deploy?: DeployPreferences;
 }
 
 export interface LoadedGSDPreferences {
@@ -782,6 +785,9 @@ function mergePreferences(base: GSDPreferences, override: GSDPreferences): GSDPr
     verification_commands: mergeStringLists(base.verification_commands, override.verification_commands),
     verification_auto_fix: override.verification_auto_fix ?? base.verification_auto_fix,
     verification_max_retries: override.verification_max_retries ?? base.verification_max_retries,
+    deploy: (base.deploy || override.deploy)
+      ? { ...(base.deploy ?? {}), ...(override.deploy ?? {}) }
+      : undefined,
   };
 }
 
@@ -1246,6 +1252,48 @@ export function validatePreferences(preferences: GSDPreferences): {
     }
   }
 
+  // ─── Deploy Preferences ──────────────────────────────────────────────────
+  if (preferences.deploy && typeof preferences.deploy === "object") {
+    const deploy: Record<string, unknown> = {};
+    const d = preferences.deploy as Record<string, unknown>;
+
+    if (d.provider !== undefined) {
+      if (d.provider === "vercel") deploy.provider = "vercel";
+      else errors.push('deploy.provider must be "vercel"');
+    }
+    if (d.auto_deploy !== undefined) {
+      if (typeof d.auto_deploy === "boolean") deploy.auto_deploy = d.auto_deploy;
+      else errors.push("deploy.auto_deploy must be a boolean");
+    }
+    if (d.environment !== undefined) {
+      const validEnvs = new Set(["preview", "production"]);
+      if (typeof d.environment === "string" && validEnvs.has(d.environment)) {
+        deploy.environment = d.environment;
+      } else {
+        errors.push('deploy.environment must be one of: preview, production');
+      }
+    }
+    if (d.smoke_checks !== undefined) {
+      if (Array.isArray(d.smoke_checks) && d.smoke_checks.every((s: unknown) => typeof s === "string")) {
+        deploy.smoke_checks = d.smoke_checks;
+      } else {
+        errors.push("deploy.smoke_checks must be an array of strings");
+      }
+    }
+
+    // Warn on unknown deploy keys
+    const knownDeployKeys = new Set(["provider", "auto_deploy", "environment", "smoke_checks"]);
+    for (const key of Object.keys(d)) {
+      if (!knownDeployKeys.has(key)) {
+        warnings.push(`unknown deploy key "${key}" — ignored`);
+      }
+    }
+
+    if (Object.keys(deploy).length > 0) {
+      validated.deploy = deploy as DeployPreferences;
+    }
+  }
+
   // ─── Git Preferences ───────────────────────────────────────────────────
   if (preferences.git && typeof preferences.git === "object") {
     const git: Record<string, unknown> = {};
@@ -1254,6 +1302,10 @@ export function validatePreferences(preferences: GSDPreferences): {
     if (g.auto_push !== undefined) {
       if (typeof g.auto_push === "boolean") git.auto_push = g.auto_push;
       else errors.push("git.auto_push must be a boolean");
+    }
+    if (g.auto_pr !== undefined) {
+      if (typeof g.auto_pr === "boolean") git.auto_pr = g.auto_pr;
+      else errors.push("git.auto_pr must be a boolean");
     }
     if (g.push_branches !== undefined) {
       if (typeof g.push_branches === "boolean") git.push_branches = g.push_branches;

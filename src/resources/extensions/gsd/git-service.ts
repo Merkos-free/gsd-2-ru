@@ -35,6 +35,7 @@ import { GSDError, GSD_MERGE_CONFLICT } from "./errors.js";
 
 export interface GitPreferences {
   auto_push?: boolean;
+  auto_pr?: boolean;
   push_branches?: boolean;
   remote?: string;
   snapshots?: boolean;

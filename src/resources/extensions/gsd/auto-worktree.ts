@@ -387,6 +387,28 @@ function autoCommitDirtyState(cwd: string): boolean {
 }
 
 /**
+ * Push a git branch to a remote. Returns true on success, false on failure.
+ * Wraps `git push` in try/catch — failure is always non-fatal.
+ */
+export function pushBranchToRemote(basePath: string, branch: string, remote: string = "origin"): boolean {
+  // Validate remote/branch to prevent command injection
+  const safeNamePattern = /^[a-zA-Z0-9._\-/]+$/;
+  if (!safeNamePattern.test(remote) || !safeNamePattern.test(branch)) {
+    return false;
+  }
+  try {
+    execFileSync("git", ["push", remote, branch], {
+      cwd: basePath,
+      stdio: ["ignore", "pipe", "pipe"],
+      encoding: "utf-8",
+    });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Squash-merge the milestone branch into main with a rich commit message
  * listing all completed slices, then tear down the worktree.
  *
@@ -394,12 +416,13 @@ function autoCommitDirtyState(cwd: string): boolean {
  *  1. Auto-commit dirty worktree state
  *  2. chdir to originalBasePath
  *  3. git checkout main
- *  4. git merge --squash milestone/<MID>
- *  5. git commit with rich message
- *  6. Auto-push if enabled
- *  7. Delete milestone branch
- *  8. Remove worktree directory
- *  9. Clear originalBase
+ *  4. (If auto_push) Push milestone branch to remote (pre-merge, for PR creation)
+ *  5. git merge --squash milestone/<MID>
+ *  6. git commit with rich message
+ *  7. Auto-push integration branch if enabled
+ *  8. Delete milestone branch
+ *  9. Remove worktree directory
+ * 10. Clear originalBase
  *
  * On merge conflict: throws MergeConflictError.
  * On "nothing to commit" after squash: handles gracefully (no error).
@@ -408,7 +431,7 @@ export function mergeMilestoneToMain(
   originalBasePath_: string,
   milestoneId: string,
   roadmapContent: string,
-): { commitMessage: string; pushed: boolean } {
+): { commitMessage: string; pushed: boolean; branchPushed: boolean; milestoneBranch: string; integrationBranch: string } {
   const worktreeCwd = process.cwd();
   const milestoneBranch = autoWorktreeBranch(milestoneId);
 
@@ -453,6 +476,13 @@ export function mergeMilestoneToMain(
     body = `\n\nCompleted slices:\n${sliceLines}\n\nBranch: ${milestoneBranch}`;
   }
   const commitMessage = subject + body;
+
+  // 6b. Pre-merge: push milestone branch to remote (for PR creation)
+  let branchPushed = false;
+  if (prefs.auto_push === true) {
+    const remote = prefs.remote ?? "origin";
+    branchPushed = pushBranchToRemote(originalBasePath_, milestoneBranch, remote);
+  }
 
   // 7. Squash merge — auto-resolve .gsd/ state file conflicts (#530)
   const mergeResult = nativeMergeSquash(originalBasePath_, milestoneBranch);
@@ -531,5 +561,5 @@ export function mergeMilestoneToMain(
   originalBase = null;
   nudgeGitBranchCache(previousCwd);
 
-  return { commitMessage, pushed };
+  return { commitMessage, pushed, branchPushed, milestoneBranch, integrationBranch: mainBranch };
 }
