@@ -7,6 +7,7 @@ import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { join, basename } from "node:path";
 import type { AuditWarning, RuntimeError, VerificationCheck, VerificationResult } from "./types.js";
+import { DEFAULT_COMMAND_TIMEOUT_MS } from "./constants.js";
 
 /** Maximum bytes of stdout/stderr to retain per command (10 KB). */
 const MAX_OUTPUT_BYTES = 10 * 1024;
@@ -151,9 +152,6 @@ function sanitizeCommand(cmd: string): string | null {
   if (SHELL_INJECTION_PATTERN.test(cmd)) return null;
   return cmd;
 }
-
-/** Default timeout for verification commands (ms). */
-const DEFAULT_COMMAND_TIMEOUT_MS = 120_000;
 
 export interface RunVerificationGateOptions {
   basePath: string;

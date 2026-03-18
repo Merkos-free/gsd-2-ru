@@ -62,6 +62,7 @@ import { Text } from "@gsd/pi-tui";
 import { pauseAutoForProviderError, classifyProviderError } from "./provider-error-pause.js";
 import { toPosixPath } from "../shared/path-display.js";
 import { isParallelActive, shutdownParallel } from "./parallel-orchestrator.js";
+import { DEFAULT_BASH_TIMEOUT_SECS } from "./constants.js";
 
 // ── Agent Instructions ────────────────────────────────────────────────────
 // Lightweight "always follow" files injected into every GSD agent session.
@@ -171,7 +172,6 @@ export default function (pi: ExtensionAPI) {
   // the timeout parameter, commands run indefinitely, causing hangs on
   // Windows where process killing is unreliable (see #40). We wrap execute
   // to inject a 120-second default when no timeout is provided.
-  const DEFAULT_BASH_TIMEOUT_SECS = 120;
   const baseBash = createBashTool(process.cwd(), {
     spawnHook: (ctx) => ({ ...ctx, cwd: process.cwd() }),
   });

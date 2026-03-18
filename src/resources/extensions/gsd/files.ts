@@ -23,10 +23,9 @@ import { checkExistingEnvKeys } from '../get-secrets-from-user.js';
 import { parseRoadmapSlices } from './roadmap-slices.js';
 import { nativeParseRoadmap, nativeExtractSection, nativeParsePlanFile, nativeParseSummaryFile, NATIVE_UNAVAILABLE } from './native-parser-bridge.js';
 import { debugTime, debugCount } from './debug-logger.js';
+import { CACHE_MAX } from './constants.js';
 
 // ─── Parse Cache ──────────────────────────────────────────────────────────
-
-const CACHE_MAX = 50;
 
 /** Fast composite key: length + first/mid/last 100 chars. The middle sample
  *  prevents collisions when only a few characters change in the interior of
