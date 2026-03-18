@@ -94,11 +94,13 @@ export function createReplayStream(recording: FixtureRecording): Iterator<Fixtur
 export class FixtureRecorder {
   private turns: FixtureTurn[] = [];
   private files: FixtureFile[] = [];
+  private name: string;
+  private description?: string;
 
-  constructor(
-    private name: string,
-    private description?: string,
-  ) {}
+  constructor(name: string, description?: string) {
+    this.name = name;
+    this.description = description;
+  }
 
   addTurn(turn: FixtureTurn): void {
     this.turns.push(turn);
