@@ -178,11 +178,13 @@ jobs:
             --latest
 
       - name: Post to Discord
-        if: ${{ secrets.DISCORD_CHANGELOG_WEBHOOK != '' }}
+        if: ${{ env.DISCORD_WEBHOOK != '' }}
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_CHANGELOG_WEBHOOK }}
         run: |
           VERSION="${{ steps.release.outputs.version }}"
           NOTES=$(cat /tmp/release-notes.md)
-          curl -s -X POST "${{ secrets.DISCORD_CHANGELOG_WEBHOOK }}" \
+          curl -s -X POST "$DISCORD_WEBHOOK" \
             -H "Content-Type: application/json" \
             -d "$(jq -n --arg c "**GSD v${VERSION} Released**\n\n${NOTES}\n\n\`npm i gsd-pi@${VERSION}\`" '{content:$c}')"
 
