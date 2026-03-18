@@ -112,7 +112,9 @@ const MAX_FAILURE_CONTEXT_CHARS = 10_000;
  * Returns an empty string when all checks pass or the checks array is empty.
  */
 export function formatFailureContext(result: VerificationResult): string {
-  const failures = result.checks.filter((c) => c.exitCode !== 0);
+  // Only include blocking failures in retry context — non-blocking (advisory) failures
+  // should not be injected into retry prompts to avoid noise pollution.
+  const failures = result.checks.filter((c) => c.exitCode !== 0 && c.blocking);
   if (failures.length === 0) return "";
 
   const blocks: string[] = [];
@@ -256,6 +258,10 @@ export function runVerificationGate(options: RunVerificationGateOptions): Verifi
     };
   }
 
+  // Commands from preference and task-plan sources are blocking;
+  // package-json discovered commands are advisory (non-blocking).
+  const blocking = source === "preference" || source === "task-plan";
+
   const checks: VerificationCheck[] = [];
 
   for (const command of commands) {
@@ -291,11 +297,16 @@ export function runVerificationGate(options: RunVerificationGateOptions): Verifi
       stdout: truncate(result.stdout, MAX_OUTPUT_BYTES),
       stderr,
       durationMs,
+      blocking,
     });
   }
 
+  // Gate passes if all blocking checks pass (non-blocking failures are advisory)
+  const blockingChecks = checks.filter(c => c.blocking);
+  const passed = blockingChecks.length === 0 || blockingChecks.every(c => c.exitCode === 0);
+
   return {
-    passed: checks.every(c => c.exitCode === 0),
+    passed,
     checks,
     discoverySource: source,
     timestamp,

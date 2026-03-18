@@ -105,18 +105,38 @@ export async function runPostUnitVerification(
     const completionKey = `${s.currentUnit.type}/${s.currentUnit.id}`;
 
     if (result.checks.length > 0) {
-      const passCount = result.checks.filter(c => c.exitCode === 0).length;
-      const total = result.checks.length;
+      const blockingChecks = result.checks.filter(c => c.blocking);
+      const advisoryChecks = result.checks.filter(c => !c.blocking);
+      const blockingPassCount = blockingChecks.filter(c => c.exitCode === 0).length;
+      const advisoryFailCount = advisoryChecks.filter(c => c.exitCode !== 0).length;
+
       if (result.passed) {
-        ctx.ui.notify(`Verification gate: ${passCount}/${total} checks passed`);
+        let msg = blockingChecks.length > 0
+          ? `Verification gate: ${blockingPassCount}/${blockingChecks.length} blocking checks passed`
+          : `Verification gate: passed (no blocking checks)`;
+        if (advisoryFailCount > 0) {
+          msg += ` (${advisoryFailCount} advisory warning${advisoryFailCount > 1 ? "s" : ""})`;
+        }
+        ctx.ui.notify(msg);
+        // Log advisory warnings to stderr for visibility
+        if (advisoryFailCount > 0) {
+          const advisoryFailures = advisoryChecks.filter(c => c.exitCode !== 0);
+          process.stderr.write(`verification-gate: ${advisoryFailCount} advisory (non-blocking) failure(s)\n`);
+          for (const f of advisoryFailures) {
+            process.stderr.write(`  [advisory] ${f.command} exited ${f.exitCode}\n`);
+          }
+        }
       } else {
-        const failures = result.checks.filter(c => c.exitCode !== 0);
-        const failNames = failures.map(f => f.command).join(", ");
+        const blockingFailures = blockingChecks.filter(c => c.exitCode !== 0);
+        const failNames = blockingFailures.map(f => f.command).join(", ");
         ctx.ui.notify(`Verification gate: FAILED — ${failNames}`);
-        process.stderr.write(`verification-gate: ${total - passCount}/${total} checks failed\n`);
-        for (const f of failures) {
+        process.stderr.write(`verification-gate: ${blockingFailures.length}/${blockingChecks.length} blocking checks failed\n`);
+        for (const f of blockingFailures) {
           process.stderr.write(`  ${f.command} exited ${f.exitCode}\n`);
           if (f.stderr) process.stderr.write(`  stderr: ${f.stderr.slice(0, 500)}\n`);
+        }
+        if (advisoryFailCount > 0) {
+          process.stderr.write(`verification-gate: ${advisoryFailCount} additional advisory (non-blocking) failure(s)\n`);
         }
       }
     }

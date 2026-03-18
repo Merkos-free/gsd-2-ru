@@ -55,6 +55,7 @@ export interface VerificationCheck {
   stdout: string;
   stderr: string;
   durationMs: number;
+  blocking: boolean;     // true for preference/task-plan sources, false for package-json (advisory only)
 }
 
 /** A runtime error captured from bg-shell processes or browser console */
