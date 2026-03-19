@@ -1,8 +1,8 @@
-# Persistent UI Elements
+# Постоянные элементы UI
 
-These stay on screen until explicitly cleared:
+Они остаются на экране до тех пор, пока не будут явно удалены:
 
-### Status (Footer)
+### Статус (нижний колонтитул)
 
 ```typescript
 // Set (persists until cleared or overwritten)
@@ -13,9 +13,9 @@ ctx.ui.setStatus("my-ext", ctx.ui.theme.fg("accent", "● Mode: Plan"));
 ctx.ui.setStatus("my-ext", undefined);
 ```
 
-Multiple extensions can set independent status entries. They appear in the footer.
+Несколько расширений могут устанавливать независимые записи статуса. Они появляются в нижнем колонтитуле.
 
-### Widgets (Above/Below Editor)
+### Виджеты (над/ниже редактора)
 
 ```typescript
 // Simple string array (above editor, default)
@@ -41,14 +41,14 @@ ctx.ui.setWidget("my-widget", (_tui, theme) => {
 ctx.ui.setWidget("my-widget", undefined);
 ```
 
-### Working Message (During Streaming)
+### Рабочее сообщение (во время потоковой передачи)
 
 ```typescript
 ctx.ui.setWorkingMessage("Analyzing code structure...");
 ctx.ui.setWorkingMessage();  // Restore default
 ```
 
-### Custom Footer (Full Replacement)
+### Пользовательский нижний колонтитул (полная замена)
 
 ```typescript
 ctx.ui.setFooter((tui, theme, footerData) => ({
@@ -69,12 +69,12 @@ ctx.ui.setFooter((tui, theme, footerData) => ({
 ctx.ui.setFooter(undefined);
 ```
 
-**`footerData` provides:**
-- `getGitBranch(): string | null` — current git branch (not accessible through any other API)
-- `getExtensionStatuses(): ReadonlyMap<string, string>` — all `setStatus` values
-- `onBranchChange(callback): () => void` — subscribe to branch changes, returns dispose function
+**`footerData` обеспечивает:**
+- `getGitBranch(): string | null` — текущая ветка git (недоступна через любой другой API)
+- `getExtensionStatuses(): ReadonlyMap<string, string>` — все значения `setStatus`
+- `onBranchChange(callback): () => void` — подписаться на изменения ветки, возвращает функцию удаления
 
-### Custom Header
+### Пользовательский заголовок
 
 ```typescript
 ctx.ui.setHeader((tui, theme) => ({
@@ -85,7 +85,7 @@ ctx.ui.setHeader((tui, theme) => ({
 }));
 ```
 
-### Editor Control
+### Управление редактором
 
 ```typescript
 // Set editor text
@@ -106,7 +106,7 @@ ctx.ui.setToolsExpanded(false);  // Collapse all
 ctx.ui.setTitle("pi - my project");
 ```
 
-### Theme Management
+### Управление темами
 
 ```typescript
 const themes = ctx.ui.getAllThemes();       // [{ name: "dark", path: ... }, ...]

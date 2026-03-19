@@ -1,38 +1,38 @@
-# What to Keep & Discard from Human Engineering
+# Что оставить и выбросить из Человеческой инженерии
 
-### KEEP & Amplify
+### KEEP и усиление
 
-| Practice | Why It Matters More for AI |
+| Практика | Почему это важно для AI |
 |----------|---------------------------|
-| **Clear product intent & experience specs** | AI needs direction, not instructions. "How should it feel?" drives architecture. |
-| **Acceptance criteria as the backbone** | Becomes TDD at its logical extreme — human writes tests in natural language, AI makes them true. |
-| **Vertical slicing** | Even more critical — prevents AI from going deep down a wrong path fast and confidently. |
-| **Interface-first approach** | Creates natural checkpoints, makes systems modular and replaceable. |
-| **Explicit constraints & non-functional requirements** | Narrows the search space. Without them AI may produce technically correct but strategically wrong systems. |
-| **Architecture Decision Records (ADRs)** | Prevents AI from "accidentally" undoing decisions made weeks ago. |
-| **Feedback loops** | Build → test → observe → refine. Accelerated to machine speed. |
+| **Четкое описание назначения продукта и его характеристик** | AI требует направления, а не инструкций. «Каково это должно быть?» движет архитектурой. |
+| **Критерии приемки в качестве основы** | В своей логической крайности становится TDD — человек пишет тесты на естественном языке, AI делает их верными. |
+| **Вертикальная нарезка** | Еще более важно — не позволяет AI быстро и уверенно идти по неверному пути. |
+| **Подход, ориентированный на интерфейс** | Создает естественные контрольно-пропускные пункты, делает системы модульными и заменяемыми. |
+| **Явные ограничения и нефункциональные требования** | Сужает пространство поиска. Без них AI может создать технически правильные, но стратегически неправильные системы. |
+| **Записи архитектурных решений (ADRs)** | Предотвращает AI от «случайной» отмены решений, принятых несколько недель назад. |
+| **Петли обратной связи** | Сборка → тестирование → наблюдение → доработка. Разогнался до скорости машины. |
 
 ### DISCARD
 
-| Practice | Why It's Dead Weight |
+| Практика | Почему это мертвый груз |
 |----------|---------------------|
-| **Estimation rituals** (story points, velocity, sprint planning) | AI doesn't get tired, doesn't context-switch, works at machine speed. |
-| **Communication overhead** (standups, design reviews, PR reviews) | Only one communication channel matters: human ↔ agent. |
-| **Manual code review for style** | Automated linting + formatting handles this deterministically. |
-| **Step-by-step instructions** | Provide outcomes, not "how." |
-| **Heavy upfront documentation** | AI can read the entire repo instantly. Document *intent* and *why*, not *how*. |
-| **Gradual skill-building** | No ramp-up, no knowledge silos, no "only Sarah knows how that module works." |
-| **Defensive architecture against human error** | Tests still needed, but for a different reason: verifying AI's interpretation of intent. |
+| **Ритуалы оценки** (сюжетные баллы, скорость, планирование спринта) | AI не устает, не переключает контекст, работает на машинной скорости. |
+| **Коммуникационные издержки** (стендапы, обзоры дизайна, обзоры PR) | Имеет значение только один канал связи: человек ↔ агент. |
+| **Ручная проверка кода на предмет стиля** | Автоматическая проверка + форматирование решает эту проблему детерминированно. |
+| **Пошаговые инструкции** | Предоставляйте результаты, а не «как». |
+| **Тяжелая предварительная документация** | AI может мгновенно прочитать весь репозиторий. Документируйте *намерение* и *почему*, а не *как*. |
+| **Постепенное развитие навыков** | Никаких наращиваний мощности, никаких разрозненных знаний, никакого «только Сара знает, как работает этот модуль». |
+| **Защитная архитектура от человеческих ошибок** | Тесты по-прежнему необходимы, но по другой причине: проверка интерпретации намерений AI. |
 
-### The New Human Role
+### Новая роль человека
 
-| Responsibility | Description |
+| Ответственность | Описание |
 |---------------|-------------|
-| **Defining "good"** | Vision, personas, experience specs, success metrics |
-| **Taste & judgment** | Aesthetics, emotional experience, brand voice |
-| **Strategic decisions** | Which problems matter, product pivots |
-| **Gut checks at milestones** | Does this *feel* right? |
+| **Определение понятия «хорошо»** | Видение, персонажи, характеристики опыта, показатели успеха |
+| **Вкус и суждение** | Эстетика, эмоциональный опыт, голос бренда |
+| **Стратегические решения** | Какие проблемы имеют значение, меняется продукт |
+| **Проверка внутренних органов на контрольных этапах** | Это *ощущается* правильно? |
 
-> **The core shift:** Human = intention + taste. AI = exploration + execution.
+> **Основной сдвиг:** Человек = намерение + вкус. AI = исследование + выполнение.
 
 ---

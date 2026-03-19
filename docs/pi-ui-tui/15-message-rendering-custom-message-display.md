@@ -1,6 +1,6 @@
-# Message Rendering — Custom Message Display
+# Рендеринг сообщений — отображение настраиваемых сообщений
 
-Register a renderer for messages with your `customType`:
+Зарегистрируйте средство визуализации для сообщений с помощью `customType`:
 
 ```typescript
 import { Text } from "@mariozechner/pi-tui";
@@ -19,7 +19,7 @@ pi.registerMessageRenderer("my-extension", (message, options, theme) => {
 });
 ```
 
-Send messages that use this renderer:
+Отправляйте сообщения, использующие этот рендерер:
 
 ```typescript
 pi.sendMessage({

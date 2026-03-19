@@ -43,47 +43,47 @@ export function loadAndValidateAnswerFile(path: string): AnswerFile {
   try {
     parsed = JSON.parse(raw)
   } catch {
-    throw new Error(`Invalid JSON in answer file: ${path}`)
+    throw new Error(`Некорректный JSON в файле ответов: ${path}`)
   }
 
   if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
-    throw new Error('Answer file must be a JSON object')
+    throw new Error('Файл ответов должен быть JSON-объектом')
   }
 
   const obj = parsed as Record<string, unknown>
 
   if (obj.questions !== undefined) {
     if (typeof obj.questions !== 'object' || obj.questions === null || Array.isArray(obj.questions)) {
-      throw new Error('Answer file "questions" must be an object')
+      throw new Error('Поле "questions" в файле ответов должно быть объектом')
     }
     const questions = obj.questions as Record<string, unknown>
     for (const [key, value] of Object.entries(questions)) {
       if (typeof value === 'string') continue
       if (Array.isArray(value) && value.every((v) => typeof v === 'string')) continue
-      throw new Error(`Answer file "questions.${key}" must be a string or string[]`)
+      throw new Error(`Поле "questions.${key}" в файле ответов должно быть строкой или string[]`)
     }
   }
 
   if (obj.secrets !== undefined) {
     if (typeof obj.secrets !== 'object' || obj.secrets === null || Array.isArray(obj.secrets)) {
-      throw new Error('Answer file "secrets" must be an object')
+      throw new Error('Поле "secrets" в файле ответов должно быть объектом')
     }
     const secrets = obj.secrets as Record<string, unknown>
     for (const [key, value] of Object.entries(secrets)) {
       if (typeof value !== 'string') {
-        throw new Error(`Answer file "secrets.${key}" must be a string`)
+        throw new Error(`Поле "secrets.${key}" в файле ответов должно быть строкой`)
       }
     }
   }
 
   if (obj.defaults !== undefined) {
     if (typeof obj.defaults !== 'object' || obj.defaults === null || Array.isArray(obj.defaults)) {
-      throw new Error('Answer file "defaults" must be an object')
+      throw new Error('Поле "defaults" в файле ответов должно быть объектом')
     }
     const defaults = obj.defaults as Record<string, unknown>
     if (defaults.strategy !== undefined) {
       if (defaults.strategy !== 'first_option' && defaults.strategy !== 'cancel') {
-        throw new Error('Answer file "defaults.strategy" must be "first_option" or "cancel"')
+        throw new Error('Поле "defaults.strategy" в файле ответов должно быть "first_option" или "cancel"')
       }
     }
   }
@@ -216,7 +216,7 @@ export class AnswerInjector {
     if (this.answerFile.questions) {
       for (const id of Object.keys(this.answerFile.questions)) {
         if (!this.usedQuestionIds.has(id)) {
-          warnings.push(`[answers] Warning: question ID '${id}' was never matched`)
+          warnings.push(`[answers] Предупреждение: ID вопроса '${id}' ни разу не был сопоставлен`)
         }
       }
     }
@@ -224,7 +224,7 @@ export class AnswerInjector {
     if (this.answerFile.secrets) {
       for (const key of Object.keys(this.answerFile.secrets)) {
         if (!this.usedSecretKeys.has(key)) {
-          warnings.push(`[answers] Warning: secret '${key}' was provided but never requested`)
+          warnings.push(`[answers] Предупреждение: секрет '${key}' был передан, но ни разу не запрошен`)
         }
       }
     }

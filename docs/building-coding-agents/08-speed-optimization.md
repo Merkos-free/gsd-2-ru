@@ -1,60 +1,60 @@
-# Speed Optimization
+# Оптимизация скорости
 
-### The #1 Speed Principle
+### Принцип скорости №1
 
-> The fastest possible operation is the one you don't perform. Before optimizing any step, ask: does this step need to exist at all?
+> Самая быстрая из возможных операций — та, которую вы не выполняете. Прежде чем оптимизировать какой-либо шаг, задайте себе вопрос: нужен ли этот шаг вообще?
 
-### Speed Levers (Ranked by Impact)
+### Рычаги скорости (ранжируются по удару)
 
-#### 1. Minimize LLM Calls
-- **Batch intent into single calls.** Don't generate code, then tests, then docs separately. One call: "implement, test, and document." TypeScript splits the output.
-- **Deterministic fast paths.** Missing import? Syntax error? Fix without an LLM call if the fix is mechanical.
-- Audit call chains ruthlessly — most systems have 50%+ unnecessary sequential calls.
+#### 1. Сведите к минимуму звонки LLM
+- **Объедините намерения в отдельные вызовы.** Не создавайте код, затем тесты и документацию по отдельности. Один звонок: «внедрить, протестировать и задокументировать». TypeScript разделяет вывод.
+- **Детерминированные быстрые пути.** Отсутствует импорт? Синтаксическая ошибка? Исправьте без вызова LLM, если исправление механическое.
+- Безжалостно проверяйте цепочки вызовов — в большинстве систем более 50% ненужных последовательных вызовов.
 
-#### 2. Make Feedback Loops Instantaneous
-- Use test watch mode (no cold start)
-- Run only relevant test subsets (track which files affect which tests)
-- Incremental builds (hot module reloading)
-- Async, non-blocking file writes
+#### 2. Сделайте циклы обратной связи мгновенными
+- Используйте режим тестового просмотра (без холодного запуска)
+- Запускать только соответствующие подмножества тестов (отслеживать, какие файлы на какие тесты влияют)
+- Инкрементные сборки (горячая перезагрузка модуля)
+- Асинхронная, неблокирующая запись файлов
 
-#### 3. Precompute Context
-- Predict what the agent will need based on task definition
-- Pre-load into the prompt — no tool calls needed mid-generation
-- **Speculative pre-fetching** (like CPU cache prefetching)
+#### 3. Контекст предварительного вычисления
+- Прогнозируйте, что понадобится агенту, на основе определения задачи.
+- Предварительная загрузка в командную строку — в середине поколения не требуются вызовы инструментов.
+- **Спекулятивная предварительная выборка** (например, предварительная выборка из кэша CPU).
 
-#### 4. Parallelize Independent Work
-- Minimize startup cost for new parallel agents (pre-built templates, warm connections)
-- Use the dependency graph to identify independent work automatically
+#### 4. Распараллеливайте независимую работу
+- Минимизация затрат на запуск новых параллельных агентов (предварительно созданные шаблоны, теплые соединения)
+- Используйте график зависимостей для автоматического определения независимой работы.
 
-#### 5. Stream Everything, Block on Nothing
-- Process tokens as they arrive
-- Pipeline parallelism: start formatting code while commit message is still generating
+#### 5. Транслируйте все, ничего не блокируя
+- Обрабатывать токены по мере их поступления
+- Конвейерный параллелизм: начните форматирование кода, пока сообщение фиксации все еще генерируется.
 
-#### 6. Cache Aggressively
-- In-memory cache of everything agent might need
-- Cross-task caching for unchanged files
-- Cache LLM results for deterministic inputs (boilerplate, type definitions)
+#### 6. Агрессивно кэшируйте
+- Кэш в памяти всего, что может понадобиться агенту.
+- Межзадачное кэширование неизмененных файлов.
+- Кэшировать результаты LLM для детерминированных входных данных (шаблон, определения типов).
 
-#### 7. Minimize Token Waste
-- Dense context, not verbose context
-- Structured formats for structured data
-- Minify reference code that's informational, not for modification
+#### 7. Минимизируйте потери токенов
+- Плотный контекст, а не многословный контекст.
+- Структурированные форматы для структурированных данных.
+- Уменьшите ссылочный код, который носит информационный характер, а не для модификации.
 
-### Anti-Patterns That Murder Speed
+### Антипаттерны, снижающие скорость убийства
 
-| Anti-Pattern | Fix |
+| Анти-паттерн | Исправить |
 |-------------|-----|
-| Re-verifying things that can't have changed | Dependency-aware selective re-verification |
-| Excessive self-reflection on simple tasks | Complexity-based workflow routing |
-| Over-summarization between micro-steps | Only full context reset at task boundaries |
-| Waiting for human approval on auto-verifiable work | Human checkpoints at milestones, not tasks |
-| Quadratic history growth | Aggressive compression at every transition |
-| Synchronous blocking tools | Async everything, pipeline parallelism |
+| Повторная проверка того, что нельзя было изменить | Выборочная повторная проверка с учетом зависимостей |
+| Чрезмерное самоанализ над простыми задачами | Маршрутизация рабочих процессов на основе сложности |
+| Чрезмерное обобщение между микрошагами | Только полный сброс контекста на границах задачи |
+| Ожидание одобрения человека на автопроверяемую работу | Человеческие контрольно-пропускные пункты на этапах, а не на задачах |
+| Квадратичный рост истории | Агрессивное сжатие при каждом переходе |
+| Инструменты синхронной блокировки | Асинхронизация всего, конвейерный параллелизм |
 
-### The Speed Multiplier Nobody Talks About
+### Множитель скорости, о котором никто не говорит
 
-**Failure prediction.** Track patterns across tasks. If certain task types fail on first attempt, pre-load extra guidance. Preventing a failed iteration is faster than executing one.
+**Прогнозирование сбоев.** Отслеживайте закономерности выполнения задач. Если некоторые типы задач не удается выполнить с первой попытки, предварительно загрузите дополнительные инструкции. Предотвратить неудачную итерацию можно быстрее, чем ее выполнить.
 
-> The magical feeling of speed comes from only doing things that matter, and then doing those things as fast as possible. The system should feel like the agent knew what to do and just did it.
+> Волшебное ощущение скорости возникает, когда делаешь только важные дела, а потом делаешь их как можно быстрее. Система должна чувствовать, что агент знал, что делать, и просто сделал это.
 
 ---

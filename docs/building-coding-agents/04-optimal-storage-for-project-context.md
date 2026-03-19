@@ -1,35 +1,35 @@
-# Optimal Storage for Project Context
+# Оптимальное хранилище для контекста проекта
 
-### The Universal Answer: Plain Text Files in the Repo + Structured State Store
+### Универсальный ответ: обычные текстовые файлы в репозитории + хранилище структурированных состояний
 
-All four models converge on a hybrid approach. The key insight: **don't over-engineer with databases and vector stores, but don't under-engineer with a single massive file either.**
+Все четыре модели сходятся на гибридном подходе. Ключевой вывод: **не переусердствуйте с базами данных и векторными хранилищами, но и не переусердствуйте с одним массивным файлом.**
 
-### The Optimal Stack
+### Оптимальный стек
 
-| Storage | What Lives Here | Why |
+| Хранение | Что здесь живет | Почему |
 |---------|----------------|-----|
-| **Project Manifest** (`PROJECT.md`) | Vision, principles, architecture overview, component status | Always loaded, <1000 tokens, single source of truth |
-| **Structured State** (JSON/SQLite/Postgres) | Task status, phase, dependencies, verification results | Machine-parseable, drives state machine transitions |
-| **Context Directory** (`.context/` or `.ai/`) | Architecture docs, task specs, decision records | Organized for retrieval, not human browsing |
-| **Git Repository** | Actual source code, test results | Ultimate ground truth, never duplicated |
-| **Knowledge Graph** (optional at scale) | File → function → dependency relationships | Enables "what breaks if I change this?" queries |
+| **Манифест проекта** (`PROJECT.md`) | Видение, принципы, обзор архитектуры, состояние компонентов | Всегда загружено, <1000 токенов, единый источник истины |
+| **Структурированное состояние** (JSON/SQLite/Postgres) | Статус задачи, фаза, зависимости, результаты проверки | Машинно-разбираемый, управляет переходами конечного автомата |
+| **Каталог контекстов** (`.context/` или `.ai/`) | Архитектурная документация, спецификации задач, записи решений | Организовано для поиска, а не просмотра человеком |
+| **Репозиторий Git** | Фактический исходный код, результаты тестов | Абсолютная истина, никогда не дублируемая |
+| **График знаний** (необязательно в масштабе) | Файл → функция → отношения зависимости | Включает «Что сломается, если я это изменю?» запросы |
 
-### Why Plain Files Win
+### Почему простые файлы выигрывают
 
-- AI reads files directly — no query language, no ORM, no API calls
-- Version control comes free via git
-- Human can read and edit with any text editor
-- Survives tooling changes — not locked into any system
+- AI читает файлы напрямую — без языка запроса, без ORM, без вызовов API
+- Контроль версий предоставляется бесплатно через git.
+- Человек может читать и редактировать с помощью любого текстового редактора.
+- Выдерживает смену инструментов — не привязан ни к одной системе
 
-### Why NOT Vector Stores (as primary)
+### Почему NOT Векторные магазины (как основные)
 
-- Project context is **structured** — you know where things are
-- Vector stores return **approximately relevant** results — approximate is often wrong in codebases
-- They can't represent state, relationships, or task progress
+- Контекст проекта **структурирован** — вы знаете, где что находится.
+- Хранилища векторных данных возвращают **приблизительно релевантные** результаты — в кодовых базах приблизительные значения часто ошибочны.
+- Они не могут отражать состояние, отношения или ход выполнения задачи.
 
-### The Hybrid Format
+### Гибридный формат
 
-Individual files use **YAML frontmatter + Markdown body**:
+В отдельных файлах используется **YAML вступительная часть + текст Markdown**:
 ```yaml
 ---
 status: in_progress
@@ -43,14 +43,14 @@ acceptance_criteria:
 [Rich narrative description and context here]
 ```
 
-### Size Discipline
+### Дисциплина размера
 
-| File | Target Size |
+| Файл | Целевой размер |
 |------|------------|
-| Project Manifest | <1,000 tokens |
-| Individual task files (completed) | <500 tokens |
-| Architecture doc | <2,000 tokens |
+| Манифест проекта | <1000 токенов |
+| Файлы индивидуальных задач (выполнены) | <500 жетонов |
+| Архитектурный документ | <2000 жетонов |
 
-> The context system isn't just storage — it's a **compression engine**. Its job is to maintain maximum useful understanding in minimum token footprint.
+> Контекстная система — это не просто хранилище — это **механизм сжатия**. Его задача — поддерживать максимально полезное понимание при минимальном объеме токена.
 
 ---

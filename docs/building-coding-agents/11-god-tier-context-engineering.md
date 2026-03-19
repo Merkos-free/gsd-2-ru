@@ -1,45 +1,45 @@
-# God-Tier Context Engineering
+# Разработка контекста божественного уровня
 
-### The Core Principle
+### Основной принцип
 
-> God-tier context engineering treats the context window as a **designed experience for the model**, not as a bucket you throw information into. The context window is the UX of your agent. Design it accordingly.
+> Контекстная инженерия божественного уровня рассматривает контекстное окно как **созданное для модели**, а не как корзину, в которую вы бросаете информацию. Контекстное окно — это UX вашего агента. Спроектируйте его соответствующим образом.
 
-### The 10 Commandments of Context Engineering
+### 10 заповедей контекстной инженерии
 
-#### 1. The Pyramid of Relevance
-- **Sharp focus:** Active files at full detail
-- **Present but compressed:** Interface contracts, manifest, task definition
-- **Summarized or absent:** Other components' internals, completed task histories
+#### 1. Пирамида релевантности
+- **Четкий фокус:** активные файлы с полной детализацией.
+- **Присутствует, но в сжатом виде:** Контракты интерфейса, манифест, определение задачи.
+- **Сводно или отсутствует:** Внутреннее устройство других компонентов, история выполненных задач.
 
-Each tier has a token budget. If full-resolution tier is large, outer tiers compress harder.
+Каждый уровень имеет бюджет токенов. Если уровень полного разрешения велик, внешние уровни сжимаются сильнее.
 
-#### 2. Context Is a Cache, Not a History
-Treat it like a CPU cache: holds exactly what's needed now, everything else evicted. The question isn't "what has happened" but "what does the model need to see right now?"
+#### 2. Контекст — это кеш, а не история
+Относитесь к нему как к кэшу CPU: в нем хранится именно то, что необходимо сейчас, все остальное удалено. Вопрос не в том, «что произошло», а в том, «что модель должна видеть прямо сейчас?»
 
-#### 3. Separate Reference from Instruction
-- **Instruction context** (what to do) → beginning and end of prompt (highest attention)
-- **Reference context** (helpful info) → middle, clearly delineated
+#### 3. Отделите ссылку от инструкции
+- **Контекст инструкции** (что делать) → начало и конец подсказки (высшее внимание)
+- **Справочный контекст** (полезная информация) → посередине, четко очерченный.
 
-Manage them independently. Compress reference aggressively while keeping instructions at full detail.
+Управляйте ими самостоятельно. Сжимайте ссылку агрессивно, сохраняя при этом подробные инструкции.
 
-#### 4. Earn Every Token's Place
-Implement a token budget system:
+#### 4. Заработайте место каждого жетона
+Внедрить систему бюджета токенов:
 
-| Category | Budget |
+| Категория | Бюджет |
 |----------|--------|
-| System prompt + behavioral instructions | ~15% |
-| Manifest | ~5% |
-| Task spec + acceptance criteria | ~20% |
-| Active code files | ~40% |
-| Interface contracts | ~10% |
-| Reserve (tool results, errors) | ~10% |
+| Системная подсказка + инструкции по поведению | ~15% |
+| Манифест | ~5% |
+| Спецификация задачи + критерии приемки | ~20% |
+| Файлы активного кода | ~40% |
+| Контракты на интерфейс | ~10% |
+| Резерв (результаты инструмента, ошибки) | ~10% |
 
-When any category exceeds budget, intelligently summarize (not truncate).
+Если какая-либо категория превышает бюджет, разумно суммируйте (не усекайте).
 
-#### 5. Write for the Model's Attention Pattern
-- Critical info at the very beginning and reiterated at the end
-- Structured blocks with clear headers and delimiters
-- Consistent formatting conventions
+#### 5. Напишите шаблон внимания модели
+- Критическая информация в самом начале и повторяется в конце.
+- Структурированные блоки с четкими заголовками и разделителями.
+- Согласованные соглашения о форматировании
 
 ```
 TASK: Implement password reset flow
@@ -54,44 +54,44 @@ RELEVANT INTERFACES: [below]
 ACTIVE FILES: [below]
 ```
 
-#### 6. Compress at Every State Transition
-- Task completion → 50–100 token completion record
-- Use a **dedicated summarization call** with a tight prompt (not the working agent self-summarizing)
-- **Cascading summarization:** Task summaries → milestone summaries → phase summaries (5:1 compression ratio at each level)
+#### 6. Сжимать при каждом переходе состояний
+- Завершение задачи → запись о выполнении 50–100 жетонов.
+– Используйте **специальный вызов для подведения итогов** с четкими подсказками (а не самоподведение итогов рабочим агентом).
+- **Каскадное суммирование:** сводки задач → сводки этапов → сводки этапов (коэффициент сжатия 5:1 на каждом уровне).
 
-#### 7. Use the Filesystem as Your Infinite Context Window
-- Organize files for retrieval, not human browsing
-- Predictable naming conventions = instant lookup
-- Essentially a custom database on top of the filesystem
+#### 7. Используйте файловую систему в качестве бесконечного контекстного окна
+- Организуйте файлы для поиска, а не для просмотра человеком.
+- Предсказуемые соглашения об именах = мгновенный поиск.
+- По сути, это пользовательская база данных поверх файловой системы.
 
-#### 8. Profile Context Quality, Not Just Size
-Track first-attempt success rate as a function of context composition. What was in context when it succeeded vs failed? Let data guide what constitutes high-quality context.
+#### 8. Качество контекста профиля, а не только размер
+Отслеживайте процент успешных попыток с первой попытки как функцию композиции контекста. Что было в контексте успеха или неудачи? Пусть данные определяют, что представляет собой высококачественный контекст.
 
-#### 9. Dynamic Context Based on Task Phase
-Different phases need different context:
+#### 9. Динамический контекст на основе этапа задачи
+Разные фазы требуют разного контекста:
 
-| Phase | Optimal Context |
+| Фаза | Оптимальный контекст |
 |-------|----------------|
-| Understanding | Spec, acceptance criteria, broad architectural context |
-| Implementation | Active files, interface contracts, coding patterns |
-| Debugging | Failing test output, relevant code, test code |
-| Verification | Acceptance criteria prominently, ability to exercise feature |
+| Понимание | Спецификация, критерии приемки, широкий архитектурный контекст |
+| Реализация | Активные файлы, контракты интерфейса, шаблоны кодирования |
+| Отладка | Неудачный вывод теста, соответствующий код, тестовый код |
+| Проверка | Критерии приемки заметно, способность осуществлять функцию |
 
-#### 10. Design for Context Recovery
-- **Checkpoint** context state at task starts and phase transitions
-- On detected confusion (repeated failures, increasing iterations, off-task output): **roll back to checkpoint** and re-enter with fresh context + concise failure info + strategy hint
-- Structured recovery ≠ naive retry. It rebuilds context from scratch with learned information.
+#### 10. Проектирование для восстановления контекста
+- Состояние контекста **Контрольной точки** при запуске задачи и фазовых переходах.
+– При обнаружении путаницы (повторяющиеся сбои, увеличение количества итераций, невыполнение задачи): **откат к контрольной точке** и повторный вход с новым контекстом + краткая информация об ошибке + подсказка по стратегии.
+- Структурированное восстановление ≠ наивная повторная попытка. Он восстанавливает контекст с нуля с использованием изученной информации.
 
-### The God-Tier Strategy in One Sentence
+### Стратегия уровня Бога в одном предложении
 
-> Orchestrator-assembled minimal slice + persistent hierarchical memory. Every single LLM call stays 8k–25k tokens while the agent has perfect knowledge of a 500k-line codebase and months of project history.
-
----
+> Минимальный срез, собранный оркестратором + постоянная иерархическая память. Каждый отдельный вызов LLM обходится в 8–25 тысяч токенов, в то время как агент прекрасно знает кодовую базу в 500 тысяч строк и многомесячную историю проекта.
 
 ---
 
-# Part II: The Hard Problems (Grey Area Synthesis)
+---
 
-> Synthesized from a second round of deep conversations with all four models, targeting the 13 hardest unsolved problems in autonomous coding agents — plus a critical question on accessibility for non-technical users.
+# Часть II: Сложные проблемы (синтез серой зоны)
+
+> Синтезирован на основе второго раунда глубоких бесед со всеми четырьмя моделями, нацеленных на 13 самых сложных нерешенных проблем в автономных агентах кодирования, а также критический вопрос о доступности для нетехнических пользователей.
 
 ---

@@ -1,33 +1,33 @@
-# Providers & Models — Multi-Model by Default
+# Поставщики и модели — мультимодель по умолчанию
 
-Pi isn't locked to one provider. It supports 20+ providers out of the box and lets you add more.
+Pi не привязан к одному провайдеру. Он поддерживает более 20 провайдеров «из коробки» и позволяет добавлять больше.
 
-### Authentication Methods
+### Методы аутентификации
 
-**OAuth subscriptions (via `/login`):**
-- Anthropic Claude Pro/Max
-- OpenAI ChatGPT Plus/Pro (Codex)
-- GitHub Copilot
-- Google Gemini CLI
-- Google Antigravity
+**ПодпискиOAuth (через `/login`):**
+- Антропный Клод Про/Макс
+- OpenAI ChatGPT Plus/Pro (Кодекс)
+— второй пилот GitHub
+- Google Близнецы CLI
+- Гугл Антигравитация
 
-**API keys (via environment variables):**
+**API ключи (через переменные среды):**
 - Anthropic, OpenAI, Azure OpenAI, Google Gemini, Google Vertex, Amazon Bedrock
-- Mistral, Groq, Cerebras, xAI, OpenRouter, Vercel AI Gateway
+- Mistral, Groq, Cerebras, xAI, OpenRouter, шлюз Vercel AI
 - ZAI, OpenCode Zen, OpenCode Go, Hugging Face, Kimi, MiniMax
 
-### Model Switching
+### Переключение модели
 
-You can switch models at any time during a conversation:
+Вы можете переключать модели в любой момент во время разговора:
 
-- `/model` — Open the model selector
-- `Ctrl+L` — Same as `/model`
-- `Ctrl+P` / `Shift+Ctrl+P` — Cycle through scoped models
-- `Shift+Tab` — Cycle thinking level
+- `/model` — открыть выбор модели.
+- `Ctrl+L` — То же, что `/model`.
+- `Ctrl+P` / `Shift+Ctrl+P` — циклическое переключение моделей с областью действия.
+- `Shift+Tab` — Циклический уровень мышления
 
-Model changes are recorded in the session as `model_change` entries, so when you resume a session, pi knows which model you were using.
+Изменения модели записываются в сеансе как записи `model_change`, поэтому при возобновлении сеанса pi знает, какую модель вы использовали.
 
-### CLI Model Selection
+### CLI Выбор модели
 
 ```bash
 pi --model sonnet                          # Fuzzy match
@@ -38,9 +38,9 @@ pi --list-models                           # List all available
 pi --list-models gemini                    # Search by name
 ```
 
-### Custom Providers
+### Пользовательские поставщики
 
-Add providers via `~/.gsd/agent/models.json` (simple) or extensions (advanced with OAuth, custom streaming):
+Добавьте провайдеров с помощью `~/.gsd/agent/models.json` (простой) или расширений (расширенный вариант с OAuth, пользовательская потоковая передача):
 
 ```json
 // ~/.gsd/agent/models.json

@@ -1,25 +1,25 @@
-# Key Rules & Gotchas
+# Ключевые правила и ошибки
 
 
-### Must-Follow Rules
+### Правила, которые необходимо соблюдать
 
-1. **Use `StringEnum` for string enums** — `Type.Union`/`Type.Literal` breaks Google's API.
-2. **Truncate tool output** — Large output causes context overflow, compaction failures, degraded performance.
-3. **Use theme from callback** — Don't import theme directly. Use the `theme` parameter from `ctx.ui.custom()` or render functions.
-4. **Type the DynamicBorder color param** — Write `(s: string) => theme.fg("accent", s)`.
-5. **Call `tui.requestRender()` after state changes** in `handleInput`.
-6. **Return `{ render, invalidate, handleInput }`** from custom components.
-7. **Lines must not exceed `width`** in `render()` — use `truncateToWidth()`.
-8. **Session control methods only in commands** — `waitForIdle()`, `newSession()`, `fork()`, `navigateTree()`, `reload()` will deadlock in event handlers.
-9. **Strip leading `@` from path arguments** in custom tools — some models add it.
-10. **Store state in tool result `details`** for proper branching support.
+1. **Используйте `StringEnum` для строковых enum'ов** — `Type.Union`/`Type.Literal` ломает Google API.
+2. **Обрезать выходные данные инструмента**. Большой размер выходных данных приводит к переполнению контекста, сбоям сжатия и снижению производительности.
+3. **Использовать тему из обратного вызова** — не импортируйте тему напрямую. Используйте параметр `theme` из `ctx.ui.custom()` или функции рендеринга.
+4. **Введите параметр цвета DynamicBorder** — напишите `(s: string) => theme.fg("accent", s)`.
+5. **Вызов `tui.requestRender()` после изменения состояния** в `handleInput`.
+6. **Возврат `{ render, invalidate, handleInput }`** из пользовательских компонентов.
+7. **Строки не должны превышать `width`** в `render()` — используйте `truncateToWidth()`.
+8. **Методы управления сеансом только в командах** — `waitForIdle()`, `newSession()`, `fork()`, `navigateTree()`, `reload()` вызывают взаимоблокировку в обработчиках событий.
+9. **Удалить начальную цифру `@` из аргументов пути** в пользовательских инструментах — в некоторых моделях она добавлена.
+10. **Сохранение состояния в результате работы инструмента `details`** для правильной поддержки ветвления.
 
-### Common Patterns
+### Общие шаблоны
 
-- **Rebuild on `invalidate()`** when your component pre-bakes theme colors
-- **Check `signal?.aborted`** in long-running tool executions
-- **Use `pi.exec()` instead of `child_process`** for shell commands
-- **Overlay components are disposed when closed** — create fresh instances each time
-- **Treat `ctx.reload()` as terminal** — code after it runs from the pre-reload version
+- **Перестройка на `invalidate()`**, когда ваш компонент предварительно запекает цвета темы.
+- **Проверьте `signal?.aborted`** при длительном исполнении инструмента.
+- **Используйте `pi.exec()` вместо `child_process`** для команд оболочки.
+- **Компоненты наложения удаляются при закрытии** — каждый раз создавайте новые экземпляры.
+- **Считать `ctx.reload()` терминалом** — код после запуска из версии до перезагрузки.
 
 ---

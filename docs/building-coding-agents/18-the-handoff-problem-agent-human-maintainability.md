@@ -1,31 +1,31 @@
-# The Handoff Problem: Agent → Human Maintainability
+# Проблема передачи управления: агент → удобство обслуживания человеком
 
-**The failure modes of AI-generated code** that all four models identify:
+**Виды отказа кода, сгенерированного AI**, которые идентифицируют все четыре модели:
 
-### Known Anti-Patterns
+### Известные антипаттерны
 
-| Pattern | Problem | Fix |
+| Узор | Проблема | Исправить |
 |---------|---------|-----|
-| **Flat code** | Everything in one function/file to reduce inconsistency risk | Enforce human-friendly modular patterns |
-| **Clever solutions** | Dense functional chains (`filter().map().reduce().flatMap()`) | Max 3 chained operations; extract named intermediates |
-| **Useless comments** | `// filter active users` above a filter call | Require *why* comments, skip *what* comments |
-| **Over-abstraction** | Creates clever custom abstractions no human can follow | Enforce standard framework patterns over custom inventions |
-| **Missing breadcrumbs** | No README files in directories, no ADRs, no diagrams | Include documentation in task completion checklist |
+| **Плоский код** | Все в одной функции/файле для снижения риска несогласованности | Внедрение удобных для человека модульных шаблонов |
+| **Умные решения** | Плотные функциональные цепи (`filter().map().reduce().flatMap()`) | Макс. 3 последовательных операции; извлечь именованные промежуточные соединения |
+| **Бесполезные комментарии** | `// filter active users` над вызовом фильтра | Требовать комментарии *почему*, пропускать комментарии *что* |
+| **Чрезмерная абстракция** | Создает умные пользовательские абстракции, которым не сможет следовать ни один человек | Применять стандартные шаблоны структуры вместо пользовательских изобретений |
+| **Отсутствуют хлебные крошки** | Никаких файлов README в каталогах, никаких ADRs, никаких диаграмм | Включите документацию в контрольный список выполнения задачи |
 
-### The Architecture That Maximizes Handoff Quality
+### Архитектура, обеспечивающая максимальное качество передачи обслуживания
 
-**Enforce well-known frameworks and conventions** over custom patterns. A codebase using standard Next.js/Express/React patterns is immediately navigable. A codebase with custom-invented patterns requires learning a new system.
+**Применяйте известные платформы и соглашения** к пользовательским шаблонам. База кода, использующая стандартные шаблоны Next.js/Express/React, доступна для мгновенной навигации. Кодовая база с специально разработанными шаблонами требует изучения новой системы.
 
-### Verification Mechanism
+### Механизм проверки
 
-**Automated readability test:** Periodically have a **separate agent** (with no knowledge of the building agent's decisions) attempt to add a feature using only the code and docs. If it struggles, a human will too.
+**Автоматическая проверка читабельности.** Периодически попросите **отдельного агента** (не знающего решений строительного агента) попытаться добавить функцию, используя только код и документацию. Если он борется, человек тоже будет.
 
-### Gemini's "Boring Code" Principle
+### Принцип «скучного кода» Близнецов
 
-> Humans hate "clever" AI code; they love "boring" AI code. Run a **Complexity Linter** — if a function has cyclomatic complexity >10, the reviewer agent rejects it.
+> Люди ненавидят «умный» код AI; им нравится «скучный» код AI. Запустите **Линтер сложности** — если цикломатическая сложность функции превышает 10, агент проверяющего ее отклоняет.
 
-### Grok's Maintainability Checklist
+### Контрольный список ремонтопригодности Грока
 
-Every file gets: auto-generated JSDoc/TS comments + ADR for every major decision. No magic numbers, no over-abstraction. Mandatory "maintainability score" (cyclomatic complexity + test coverage + comment density) in the critic node.
+Каждый файл получает автоматически сгенерированные комментарии JSDoc/TS и ADR для каждого важного решения. Никаких магических чисел, никакой чрезмерной абстракции. Обязательная «оценка ремонтопригодности» (цикломатическая сложность + тестовое покрытие + плотность комментариев) в узле критика.
 
 ---

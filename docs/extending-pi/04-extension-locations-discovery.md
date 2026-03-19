@@ -1,16 +1,16 @@
-# Extension Locations & Discovery
+# Расположение расширений и обнаружение
 
 
-### Auto-Discovery Paths
+### Пути автоматического обнаружения
 
-| Location | Scope |
+| Местоположение | Область применения |
 |----------|-------|
-| `~/.gsd/agent/extensions/*.ts` | Global (all projects) |
-| `~/.gsd/agent/extensions/*/index.ts` | Global (subdirectory) |
-| `.gsd/extensions/*.ts` | Project-local |
-| `.gsd/extensions/*/index.ts` | Project-local (subdirectory) |
+| `~/.gsd/agent/extensions/*.ts` | Глобальный (все проекты) |
+| `~/.gsd/agent/extensions/*/index.ts` | Глобальный (подкаталог) |
+| `.gsd/extensions/*.ts` | Проект-локальный |
+| `.gsd/extensions/*/index.ts` | Локальный проект (подкаталог) |
 
-### Additional Paths (via settings.json)
+### Дополнительные пути (через settings.json)
 
 ```json
 {
@@ -25,8 +25,8 @@
 }
 ```
 
-### Security Warning
+### Предупреждение безопасности
 
-> Extensions run with your **full system permissions**. They can execute arbitrary code, read/write any file, make network requests. Only install from sources you trust.
+> Расширения запускаются с вашими **полными системными разрешениями**. Они могут выполнять произвольный код, читать/записывать любой файл, делать сетевые запросы. Устанавливайте только из источников, которым вы доверяете.
 
 ---

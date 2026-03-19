@@ -156,12 +156,12 @@ export async function showQueueReorder(
       const push = (...rows: string[][]) => { for (const r of rows) lines.push(...r); };
       const add = (s: string) => truncateToWidth(s, width);
 
-      const headerText = grabbed ? "  Queue Reorder — Moving Item" : "  Queue Reorder";
+      const headerText = grabbed ? "  Перестановка очереди — перемещение элемента" : "  Перестановка очереди";
       push(ui.bar(), ui.blank(), ui.header(headerText), ui.blank());
 
       // Completed milestones (dimmed)
       if (completed.length > 0) {
-        lines.push(add(theme.fg("dim", "  Completed:")));
+        lines.push(add(theme.fg("dim", "  Завершено:")));
         for (const m of completed) {
           const label = m.title && m.title !== m.id ? `${m.id}  ${m.title}` : m.id;
           lines.push(add(`    ${theme.fg("dim", `${GLYPH.statusDone} ${label}`)}`));
@@ -170,7 +170,7 @@ export async function showQueueReorder(
       }
 
       // Pending milestones
-      const queueLabel = grabbed ? "  Queue (space to release, ↑/↓ to move):" : "  Queue (space to grab, ↑/↓ to navigate):";
+      const queueLabel = grabbed ? "  Очередь (space отпустить, ↑/↓ переместить):" : "  Очередь (space взять, ↑/↓ навигация):";
       lines.push(add(theme.fg("text", queueLabel)));
 
       const violatedPairs = new Set(
@@ -200,9 +200,9 @@ export async function showQueueReorder(
           if (completedIds.has(dep)) continue;
           const pairKey = `${item.id}:${dep}`;
           if (violatedPairs.has(pairKey)) {
-            lines.push(add(`       ${theme.fg("warning", `${GLYPH.statusWarning} depends_on: ${dep} — auto-removed on confirm`)}`));
+            lines.push(add(`       ${theme.fg("warning", `${GLYPH.statusWarning} depends_on: ${dep} — будет автоматически удалено при подтверждении`)}`));
           } else if (redundantPairs.has(pairKey)) {
-            lines.push(add(`       ${theme.fg("dim", `↳ depends_on: ${dep} (redundant)`)}`));
+            lines.push(add(`       ${theme.fg("dim", `↳ depends_on: ${dep} (избыточно)`)}`));
           } else {
             lines.push(add(`       ${theme.fg("dim", `↳ depends_on: ${dep}`)}`));
           }
@@ -210,7 +210,7 @@ export async function showQueueReorder(
 
         // Missing deps
         for (const v of validation.violations.filter(v => v.milestone === item.id && v.type === 'missing_dep')) {
-          lines.push(add(`       ${theme.fg("error", `${GLYPH.statusWarning} depends_on: ${v.dependsOn} (does not exist)`)}`));
+          lines.push(add(`       ${theme.fg("error", `${GLYPH.statusWarning} depends_on: ${v.dependsOn} (не существует)`)}`));
         }
       }
 
@@ -218,7 +218,7 @@ export async function showQueueReorder(
       if (removedDeps.length > 0) {
         push(ui.blank());
         for (const r of removedDeps) {
-          lines.push(add(`  ${theme.fg("success", `${GLYPH.statusDone} Removed: ${r.milestone} depends_on ${r.dep}`)}`));
+          lines.push(add(`  ${theme.fg("success", `${GLYPH.statusDone} Удалено: ${r.milestone} depends_on ${r.dep}`)}`));
         }
       }
 
@@ -234,18 +234,18 @@ export async function showQueueReorder(
       // Hints — context-sensitive based on grab state
       const hints: string[] = [];
       if (grabbed) {
-        hints.push("↑/↓ move item", "space release");
+        hints.push("↑/↓ двигать", "space отпустить");
       } else {
-        hints.push("↑/↓ navigate", "space grab");
+        hints.push("↑/↓ навигация", "space взять");
       }
       const hasDeps = liveDeps.get(items[cursor]?.id)?.some(d => !completedIds.has(d));
-      if (hasDeps) hints.push("d del dep");
+      if (hasDeps) hints.push("d удалить dep");
 
       const wouldBlockCount = validation.violations.filter(v => v.type === 'would_block').length;
       if (wouldBlockCount > 0) {
-        hints.push(`enter (fixes ${wouldBlockCount} dep)`);
+        hints.push(`enter (исправит ${wouldBlockCount} dep)`);
       } else {
-        hints.push("enter ok");
+        hints.push("enter подтвердить");
       }
       hints.push("esc");
 
@@ -265,7 +265,7 @@ export async function showQueueReorder(
   // Reorder requires interactive input — notify and return null.
   if (result === undefined) {
     ctx.ui.notify(
-      "Queue reorder requires an interactive terminal. Current order: " +
+      "Для перестановки очереди нужен интерактивный терминал. Текущий порядок: " +
         pending.map(p => p.id).join(" → "),
       "warning",
     );

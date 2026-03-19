@@ -1,9 +1,9 @@
-# Custom Tools — Giving the LLM New Abilities
+# Пользовательские инструменты — новые возможности LLM
 
 
-Tools are the most powerful extension capability. They appear in the LLM's system prompt and the LLM calls them autonomously when appropriate.
+Инструменты — это самая мощная возможность расширения. Они появляются в системной подсказке LLM, а LLM вызывает их автономно, когда это необходимо.
 
-### Tool Definition
+### Определение инструмента
 
 ```typescript
 import { Type } from "@sinclair/typebox";
@@ -57,9 +57,9 @@ pi.registerTool({
 });
 ```
 
-### ⚠️ Critical: Use StringEnum
+### ⚠️ Критично: используйте StringEnum
 
-For string enum parameters, you **must** use `StringEnum` from `@mariozechner/pi-ai`. `Type.Union([Type.Literal("a"), Type.Literal("b")])` does NOT work with Google's API.
+Для строковых параметров перечисления вы **должны** использовать `StringEnum` из `@mariozechner/pi-ai`. `Type.Union([Type.Literal("a"), Type.Literal("b")])` работает ли NOT с API от Google.
 
 ```typescript
 import { StringEnum } from "@mariozechner/pi-ai";
@@ -71,9 +71,9 @@ action: StringEnum(["list", "add", "remove"] as const)
 action: Type.Union([Type.Literal("list"), Type.Literal("add")])
 ```
 
-### Dynamic Tool Registration
+### Динамическая регистрация инструмента
 
-Tools can be registered at any time — during load, in `session_start`, in command handlers, etc. New tools are available immediately without `/reload`.
+Инструменты можно зарегистрировать в любой момент — при загрузке, в `session_start`, в обработчиках команд и т. д. Новые инструменты доступны сразу и без `/reload`.
 
 ```typescript
 pi.on("session_start", async (_event, ctx) => {
@@ -88,9 +88,9 @@ pi.registerCommand("add-tool", {
 });
 ```
 
-### Output Truncation
+### Усечение вывода
 
-**Tools MUST truncate output** to avoid overwhelming the LLM context. The built-in limit is 50KB / 2000 lines (whichever first).
+**Инструменты MUST обрезают вывод**, чтобы не перегружать контекст LLM. Встроенный лимит — 50 КБ/2000 строк (в зависимости от того, что наступит раньше).
 
 ```typescript
 import {
@@ -113,18 +113,18 @@ async execute(toolCallId, params, signal, onUpdate, ctx) {
 }
 ```
 
-### Overriding Built-in Tools
+### Переопределение встроенных инструментов
 
-Register a tool with the same name as a built-in (`read`, `bash`, `edit`, `write`, `grep`, `find`, `ls`) to override it. Your implementation **must match the exact result shape** including the `details` type.
+Зарегистрируйте инструмент с тем же именем, что и встроенный (`read`, `bash`, `edit`, `write`, `grep`, `find`, `ls`), чтобы переопределить его. Ваша реализация **должна точно соответствовать форме результата**, включая тип `details`.
 
 ```bash
 # Start with no built-in tools, only your extensions
 pi --no-tools -e ./my-extension.ts
 ```
 
-### Remote Execution via Pluggable Operations
+### Удаленное выполнение с помощью подключаемых операций
 
-Built-in tools support pluggable operations for SSH, containers, etc.:
+Встроенные инструменты поддерживают подключаемые операции с SSH, контейнерами и т. д.:
 
 ```typescript
 import { createReadTool, createBashTool } from "@mariozechner/pi-coding-agent";
@@ -143,6 +143,6 @@ const bashTool = createBashTool(cwd, {
 });
 ```
 
-**Operations interfaces:** `ReadOperations`, `WriteOperations`, `EditOperations`, `BashOperations`, `LsOperations`, `GrepOperations`, `FindOperations`
+**Рабочие интерфейсы:** `ReadOperations`, `WriteOperations`, `EditOperations`, `BashOperations`, `LsOperations`, `GrepOperations`, `FindOperations`
 
 ---

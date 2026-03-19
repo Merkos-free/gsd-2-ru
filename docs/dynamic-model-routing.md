@@ -1,24 +1,24 @@
-# Dynamic Model Routing
+# Динамическая маршрутизация модели
 
-*Introduced in v2.19.0*
+*Введено в версии 2.19.0*
 
-Dynamic model routing automatically selects cheaper models for simple work and reserves expensive models for complex tasks. This reduces token consumption by 20-50% on capped plans without sacrificing quality where it matters.
+Динамическая маршрутизация моделей автоматически выбирает более дешевые модели для простой работы и резервирует дорогие модели для сложных задач. Это снижает потребление токенов на 20–50 % на планах с ограниченным лимитом без ущерба для качества там, где это важно.
 
-## How It Works
+## Как это работает
 
-Each unit dispatched by auto-mode is classified into a complexity tier:
+Каждая единица, отправленная в автоматическом режиме, классифицируется по уровню сложности:
 
-| Tier | Typical Work | Default Model Level |
+| Уровень | Типичная работа | Уровень модели по умолчанию |
 |------|-------------|-------------------|
-| **Light** | Slice completion, UAT, hooks | Haiku-class |
-| **Standard** | Research, planning, execution, milestone completion | Sonnet-class |
-| **Heavy** | Replanning, roadmap reassessment, complex execution | Opus-class |
+| **Свет** | Завершение среза, UAT, крючки | Хайку-класс |
+| **Стандарт** | Исследования, планирование, реализация, завершение этапов | Сонет-класс |
+| **Тяжелый** | Перепланировка, переоценка дорожной карты, комплексное исполнение | Опус-класс |
 
-The router then selects a model for that tier. The key rule: **downgrade-only semantics**. The user's configured model is always the ceiling — routing never upgrades beyond what you've configured.
+Затем маршрутизатор выбирает модель для этого уровня. Ключевое правило: **семантика только понижения**. Модель, настроенная пользователем, всегда является потолком — маршрутизация никогда не выходит за рамки того, что вы настроили.
 
-## Enabling
+## Включение
 
-Dynamic routing is off by default. Enable it in preferences:
+Динамическая маршрутизация отключена по умолчанию. Включите его в настройках:
 
 ```yaml
 ---
@@ -28,7 +28,7 @@ dynamic_routing:
 ---
 ```
 
-## Configuration
+## Конфигурация
 
 ```yaml
 dynamic_routing:
@@ -45,83 +45,83 @@ dynamic_routing:
 
 ### `tier_models`
 
-Override which model is used for each tier. When omitted, the router uses a built-in capability mapping that knows common model families:
+Переопределить, какая модель используется для каждого уровня. Если этот параметр опущен, маршрутизатор использует встроенное сопоставление возможностей, которое знает общие семейства моделей:
 
-- **Light:** `claude-haiku-4-5`, `gpt-4o-mini`, `gemini-2.0-flash`
-- **Standard:** `claude-sonnet-4-6`, `gpt-4o`, `gemini-2.5-pro`
-- **Heavy:** `claude-opus-4-6`, `gpt-4.5-preview`, `gemini-2.5-pro`
+- **Свет:** `claude-haiku-4-5`, `gpt-4o-mini`, `gemini-2.0-flash`
+- **Стандарт:** `claude-sonnet-4-6`, `gpt-4o`, `gemini-2.5-pro`
+- **Тяжелый:** `claude-opus-4-6`, `gpt-4.5-preview`, `gemini-2.5-pro`
 
 ### `escalate_on_failure`
 
-When a task fails at a given tier, the router escalates to the next tier on retry. Light → Standard → Heavy. This prevents cheap models from burning retries on work that needs more reasoning.
+При сбое задачи на данном уровне маршрутизатор переходит на следующий уровень при повторной попытке. Легкий → Стандартный → Тяжелый. Это не позволяет дешевым моделям записать повторные попытки работы, требующей дополнительных рассуждений.
 
 ### `budget_pressure`
 
-When approaching the budget ceiling, the router progressively downgrades:
+При приближении к потолку бюджета роутер постепенно понижает рейтинг:
 
-| Budget Used | Effect |
+| Бюджет Б/у | Эффект |
 |------------|--------|
-| < 50% | No adjustment |
-| 50-75% | Standard → Light |
-| 75-90% | More aggressive downgrading |
-| > 90% | Nearly everything → Light; only Heavy stays at Standard |
+| < 50% | Без регулировки |
+| 50-75% | Стандарт → Легкий |
+| 75-90% | Более агрессивное понижение рейтинга |
+| > 90% | Почти всё → Свет; только Хэви остается в Стандарте |
 
 ### `cross_provider`
 
-When enabled, the router may select models from providers other than your primary. This uses the built-in cost table to find the cheapest model at each tier. Requires the target provider to be configured.
+Если этот параметр включен, маршрутизатор может выбирать модели от поставщиков, отличных от вашего основного. При этом используется встроенная таблица стоимости для поиска самой дешевой модели на каждом уровне. Требуется настроить целевой поставщик.
 
-## Complexity Classification
+## Классификация сложности
 
-Units are classified using pure heuristics — no LLM calls, sub-millisecond:
+Единицы классифицируются с использованием чистой эвристики — без вызовов LLM, доли миллисекунды:
 
-### Unit Type Defaults
+### Тип юнита по умолчанию
 
-| Unit Type | Default Tier |
+| Тип устройства | Уровень по умолчанию |
 |-----------|-------------|
-| `complete-slice`, `run-uat` | Light |
-| `research-*`, `plan-*`, `complete-milestone` | Standard |
-| `execute-task` | Standard (upgraded by task analysis) |
-| `replan-slice`, `reassess-roadmap` | Heavy |
-| `hook/*` | Light |
+| `complete-slice`, `run-uat` | Свет |
+| `research-*`, `plan-*`, `complete-milestone` | Стандарт |
+| `execute-task` | Стандартный (обновлен путем анализа задач) |
+| `replan-slice`, `reassess-roadmap` | Тяжелый |
+| `hook/*` | Свет |
 
-### Task Plan Analysis
+### Анализ плана задач
 
-For `execute-task` units, the classifier analyzes the task plan:
+Для блоков `execute-task` классификатор анализирует план задач:
 
-| Signal | Simple → Light | Complex → Heavy |
+| Сигнал | Простой → Легкий | Комплекс → Тяжелый |
 |--------|---------------|----------------|
-| Step count | ≤ 3 | ≥ 8 |
-| File count | ≤ 3 | ≥ 8 |
-| Description length | < 500 chars | > 2000 chars |
-| Code blocks | — | ≥ 5 |
-| Complexity keywords | None | Present |
+| Количество шагов | ≤ 3 | ≥ 8 |
+| Количество файлов | ≤ 3 | ≥ 8 |
+| Длина описания | < 500 chars | > 2000 символов |
+| Кодовые блоки | — | ≥ 5 |
+| Ключевые слова сложности | Нет | Настоящее время |
 
-**Complexity keywords:** `research`, `investigate`, `refactor`, `migrate`, `integrate`, `complex`, `architect`, `redesign`, `security`, `performance`, `concurrent`, `parallel`, `distributed`, `backward compat`
+**Ключевые слова сложности:** `research`, `investigate`, `refactor`, `migrate`, `integrate`, `complex`, `architect`, `redesign`, `security`, `performance`, `concurrent`, `parallel`, `distributed`, `backward compat`
 
-### Adaptive Learning
+### Адаптивное обучение
 
-The routing history (`.gsd/routing-history.json`) tracks success/failure per tier per unit type. If a tier's failure rate exceeds 20% for a given pattern, future classifications are bumped up. User feedback (`over`/`under`/`ok`) is weighted 2× vs automatic outcomes.
+История маршрутизации (`.gsd/routing-history.json`) отслеживает успехи и неудачи для каждого уровня и типа юнита. Если частота отказов уровня превышает 20 % для данного шаблона, будущие классификации повышаются. Отзывы пользователей (`over`/`under`/`ok`) имеют двойной вес по сравнению с автоматическими результатами.
 
-## Interaction with Token Profiles
+## Взаимодействие с профилями токенов
 
-Dynamic routing and token profiles are complementary:
+Динамическая маршрутизация и профили токенов дополняют друг друга:
 
-- **Token profiles** (`budget`/`balanced`/`quality`) control phase skipping and context compression
-- **Dynamic routing** controls per-unit model selection within the configured phase model
+- **Профили токенов** (`budget`/`balanced`/`quality`) контролируют пропуск фазы и сжатие контекста.
+- **Динамическая маршрутизация** контролирует выбор модели для каждого блока в рамках настроенной фазовой модели.
 
-When both are active, token profiles set the baseline models and dynamic routing further optimizes within those baselines. The `budget` token profile + dynamic routing provides maximum cost savings.
+Когда оба активны, профили токенов задают базовые модели, а динамическая маршрутизация дополнительно оптимизируется в рамках этих базовых показателей. Профиль токена `budget` + динамическая маршрутизация обеспечивают максимальную экономию средств.
 
-## Cost Table
+## Таблица затрат
 
-The router includes a built-in cost table for common models, used for cross-provider cost comparison. Costs are per-million tokens (input/output):
+Маршрутизатор включает встроенную таблицу стоимости для распространенных моделей, используемую для сравнения затрат между поставщиками. Затраты указаны за миллион токенов (вход/выход):
 
-| Model | Input | Output |
+| Модель | Ввод | Выход |
 |-------|-------|--------|
-| claude-haiku-4-5 | $0.80 | $4.00 |
-| claude-sonnet-4-6 | $3.00 | $15.00 |
-| claude-opus-4-6 | $15.00 | $75.00 |
-| gpt-4o-mini | $0.15 | $0.60 |
-| gpt-4o | $2.50 | $10.00 |
-| gemini-2.0-flash | $0.10 | $0.40 |
+| Клод-Хайку-4-5 | 0,80 доллара США | $4,00 |
+| Клод-Сонет-4-6 | $3,00 | $15,00 |
+| Клод-опус-4-6 | $15,00 | $75,00 |
+| gpt-4o-мини | 0,15 доллара США | 0,60 доллара США |
+| гпт-4о | 2,50 доллара США | $10,00 |
+| Близнецы-2.0-флэш | 0,10 доллара США | $0,40 |
 
-The cost table is used for comparison only — actual billing comes from your provider.
+Таблица стоимости используется только для сравнения — фактический счет поступает от вашего провайдера.

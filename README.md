@@ -2,7 +2,7 @@
 
 # GSD 2
 
-**The evolution of [Get Shit Done](https://github.com/gsd-build/get-shit-done) — now a real coding agent.**
+**Эволюция [Get Shit Done](https://github.com/gsd-build/get-shit-done) — теперь настоящий агент кодирования.**
 
 [![npm version](https://img.shields.io/npm/v/gsd-pi?style=for-the-badge&logo=npm&logoColor=white&color=CB3837)](https://www.npmjs.com/package/gsd-pi)
 [![npm downloads](https://img.shields.io/npm/dm/gsd-pi?style=for-the-badge&logo=npm&logoColor=white&color=CB3837)](https://www.npmjs.com/package/gsd-pi)
@@ -10,97 +10,97 @@
 [![Discord](https://img.shields.io/badge/Discord-Join%20us-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/gsd)
 [![License](https://img.shields.io/badge/license-MIT-blue?style=for-the-badge)](LICENSE)
 
-The original GSD went viral as a prompt framework for Claude Code. It worked, but it was fighting the tool — injecting prompts through slash commands, hoping the LLM would follow instructions, with no actual control over context windows, sessions, or execution.
+Оригинальный вариант GSD стал вирусным как основа для Claude Code. Это работало, но боролось с инструментом — вводило подсказки через команды с косой чертой, надеясь, что LLM будет следовать инструкциям, без фактического контроля над контекстными окнами, сеансами или выполнением.
 
-This version is different. GSD is now a standalone CLI built on the [Pi SDK](https://github.com/badlogic/pi-mono), which gives it direct TypeScript access to the agent harness itself. That means GSD can actually _do_ what v1 could only _ask_ the LLM to do: clear context between tasks, inject exactly the right files at dispatch time, manage git branches, track cost and tokens, detect stuck loops, recover from crashes, and auto-advance through an entire milestone without human intervention.
+Эта версия другая. GSD теперь является автономным CLI, построенным на [Pi SDK](https://github.com/badlogic/pi-mono), что дает ему прямой доступ TypeScript к самому оборудованию агента. Это означает, что GSD действительно может _делать_ то, что v1 мог только _попросить_ LLM: очищать контекст между задачами, вставлять именно нужные файлы во время отправки, управлять ветвями git, отслеживать затраты и токены, обнаруживать застрявшие циклы, восстанавливаться после сбоев и автоматически продвигаться по всей вехе без вмешательства человека.
 
-One command. Walk away. Come back to a built project with clean git history.
+Одна команда. Уходите. Вернитесь к построенному проекту с чистой историей git.
 
 <pre><code>npm install -g gsd-pi</code></pre>
 
-> **📋 NOTICE: New to Node on Mac?** If you installed Node.js via Homebrew, you may be running a development release instead of LTS. **[Read this guide](./docs/node-lts-macos.md)** to pin Node 24 LTS and avoid compatibility issues.
+> **📋 NOTICE: впервые используете Node на Mac?** Если вы установили Node.js через Homebrew, возможно, вы используете версию для разработки вместо LTS. **[Прочитайте это руководство](./docs/node-lts-macos.md)**, чтобы закрепить узел 24 LTS и избежать проблем с совместимостью.
 
 </div>
 
 ---
 
-## What's New in v2.33
+## Что нового в версии 2.33
 
-- **Dispatch loop hardening** — defensive guards, reentrancy protection, and 125 new regression tests covering the full `deriveState → resolveDispatch` chain without an LLM
-- **Live regression test harness** — post-build pipeline validation that catches dispatch, parser, and lock lifecycle regressions before promotion
-- **Unified error handling** — `getErrorMessage()` helper replaces 65 inline duplicates across the codebase
-- **Centralized unit ID parsing** — `parseUnitId()` eliminates fragile regex patterns scattered across dispatch, recovery, and metrics code
-- **Milestone merge consolidation** — `tryMergeMilestone()` replaces 4 duplicate merge paths in the auto-mode loop
-- **Lock alignment fix** — retry lock path now matches primary lock settings, preventing `ECOMPROMISED` errors on resume
-- **NixOS/nix-darwin support** — symlinks in `.gsd/` are skipped during `makeTreeWritable` to prevent `EPERM` failures
-- **Windows EPERM fallback** — `.gsd/` migration uses copy+delete when NTFS blocks direct rename
-- **Worktree identity fix** — stable project hash resolved from main repo root, not worktree path
-- **Quick-task branch cleanup** — `/gsd quick` branches auto-merge back to the original branch after completion
-- **Crash recovery guidance** — actionable next-step messages based on what was interrupted and what state survived
+- **Усиление диспетчеризации** — защитные меры, защита от повторного входа и 125 новых регрессионных тестов, охватывающих всю цепочку `deriveState → resolveDispatch` без LLM.
+- **Регрессионное тестирование в реальном времени** — проверка конвейера после сборки, которая выявляет регрессии жизненного цикла диспетчеризации, синтаксического анализа и блокировки перед продвижением.
+- **Унифицированная обработка ошибок** — помощник `getErrorMessage()` заменяет 65 встроенных дубликатов в базе кода.
+- **Централизованный блок ID синтаксического анализа** — `parseUnitId()` устраняет хрупкие шаблоны регулярных выражений, разбросанные по коду отправки, восстановления и метрик.
+- **Консолидация слиянием Milestone** — `tryMergeMilestone()` заменяет 4 повторяющихся пути слияния в цикле автоматического режима.
+- **Исправлено выравнивание блокировки** — путь повторной блокировки теперь соответствует настройкам основной блокировки, что предотвращает ошибки `ECOMPROMISED` при возобновлении.
+- **Поддержка NixOS/nix-darwin** — символические ссылки в `.gsd/` пропускаются во время `makeTreeWritable`, чтобы предотвратить сбои `EPERM`.
+- **Резервный вариант Windows EPERM** — при миграции `.gsd/` используется копирование и удаление, когда NTFS блокирует прямое переименование.
+- **Исправление идентификации рабочего дерева** — стабильный хеш проекта разрешается из основного корня репозитория, а не из пути рабочего дерева.
+- **Быстрая очистка ветвей** — ветки `/gsd quick` автоматически объединяются с исходной веткой после завершения.
+- **Руководство по восстановлению после сбоя** — сообщения о дальнейших шагах, основанные на том, что было прервано и какое состояние сохранилось.
 
-See the full [Changelog](./CHANGELOG.md) for details.
-
----
-
-## Documentation
-
-Full documentation is available in the [`docs/`](./docs/) directory:
-
-- **[Getting Started](./docs/getting-started.md)** — install, first run, basic usage
-- **[Auto Mode](./docs/auto-mode.md)** — autonomous execution deep-dive
-- **[Configuration](./docs/configuration.md)** — all preferences, models, git, and hooks
-- **[Token Optimization](./docs/token-optimization.md)** — profiles, context compression, complexity routing (v2.17)
-- **[Cost Management](./docs/cost-management.md)** — budgets, tracking, projections
-- **[Git Strategy](./docs/git-strategy.md)** — worktree isolation, branching, merge behavior
-- **[Parallel Orchestration](./docs/parallel-orchestration.md)** — run multiple milestones simultaneously
-- **[Working in Teams](./docs/working-in-teams.md)** — unique IDs, shared artifacts
-- **[Skills](./docs/skills.md)** — bundled skills, discovery, custom authoring
-- **[Commands Reference](./docs/commands.md)** — all commands and keyboard shortcuts
-- **[Architecture](./docs/architecture.md)** — system design and dispatch pipeline
-- **[Troubleshooting](./docs/troubleshooting.md)** — common issues, doctor, forensics, recovery
-- **[CI/CD Pipeline](./docs/ci-cd-pipeline.md)** — three-stage promotion pipeline (Dev → Test → Prod)
-- **[VS Code Extension](./vscode-extension/README.md)** — chat participant, sidebar dashboard, RPC integration
-- **[Visualizer](./docs/visualizer.md)** — workflow visualizer with stats and discussion status
-- **[Remote Questions](./docs/remote-questions.md)** — route decisions to Slack or Discord when human input is needed
-- **[Dynamic Model Routing](./docs/dynamic-model-routing.md)** — complexity-based model selection and budget pressure
-- **[Pipeline Simplification (ADR-003)](./docs/ADR-003-pipeline-simplification.md)** — merged research into planning, mechanical completion
-- **[Migration from v1](./docs/migration.md)** — `.planning` → `.gsd` migration
+Подробности смотрите в полном [Changelog](./CHANGELOG.md).
 
 ---
 
-## What Changed From v1
+## Документация
 
-The original GSD was a collection of markdown prompts installed into `~/.claude/commands/`. It relied entirely on the LLM reading those prompts and doing the right thing. That worked surprisingly well — but it had hard limits:
+Полная документация доступна в каталоге [`docs/`](./docs/):
 
-- **No context control.** The LLM accumulated garbage over a long session. Quality degraded.
-- **No real automation.** "Auto mode" was the LLM calling itself in a loop, burning context on orchestration overhead.
-- **No crash recovery.** If the session died mid-task, you started over.
-- **No observability.** No cost tracking, no progress dashboard, no stuck detection.
+- **[Начало работы](./docs/getting-started.md)** — установка, первый запуск, базовое использование.
+- **[Автоматический режим](./docs/auto-mode.md)** — подробное описание автономного выполнения.
+- **[Конфигурация](./docs/configuration.md)** — все настройки, модели, git и хуки.
+- **[Оптимизация токенов](./docs/token-optimization.md)** — профили, сжатие контекста, сложная маршрутизация (v2.17)
+- **[Управление затратами](./docs/cost-management.md)** — бюджеты, отслеживание, прогнозы
+- **[Git Strategy](./docs/git-strategy.md)** — изоляция рабочего дерева, ветвление, поведение слияния.
+- **[Параллельная оркестровка](./docs/parallel-orchestration.md)** — одновременное выполнение нескольких этапов
+- **[Работа в командах](./docs/working-in-teams.md)** — уникальные IDs, общие артефакты
+- **[Навыки](./docs/skills.md)** — объединенные навыки, открытия, индивидуальное создание.
+- **[Справочник команд](./docs/commands.md)** — все команды и сочетания клавиш.
+- **[Архитектура](./docs/architecture.md)** — проектирование системы и конвейер отправки.
+- **[Устранение неполадок](./docs/troubleshooting.md)** — общие проблемы, врач, судебно-медицинская экспертиза, восстановление.
+- **[CI/CD Pipeline](./docs/ci-cd-pipeline.md)** — трехэтапный конвейер продвижения (Dev → Test → Prod).
+- **[Расширение кода VS](./vscode-extension/README.md)** — участник чата, панель боковой панели, интеграция RPC
+- **[Визуализатор](./docs/visualizer.md)** — визуализатор рабочего процесса со статистикой и статусом обсуждения.
+- **[Удаленные вопросы](./docs/remote-questions.md)** — перенаправлять решения в Slack или Discord, когда требуется участие человека.
+- **[Динамическая маршрутизация модели](./docs/dynamic-model-routing.md)** — выбор модели на основе сложности и ограниченности бюджета.
+- **[Упрощение трубопровода (ADR-003)](./docs/ADR-003-pipeline-simplification.md)** — объединение исследований с планированием и завершением механических работ.
+- **[Миграция с версии 1](./docs/migration.md)** — миграция с `.planning` → `.gsd`
 
-GSD v2 solves all of these because it's not a prompt framework anymore — it's a TypeScript application that _controls_ the agent session.
+---
 
-|                      | v1 (Prompt Framework)        | v2 (Agent Application)                                  |
-| -------------------- | ---------------------------- | ------------------------------------------------------- |
-| Runtime              | Claude Code slash commands   | Standalone CLI via Pi SDK                               |
-| Context management   | Hope the LLM doesn't fill up | Fresh session per task, programmatic                    |
-| Auto mode            | LLM self-loop                | State machine reading `.gsd/` files                     |
-| Crash recovery       | None                         | Lock files + session forensics                          |
-| Git strategy         | LLM writes git commands      | Worktree isolation, sequential commits, squash merge    |
-| Cost tracking        | None                         | Per-unit token/cost ledger with dashboard               |
-| Stuck detection      | None                         | Retry once, then stop with diagnostics                  |
-| Timeout supervision  | None                         | Soft/idle/hard timeouts with recovery steering          |
-| Context injection    | "Read this file"             | Pre-inlined into dispatch prompt                        |
-| Roadmap reassessment | Manual                       | Automatic after each slice completes                    |
-| Skill discovery      | None                         | Auto-detect and install relevant skills during research |
-| Verification         | Manual                       | Automated verification commands with auto-fix retries   |
-| Reporting            | None                         | Self-contained HTML reports with metrics and dep graphs  |
-| Parallel execution   | None                         | Multi-worker parallel milestone orchestration            |
+## Что изменилось по сравнению с версией 1
 
-### Migrating from v1
+Исходная версия GSD представляла собой набор подсказок об уценке, установленных в `~/.claude/commands/`. Он полностью полагался на то, что LLM прочитает эти подсказки и сделает правильные действия. Это сработало на удивление хорошо, но имело жесткие ограничения:
 
-> **Note:** Migration works best with a `ROADMAP.md` file for milestone structure. Without one, milestones are inferred from the `phases/` directory.
+- **Нет управления контекстом.** LLM накопил мусор за долгий сеанс. Качество ухудшилось.
+- **Никакой реальной автоматизации.** «Автоматический режим» - это LLM, вызывающий себя в цикле, сжигающий контекст накладных расходов на оркестровку.
+- **Нет восстановления после сбоя.** Если сеанс завершился в середине выполнения задачи, вы начали заново.
+- **Нет наблюдения.** Нет отслеживания затрат, нет информационной панели прогресса, нет обнаружения зависаний.
 
-If you have projects with `.planning` directories from the original Get Shit Done, you can migrate them to GSD-2's `.gsd` format:
+GSD v2 решает все эти проблемы, поскольку это больше не платформа подсказок, а приложение TypeScript, которое _управляет_ сеансом агента.
+
+|                      | v1 (платформа подсказки) | v2 (приложение агента) |
+| -------------------- | ---------------------------- | --------------------------------------- |
+| Время выполнения | Слэш-команды Клода Кода | Автономный CLI через Pi SDK |
+| Управление контекстом | Надеюсь, LLM не заполнится | Свежий сеанс для каждой задачи, программный |
+| Автоматический режим | LLM самопетля | Государственное машинное чтение файлов `.gsd/` |
+| Восстановление после сбоя | Нет | Блокировка файлов + экспертиза сеанса |
+| Стратегия Git | LLM записывает команды git | Изоляция рабочего дерева, последовательные фиксации, слияние |
+| Отслеживание затрат | Нет | Регистратор токенов/затрат на единицу с информационной панелью |
+| Обнаружение зависаний | Нет | Повторите попытку, затем остановитесь на диагностике |
+| Контроль тайм-аута | Нет | Мягкие/простые/жесткие тайм-ауты с управлением восстановлением |
+| Внедрение контекста | «Прочитать этот файл» | Предварительно встроено в приглашение к отправке |
+| Переоценка дорожной карты | Руководство | Автоматически после завершения каждого фрагмента |
+| Открытие навыков | Нет | Автоматическое обнаружение и установка соответствующих навыков во время исследования |
+| Проверка | Руководство | Команды автоматической проверки с повторными попытками автоматического исправления |
+| Отчетность | Нет | Автономные отчеты HTML с метриками и графиками изменений |
+| Параллельное выполнение | Нет | Многопользовательская параллельная оркестровка этапов |
+
+### Миграция с версии 1
+
+> **Примечание.** Миграция лучше всего работает с файлом `ROADMAP.md` для структуры этапов. Без него этапы выводятся из каталога `phases/`.
+
+Если у вас есть проекты с каталогами `.planning` из оригинальной Get Shit Done, вы можете перенести их в формат `.gsd` GSD-2:
 
 ```bash
 # From within the project directory
@@ -110,22 +110,22 @@ If you have projects with `.planning` directories from the original Get Shit Don
 /gsd migrate ~/projects/my-old-project
 ```
 
-The migration tool:
+Инструмент миграции:
 
-- Parses your old `PROJECT.md`, `ROADMAP.md`, `REQUIREMENTS.md`, phase directories, plans, summaries, and research
-- Maps phases → slices, plans → tasks, milestones → milestones
-- Preserves completion state (`[x]` phases stay done, summaries carry over)
-- Consolidates research files into the new structure
-- Shows a preview before writing anything
-- Optionally runs an agent-driven review of the output for quality assurance
+- Анализирует ваши старые `PROJECT.md`, `ROADMAP.md`, `REQUIREMENTS.md`, каталоги фаз, планы, сводки и исследования.
+- Карты фаз → срезы, планы → задачи, этапы → этапы
+- Сохраняет состояние завершения (этапы `[x]` остаются выполненными, сводные данные переносятся)
+- Объединяет файлы исследований в новую структуру.
+- Показывает предварительный просмотр, прежде чем писать что-либо
+- Опционально запускает агентскую проверку выходных данных для обеспечения качества.
 
-Supports format variations including milestone-sectioned roadmaps with `<details>` blocks, bold phase entries, bullet-format requirements, decimal phase numbering, and duplicate phase numbers across milestones.
+Поддерживаются варианты формата, включая дорожные карты с разделением этапов с блоками `<details>`, жирным шрифтом записи этапов, требования к формату маркеров, десятичную нумерацию этапов и дублирование номеров этапов для этапов.
 
 ---
 
-## How It Works
+## Как это работает
 
-GSD structures work into a hierarchy:
+Структуры GSD работают в виде иерархии:
 
 ```
 Milestone  →  a shippable version (4-10 slices)
@@ -133,11 +133,11 @@ Milestone  →  a shippable version (4-10 slices)
     Task   →  one context-window-sized unit of work
 ```
 
-The iron rule: **a task must fit in one context window.** If it can't, it's two tasks.
+Железное правило: **задача должна умещаться в одном контекстном окне.** Если нет, то это две задачи.
 
-### The Loop
+### Петля
 
-Each slice flows through phases automatically:
+Каждый срез автоматически проходит через фазы:
 
 ```
 Plan (with integrated research) → Execute (per task) → Complete → Reassess Roadmap → Next Slice
@@ -145,110 +145,110 @@ Plan (with integrated research) → Execute (per task) → Complete → Reassess
                                                                               Validate Milestone → Complete Milestone
 ```
 
-**Plan** scouts the codebase, researches relevant docs, and decomposes the slice into tasks with must-haves (mechanically verifiable outcomes). **Execute** runs each task in a fresh context window with only the relevant files pre-loaded — then runs configured verification commands (lint, test, etc.) with auto-fix retries. **Complete** writes the summary, UAT script, marks the roadmap, and commits with meaningful messages derived from task summaries. **Reassess** checks if the roadmap still makes sense given what was learned. **Validate Milestone** runs a reconciliation gate after all slices complete — comparing roadmap success criteria against actual results before sealing the milestone.
+**План** изучает базу кода, изучает соответствующую документацию и разбивает фрагмент на задачи с обязательными действиями (результаты, поддающиеся механической проверке). **Выполнить** запускает каждую задачу в новом контекстном окне, предварительно загружая только соответствующие файлы, а затем запускает настроенные команды проверки (lint, test и т. д.) с повторными попытками автоматического исправления. **Complete** записывает сводку, сценарий UAT, отмечает дорожную карту и фиксирует содержательные сообщения, полученные из сводок задач. **Повторная оценка** проверяет, имеет ли дорожная карта смысл с учетом того, что было изучено. **Проверка контрольной точки** запускает процедуру сверки после завершения всех срезов — сравнивая критерии успеха дорожной карты с фактическими результатами, прежде чем фиксировать контрольную точку.
 
-### `/gsd auto` — The Main Event
+### `/gsd auto` — Главное событие
 
-This is what makes GSD different. Run it, walk away, come back to built software.
+Вот что отличает GSD. Запустите его, уходите и вернитесь к встроенному программному обеспечению.
 
 ```
 /gsd auto
 ```
 
-Auto mode is a state machine driven by files on disk. It reads `.gsd/STATE.md`, determines the next unit of work, creates a fresh agent session, injects a focused prompt with all relevant context pre-inlined, and lets the LLM execute. When the LLM finishes, auto mode reads disk state again and dispatches the next unit.
+Автоматический режим — это конечный автомат, управляемый файлами на диске. Он считывает `.gsd/STATE.md`, определяет следующую единицу работы, создает новый сеанс агента, вводит целенаправленное приглашение со всем соответствующим контекстом, предварительно встроенным, и позволяет выполнить LLM. Когда LLM завершается, автоматический режим снова считывает состояние диска и отправляет следующий блок.
 
-**What happens under the hood:**
+**Что происходит под капотом:**
 
-1. **Fresh session per unit** — Every task, every research phase, every planning step gets a clean 200k-token context window. No accumulated garbage. No "I'll be more concise now."
+1. **Новый сеанс на единицу** — Каждая задача, каждый этап исследования, каждый шаг планирования получает чистое контекстное окно на 200 тысяч токенов. Никакого накопившегося мусора. Нет: «Теперь я буду более краток».
 
-2. **Context pre-loading** — The dispatch prompt includes inlined task plans, slice plans, prior task summaries, dependency summaries, roadmap excerpts, and decisions register. The LLM starts with everything it needs instead of spending tool calls reading files.
+2. **Предварительная загрузка контекста**. Подсказка об отправке включает встроенные планы задач, планы срезов, сводки предыдущих задач, сводки зависимостей, выдержки из дорожной карты и реестр решений. LLM начинается со всего, что ему нужно, вместо того, чтобы тратить вызовы инструментов на чтение файлов.
 
-3. **Git worktree isolation** — Each milestone runs in its own git worktree with a `milestone/<MID>` branch. All slice work commits sequentially — no branch switching, no merge conflicts. When the milestone completes, it's squash-merged to main as one clean commit.
+3. **Изоляция рабочего дерева Git**. Каждая веха выполняется в отдельном рабочем дереве git с веткой `milestone/<MID>`. Вся работа среза фиксируется последовательно — без переключения ветвей, без конфликтов слияния. Когда веха завершается, она объединяется с основной как один чистый коммит.
 
-4. **Crash recovery** — A lock file tracks the current unit. If the session dies, the next `/gsd auto` reads the surviving session file, synthesizes a recovery briefing from every tool call that made it to disk, and resumes with full context. Parallel orchestrator state is persisted to disk with PID liveness detection, so multi-worker sessions survive crashes too. In headless mode, crashes trigger automatic restart with exponential backoff (default 3 attempts).
+4. **Восстановление после сбоя** — файл блокировки отслеживает текущее устройство. Если сеанс завершается, следующий `/gsd auto` считывает сохранившийся файл сеанса, синтезирует инструкции по восстановлению из каждого вызова инструмента, который попал на диск, и возобновляет работу с полным контекстом. Состояние параллельного оркестратора сохраняется на диске с помощью определения работоспособности PID, поэтому сеансы с несколькими рабочими процессами также выдерживают сбои. В безголовом режиме сбои вызывают автоматический перезапуск с экспоненциальной задержкой (по умолчанию 3 попытки).
 
-5. **Provider error recovery** — Transient provider errors (rate limits, 500/503 server errors, overloaded) auto-resume after a delay. Permanent errors (auth, billing) pause for manual review. The model fallback chain retries transient network errors before switching models.
+5. **Восстановление ошибок поставщика** — временные ошибки поставщика (ограничения скорости, ошибки сервера 500/503, перегрузка) автоматически возобновляются после задержки. Постоянные ошибки (авторизация, выставление счетов) приостанавливаются для проверки вручную. Цепочка резервного копирования модели повторяет временные сетевые ошибки перед переключением модели.
 
-6. **Stuck detection** — If the same unit dispatches twice (the LLM didn't produce the expected artifact), it retries once with a deep diagnostic. If it fails again, auto mode stops with the exact file it expected.
+6. **Обнаружение зависания** — если одно и то же устройство отправляет сообщение дважды (LLM не выдал ожидаемого артефакта), оно повторяет попытку один раз с глубокой диагностикой. Если снова произойдет сбой, автоматический режим остановится с использованием именно того файла, который он ожидал.
 
-7. **Timeout supervision** — Soft timeout warns the LLM to wrap up. Idle watchdog detects stalls. Hard timeout pauses auto mode. Recovery steering nudges the LLM to finish durable output before giving up.
+7. **Контроль тайм-аута** — Мягкий тайм-аут предупреждает LLM о необходимости завершения. Устройство контроля простоя обнаруживает остановку. Жесткий тайм-аут приостанавливает автоматический режим. Рулевое управление подталкивает LLM к завершению длительной работы, прежде чем сдаться.
 
-8. **Cost tracking** — Every unit's token usage and cost is captured, broken down by phase, slice, and model. The dashboard shows running totals and projections. Budget ceilings can pause auto mode before overspending.
+8. **Отслеживание затрат**. Использование токенов и стоимость каждого подразделения фиксируются с разбивкой по этапам, срезам и моделям. На информационной панели отображаются текущие итоги и прогнозы. Потолок бюджета позволяет приостановить автоматический режим перед перерасходом средств.
 
-9. **Adaptive replanning** — After each slice completes, the roadmap is reassessed. If the work revealed new information that changes the plan, slices are reordered, added, or removed before continuing.
+9. **Адаптивное перепланирование**. После завершения каждого этапа дорожная карта пересматривается. Если в работе обнаружена новая информация, меняющая план, перед продолжением срезы переупорядочиваются, добавляются или удаляются.
 
-10. **Verification enforcement** — Configure shell commands (`npm run lint`, `npm run test`, etc.) that run automatically after task execution. Failures trigger auto-fix retries before advancing. Auto-discovered checks from `package.json` run in advisory mode — they log warnings but don't block on pre-existing errors. Configurable via `verification_commands`, `verification_auto_fix`, and `verification_max_retries` preferences.
+10. **Принудительная проверка** — настройте команды оболочки (`npm run lint`, `npm run test` и т. д.), которые запускаются автоматически после выполнения задачи. Сбои вызывают повторные попытки автоматического исправления перед дальнейшим продвижением. Автоматически обнаруженные проверки из `package.json` выполняются в рекомендательном режиме — они регистрируют предупреждения, но не блокируются при ранее существовавших ошибках. Настраивается через настройки `verification_commands`, `verification_auto_fix` и `verification_max_retries`.
 
-11. **Milestone validation** — After all slices complete, a `validate-milestone` gate compares roadmap success criteria against actual results before sealing the milestone.
+11. **Проверка контрольной точки**. После завершения всех срезов шлюз `validate-milestone` сравнивает критерии успеха дорожной карты с фактическими результатами, прежде чем фиксировать контрольную точку.
 
-12. **Escape hatch** — Press Escape to pause. The conversation is preserved. Interact with the agent, inspect what happened, or just `/gsd auto` to resume from disk state.
+12. **Аварийный люк** — нажмите Escape, чтобы сделать паузу. Разговор сохранен. Взаимодействуйте с агентом, проверьте, что произошло, или просто нажмите `/gsd auto`, чтобы возобновить работу из состояния диска.
 
-### `/gsd` and `/gsd next` — Step Mode
+### `/gsd` и `/gsd next` — пошаговый режим
 
-By default, `/gsd` runs in **step mode**: the same state machine as auto mode, but it pauses between units with a wizard showing what completed and what's next. You advance one step at a time, review the output, and continue when ready.
+По умолчанию `/gsd` работает в **пошаговом режиме**: тот же конечный автомат, что и в автоматическом режиме, но он делает паузу между модулями, а мастер показывает, что выполнено и что дальше. Вы продвигаетесь шаг за шагом, просматриваете результаты и продолжаете, когда будете готовы.
 
-- **No `.gsd/` directory** → Start a new project. Discussion flow captures your vision, constraints, and preferences.
-- **Milestone exists, no roadmap** → Discuss or research the milestone.
-- **Roadmap exists, slices pending** → Plan the next slice, execute one task, or switch to auto.
-- **Mid-task** → Resume from where you left off.
+- **Нет каталога `.gsd/`** → Начать новый проект. Ход обсуждения отражает ваше видение, ограничения и предпочтения.
+- **Веха существует, дорожной карты нет** → Обсудите или изучите веху.
+- **План существует, фрагменты ожидаются** → Запланируйте следующий фрагмент, выполните одну задачу или переключитесь на автоматический режим.
+- **В середине задачи** → Возобновить работу с того места, где вы остановились.
 
-`/gsd next` is an explicit alias for step mode. You can switch from step → auto mid-session via the wizard.
+`/gsd next` — это явный псевдоним пошагового режима. Вы можете переключиться с шага → автоматически в середине сеанса с помощью мастера.
 
-Step mode is the on-ramp. Auto mode is the highway.
+Шаговый режим — это рампа. Автоматический режим – это трасса.
 
 ---
 
-## Getting Started
+## Начало работы
 
-### Install
+### Установить
 
 ```bash
 npm install -g gsd-pi
 ```
 
-### Log in to a provider
+### Авторизуйтесь у провайдера
 
-First, choose your LLM provider:
+Сначала выберите поставщика услуг LLM:
 
 ```bash
 gsd
 /login
 ```
 
-Select from 20+ providers — Anthropic, OpenAI, Google, OpenRouter, GitHub Copilot, and more. If you have a Claude Max or Copilot subscription, the OAuth flow handles everything. Otherwise, paste your API key when prompted.
+Выбирайте из более чем 20 провайдеров — Anthropic, OpenAI, Google, OpenRouter, GitHub Copilot и других. Если у вас есть подписка Claude Max или Copilot, поток OAuth справится со всем. В противном случае вставьте ключ API при появлении соответствующего запроса.
 
-GSD auto-selects a default model after login. To switch models later:
+GSD автоматически выбирает модель по умолчанию после входа в систему. Чтобы переключить модель позже:
 
 ```bash
 /model
 ```
 
-### Use it
+### Используйте это
 
-Open a terminal in your project and run:
+Откройте терминал в своем проекте и запустите:
 
 ```bash
 gsd
 ```
 
-GSD opens an interactive agent session. From there, you have two ways to work:
+GSD открывает сеанс интерактивного агента. Отсюда у вас есть два способа работы:
 
-**`/gsd` — step mode.** Type `/gsd` and GSD executes one unit of work at a time, pausing between each with a wizard showing what completed and what's next. Same state machine as auto mode, but you stay in the loop. No project yet? It starts the discussion flow. Roadmap exists? It plans or executes the next step.
+**`/gsd` — пошаговый режим.** Типы `/gsd` и GSD выполняют одну единицу работы за раз, делая паузу между каждой работой, а мастер показывает, что выполнено и что дальше. Тот же конечный автомат, что и в автоматическом режиме, но вы остаетесь в курсе. Еще нет проекта? Это запускает поток обсуждения. Дорожная карта существует? Он планирует или выполняет следующий шаг.
 
-**`/gsd auto` — autonomous mode.** Type `/gsd auto` and walk away. GSD researches, plans, executes, verifies, commits, and advances through every slice until the milestone is complete. Fresh context window per task. No babysitting.
+**`/gsd auto` — автономный режим.** Наберите `/gsd auto` и уходите. GSD исследует, планирует, выполняет, проверяет, фиксирует и продвигается по каждому фрагменту, пока не будет завершена контрольная точка. Свежее контекстное окно для каждой задачи. Никакого присмотра за детьми.
 
-### Two terminals, one project
+### Два терминала, один проект
 
-The real workflow: run auto mode in one terminal, steer from another.
+Реальный рабочий процесс: запускайте автоматический режим в одном терминале, управляйте из другого.
 
-**Terminal 1 — let it build**
+**Терминал 1 — пусть строит**
 
 ```bash
 gsd
 /gsd auto
 ```
 
-**Terminal 2 — steer while it works**
+**Терминал 2 — управляй, пока работает**
 
 ```bash
 gsd
@@ -257,11 +257,11 @@ gsd
 /gsd queue      # queue the next milestone
 ```
 
-Both terminals read and write the same `.gsd/` files on disk. Your decisions in terminal 2 are picked up automatically at the next phase boundary — no need to stop auto mode.
+Оба терминала читают и записывают на диск одни и те же файлы `.gsd/`. Ваши решения в терминале 2 автоматически подбираются на следующей границе фазы — отключать автоматический режим не нужно.
 
-### Headless mode — CI and scripts
+### Безголовый режим — CI и скрипты
 
-`gsd headless` runs any `/gsd` command without a TUI. Designed for CI pipelines, cron jobs, and scripted automation.
+`gsd headless` запускает любую команду `/gsd` без TUI. Предназначен для конвейеров CI, заданий cron и автоматизации сценариев.
 
 ```bash
 # Run auto mode in CI
@@ -280,78 +280,78 @@ gsd headless query
 gsd headless dispatch plan
 ```
 
-Headless auto-responds to interactive prompts, detects completion, and exits with structured codes: `0` complete, `1` error/timeout, `2` blocked. Auto-restarts on crash with exponential backoff. Use `gsd headless query` for instant, machine-readable state inspection — returns phase, next dispatch preview, and parallel worker costs as a single JSON object without spawning an LLM session. Pair with [remote questions](./docs/remote-questions.md) to route decisions to Slack or Discord when human input is needed.
+Безголовый автоматически отвечает на интерактивные запросы, определяет завершение и завершает работу со структурированными кодами: `0` завершено, `1` ошибка/тайм-аут, `2` заблокировано. Автоматический перезапуск при сбое с экспоненциальной задержкой. Используйте `gsd headless query` для мгновенной машиночитаемой проверки состояния — этап возврата, предварительный просмотр следующей отправки и параллельные затраты на рабочих как один объект JSON без создания сеанса LLM. Используйте [удаленные вопросы] (./docs/remote-questions.md), чтобы направлять решения в Slack или Discord, когда требуется участие человека.
 
-**Multi-session orchestration** — headless mode supports file-based IPC in `.gsd/parallel/` for coordinating multiple GSD workers across milestones. Build orchestrators that spawn, monitor, and budget-cap a fleet of GSD workers.
+**Многосессионная оркестровка** — автономный режим поддерживает файловый IPC в `.gsd/parallel/` для координации нескольких исполнителей GSD на различных этапах. Создайте оркестраторы, которые создают, контролируют и ограничивают бюджет группы из GSD рабочих.
 
-### First launch
+### Первый запуск
 
-On first run, GSD launches a branded setup wizard that walks you through LLM provider selection (OAuth or API key), then optional tool API keys (Brave Search, Context7, Jina, Slack, Discord). Every step is skippable — press Enter to skip any. If you have an existing Pi installation, your provider credentials (LLM and tool keys) are imported automatically. Run `gsd config` anytime to re-run the wizard.
+При первом запуске GSD запускает фирменный мастер настройки, который поможет вам выбрать поставщика LLM (клавиша OAuth или API), а затем дополнительные клавиши инструмента API (Brave Search, Context7, Jina, Slack, Discord). Каждый шаг можно пропустить — нажмите Enter, чтобы пропустить любой. Если у вас уже установлена ​​версия Pi, учетные данные вашего провайдера (LLM и ключи инструментов) импортируются автоматически. Запустите `gsd config` в любое время, чтобы перезапустить мастер.
 
-### Commands
+### Команды
 
-| Command                 | What it does                                                    |
-| ----------------------- | --------------------------------------------------------------- |
-| `/gsd`                  | Step mode — executes one unit at a time, pauses between each    |
-| `/gsd next`             | Explicit step mode (same as bare `/gsd`)                        |
-| `/gsd auto`             | Autonomous mode — researches, plans, executes, commits, repeats |
-| `/gsd quick`            | Execute a quick task with GSD guarantees, skip planning overhead |
-| `/gsd stop`             | Stop auto mode gracefully                                       |
-| `/gsd steer`            | Hard-steer plan documents during execution                      |
-| `/gsd discuss`          | Discuss architecture and decisions (works alongside auto mode)  |
-| `/gsd status`           | Progress dashboard                                              |
-| `/gsd queue`            | Queue future milestones (safe during auto mode)                 |
-| `/gsd prefs`            | Model selection, timeouts, budget ceiling                       |
-| `/gsd migrate`          | Migrate a v1 `.planning` directory to `.gsd` format             |
-| `/gsd help`             | Categorized command reference for all GSD subcommands           |
-| `/gsd mode`             | Switch workflow mode (solo/team) with coordinated defaults      |
-| `/gsd forensics`        | Post-mortem investigation of auto-mode failures                 |
-| `/gsd cleanup`          | Archive phase directories from completed milestones             |
-| `/gsd doctor`           | Runtime health checks with auto-fix for common issues           |
-| `/gsd keys`             | API key manager — list, add, remove, test, rotate, doctor       |
-| `/gsd logs`             | Browse activity, debug, and metrics logs                        |
-| `/gsd export --html`    | Generate HTML report for current or completed milestone         |
-| `/worktree` (`/wt`)     | Git worktree lifecycle — create, switch, merge, remove          |
-| `/voice`                | Toggle real-time speech-to-text (macOS, Linux)                  |
-| `/exit`                 | Graceful shutdown — saves session state before exiting          |
-| `/kill`                 | Kill GSD process immediately                                    |
-| `/clear`                | Start a new session (alias for `/new`)                          |
-| `Ctrl+Alt+G`            | Toggle dashboard overlay                                        |
-| `Ctrl+Alt+V`            | Toggle voice transcription                                      |
-| `Ctrl+Alt+B`            | Show background shell processes                                 |
-| `Alt+V`                 | Paste clipboard image (macOS)                                   |
-| `gsd config`            | Re-run the setup wizard (LLM provider + tool keys)              |
-| `gsd update`            | Update GSD to the latest version                                |
-| `gsd headless [cmd]`    | Run `/gsd` commands without TUI (CI, cron, scripts)             |
-| `gsd headless query`    | Instant JSON snapshot — state, next dispatch, costs (no LLM)    |
-| `gsd --continue` (`-c`) | Resume the most recent session for the current directory        |
-| `gsd --worktree` (`-w`) | Launch an isolated worktree session for the active milestone    |
-| `gsd sessions`          | Interactive session picker — browse and resume any saved session |
+| Команда | Что он делает |
+| ----------------------- | ----------------------------------------------- |
+| `/gsd` | Пошаговый режим — выполняется по одному блоку за раз, между каждым |
+| `/gsd next` | Режим явного шага (тот же, что и обычный `/gsd`) |
+| `/gsd auto` | Автономный режим — исследование, планирование, выполнение, фиксация, повторение |
+| `/gsd quick` | Выполните быструю задачу с гарантией GSD, избегая накладных расходов на планирование |
+| `/gsd stop` | Остановите автоматический режим корректно |
+| `/gsd steer` | Жесткое управление плановыми документами во время исполнения |
+| `/gsd discuss` | Обсудить архитектуру и решения (работает вместе с автоматическим режимом) |
+| `/gsd status` | Панель мониторинга прогресса |
+| `/gsd queue` | Поставить будущие этапы в очередь (безопасно в автоматическом режиме) |
+| `/gsd prefs` | Выбор модели, таймауты, потолок бюджета |
+| `/gsd migrate` | Перенос каталога `.planning` версии 1 в формат `.gsd` |
+| `/gsd help` | Справочник команд по категориям для всех подкоманд GSD |
+| `/gsd mode` | Переключение режима рабочего процесса (одиночный/командный) с согласованными настройками по умолчанию |
+| `/gsd forensics` | Посмертное расследование отказов авторежима |
+| `/gsd cleanup` | Архивировать каталоги этапов выполненных этапов |
+| `/gsd doctor` | Проверки работоспособности во время выполнения с автоматическим исправлением распространенных проблем |
+| `/gsd keys` | API менеджер ключей — список, добавление, удаление, проверка, ротация, врач |
+| `/gsd logs` | Просмотр журналов активности, отладки и показателей |
+| `/gsd export --html` | Создать отчет HTML для текущего или завершенного этапа |
+| `/worktree` (`/wt`) | Жизненный цикл рабочего дерева Git — создание, переключение, объединение, удаление |
+| `/voice` | Переключить преобразование речи в текст в реальном времени (macOS, Linux) |
+| `/exit` | Грациозное завершение работы — сохраняет состояние сеанса перед выходом |
+| `/kill` | Немедленно завершить процесс GSD |
+| `/clear` | Начать новый сеанс (псевдоним `/new`) |
+| `Ctrl+Alt+G` | Переключить наложение приборной панели |
+| `Ctrl+Alt+V` | Переключить транскрипцию голоса |
+| `Ctrl+Alt+B` | Показать фоновые процессы оболочки |
+| `Alt+V` | Вставить изображение из буфера обмена (macOS) |
+| `gsd config` | Перезапустите мастер настройки (поставщик LLM + клавиши инструментов) |
+| `gsd update` | Обновите GSD до последней версии |
+| `gsd headless [cmd]` | Запуск команд `/gsd` без TUI (CI, cron, скрипты) |
+| `gsd headless query` | Мгновенный снимок JSON — состояние, следующая отправка, стоимость (без LLM) |
+| `gsd --continue` (`-c`) | Возобновить последний сеанс для текущего каталога |
+| `gsd --worktree` (`-w`) | Запустить изолированный сеанс рабочего дерева для активной вехи |
+| `gsd sessions` | Интерактивный выбор сеанса — просмотр и возобновление любого сохраненного сеанса |
 
 ---
 
-## What GSD Manages For You
+## Что GSD делает для вас
 
-### Context Engineering
+### Контекстная инженерия
 
-Every dispatch is carefully constructed. The LLM never wastes tool calls on orientation.
+Каждая рассылка тщательно строится. LLM никогда не тратит зря вызовы инструментов на ориентацию.
 
-| Artifact           | Purpose                                                         |
-| ------------------ | --------------------------------------------------------------- |
-| `PROJECT.md`       | Living doc — what the project is right now                      |
-| `DECISIONS.md`     | Append-only register of architectural decisions                 |
-| `STATE.md`         | Quick-glance dashboard — always read first                      |
-| `M001-ROADMAP.md`  | Milestone plan with slice checkboxes, risk levels, dependencies |
-| `M001-CONTEXT.md`  | User decisions from the discuss phase                           |
-| `M001-RESEARCH.md` | Codebase and ecosystem research                                 |
-| `S01-PLAN.md`      | Slice task decomposition with must-haves                        |
-| `T01-PLAN.md`      | Individual task plan with verification criteria                 |
-| `T01-SUMMARY.md`   | What happened — YAML frontmatter + narrative                    |
-| `S01-UAT.md`       | Human test script derived from slice outcomes                   |
+| Артефакт | Цель |
+| ------------------ | ----------------------------------------------- |
+| `PROJECT.md` | Живой документ — что это за проект прямо сейчас |
+| `DECISIONS.md` | Доступный только для добавления реестр архитектурных решений |
+| `STATE.md` | Панель быстрого просмотра — всегда читайте в первую очередь |
+| `M001-ROADMAP.md` | План этапов с флажками срезов, уровнями риска и зависимостями |
+| `M001-CONTEXT.md` | Решения пользователей на этапе обсуждения |
+| `M001-RESEARCH.md` | Исследование кодовой базы и экосистемы |
+| `S01-PLAN.md` | Декомпозиция задачи по срезам с необходимыми элементами |
+| `T01-PLAN.md` | Индивидуальный план задач с критериями проверки |
+| `T01-SUMMARY.md` | Что произошло — YAML заставка + повествование |
+| `S01-UAT.md` | Сценарий тестирования на людях, полученный на основе результатов срезов |
 
-### Git Strategy
+### Git-стратегия
 
-Branch-per-slice with squash merge. Fully automated.
+Ветвь на срез с сквош-слиянием. Полностью автоматизирован.
 
 ```
 main:
@@ -366,44 +366,44 @@ gsd/M001/S01 (deleted after merge):
   feat(S01/T01): core types and interfaces
 ```
 
-One squash commit per milestone on main (or whichever branch you started from). The worktree is torn down after merge. Git bisect works. Individual milestones are revertable. Commit messages are generated from task summaries — no more generic "complete task" messages.
+Один сквош-коммит на каждую веху в основной (или в любой другой ветке, из которой вы начали). Рабочее дерево сносится после слияния. Git bisect работает. Отдельные этапы можно отменить. Сообщения о фиксации генерируются на основе сводок задач — больше нет общих сообщений о завершении задачи.
 
-### Verification
+### Проверка
 
-Every task has must-haves — mechanically checkable outcomes:
+У каждой задачи есть обязательные — механически проверяемые результаты:
 
-- **Truths** — Observable behaviors ("User can sign up with email")
-- **Artifacts** — Files that must exist with real implementation, not stubs
-- **Key Links** — Imports and wiring between artifacts
+- **Правда** — наблюдаемое поведение («Пользователь может зарегистрироваться по электронной почте»).
+- **Артефакты** — файлы, которые должны существовать в реальной реализации, а не заглушки.
+- **Ключевые ссылки** — импорт и связывание между артефактами.
 
-The verification ladder: static checks → command execution → behavioral testing → human review (only when the agent genuinely can't verify itself).
+Лестница проверки: статические проверки → выполнение команд → поведенческое тестирование → проверка человеком (только когда агент действительно не может проверить себя).
 
-### Dashboard
+### Панель управления
 
-`Ctrl+Alt+G` or `/gsd status` opens a real-time overlay showing:
+`Ctrl+Alt+G` или `/gsd status` открывает наложение в реальном времени, показывающее:
 
-- Current milestone, slice, and task progress
-- Auto mode elapsed time and phase
-- Per-unit cost and token breakdown by phase, slice, and model
-- Cost projections based on completed work
-- Completed and in-progress units
+- Текущая веха, срез и ход выполнения задач
+- Прошедшее время и фаза автоматического режима
+- Стоимость за единицу и разбивка токенов по этапам, срезам и моделям.
+- Прогноз стоимости на основе выполненных работ.
+- Завершенные и незавершенные объекты.
 
-### HTML Reports
+### HTML Отчеты
 
-After a milestone completes, GSD auto-generates a self-contained HTML report in `.gsd/reports/`. Each report includes project summary, progress tree, slice dependency graph (SVG DAG), cost/token metrics with bar charts, execution timeline, changelog, and knowledge base sections. No external dependencies — all CSS and JS are inlined, printable to PDF from any browser.
+После завершения контрольной точки GSD автоматически создает автономный отчет HTML в `.gsd/reports/`. Каждый отчет включает сводную информацию о проекте, дерево прогресса, график зависимости фрагментов (SVG DAG), показатели затрат/токенов с гистограммами, график выполнения, журнал изменений и разделы базы знаний. Никаких внешних зависимостей — все CSS и JS встроены, их можно распечатать в PDF из любого браузера.
 
-An auto-generated `index.html` shows all reports with progression metrics across milestones.
+Автоматически созданный `index.html` показывает все отчеты с показателями прогресса по этапам.
 
-- **Automatic** — generated after milestone completion (configurable via `auto_report` preference)
-- **Manual** — run `/gsd export --html` anytime
+- **Автоматически** — генерируется после завершения этапа (настраивается с помощью настройки `auto_report`).
+- **Вручную** — запускайте `/gsd export --html` в любое время.
 
 ---
 
-## Configuration
+## Конфигурация
 
-### Preferences
+### Настройки
 
-GSD preferences live in `~/.gsd/preferences.md` (global) or `.gsd/preferences.md` (project). Manage with `/gsd prefs`.
+Предпочтения GSD хранятся в `~/.gsd/preferences.md` (глобальный) или `.gsd/preferences.md` (проект). Управляйте с `/gsd prefs`.
 
 ```yaml
 ---
@@ -431,98 +431,98 @@ auto_report: true
 ---
 ```
 
-**Key settings:**
+**Основные настройки:**
 
-| Setting                | What it controls                                                                                      |
+| Настройка | Что он контролирует |
 | ---------------------- | ----------------------------------------------------------------------------------------------------- |
-| `models.*`             | Per-phase model selection — string for a single model, or `{model, fallbacks}` for automatic failover |
-| `skill_discovery`      | `auto` / `suggest` / `off` — how GSD finds and applies skills                                         |
-| `auto_supervisor.*`    | Timeout thresholds for auto mode supervision                                                          |
-| `budget_ceiling`       | USD ceiling — auto mode pauses when reached                                                           |
-| `uat_dispatch`         | Enable automatic UAT runs after slice completion                                                      |
-| `always_use_skills`    | Skills to always load when relevant                                                                   |
-| `skill_rules`          | Situational rules for skill routing                                                                   |
-| `skill_staleness_days` | Skills unused for N days get deprioritized (default: 60, 0 = disabled)                                |
-| `unique_milestone_ids` | Uses unique milestone names to avoid clashes when working in teams of people                          |
-| `git.isolation`        | `worktree` (default), `branch`, or `none` — disable worktree isolation for projects that don't need it           |
-| `git.manage_gitignore` | Set `false` to prevent GSD from modifying `.gitignore`                                                           |
-| `verification_commands`| Array of shell commands to run after task execution (e.g., `["npm run lint", "npm run test"]`)        |
-| `verification_auto_fix`| Auto-retry on verification failures (default: true)                                                   |
-| `verification_max_retries` | Max retries for verification failures (default: 2)                                               |
-| `require_slice_discussion` | Pause auto-mode before each slice for human discussion review                                    |
-| `auto_report`          | Auto-generate HTML reports after milestone completion (default: true)                                 |
-| `searchExcludeDirs`    | Directories to exclude from `@` file autocomplete (e.g., `["node_modules", ".git", "dist"]`)          |
+| `models.*` | Поэтапный выбор модели — строка для одной модели или `{model, fallbacks}` для автоматического переключения при сбое |
+| `skill_discovery` | `auto` / `suggest` / `off` — как GSD находит и применяет навыки |
+| `auto_supervisor.*` | Пороговые значения времени ожидания для контроля автоматического режима |
+| `budget_ceiling` | USD потолок — автоматический режим приостанавливается при достижении |
+| `uat_dispatch` | Включить автоматический запуск UAT после завершения среза |
+| `always_use_skills` | Навыки, которые всегда можно загрузить, когда это необходимо |
+| `skill_rules` | Ситуационные правила маршрутизации навыков |
+| `skill_staleness_days` | Навыки, не использованные в течение N дней, теряют приоритет (по умолчанию: 60, 0 = отключено) |
+| `unique_milestone_ids` | Использует уникальные имена этапов, чтобы избежать конфликтов при работе в группах |
+| `git.isolation` | `worktree` (по умолчанию), `branch` или `none` — отключить изоляцию рабочего дерева для проектов, которым она не нужна |
+| `git.manage_gitignore` | Установите `false`, чтобы запретить GSD изменять `.gitignore` |
+| `verification_commands`| Массив команд оболочки, запускаемых после выполнения задачи (например, `["npm run lint", "npm run test"]`) |
+| `verification_auto_fix`| Автоматическая повторная попытка при неудачной проверке (по умолчанию: true) |
+| `verification_max_retries` | Максимальное количество попыток при неудачной проверке (по умолчанию: 2) |
+| `require_slice_discussion` | Приостанавливайте автоматический режим перед каждым фрагментом для обсуждения человеком |
+| `auto_report` | Автоматическое создание отчетов HTML после завершения этапа (по умолчанию: true) |
+| `searchExcludeDirs` | Каталоги, которые следует исключить из автозаполнения файла `@` (например, `["node_modules", ".git", "dist"]`) |
 
-### Agent Instructions
+### Инструкции агента
 
-Create an `agent-instructions.md` file in your project root to inject persistent per-project behavioral guidance into every agent session. This file is loaded automatically and provides project-specific context the LLM should always have — coding standards, architectural decisions, domain terminology, or workflow preferences.
+Создайте файл `agent-instructions.md` в корне вашего проекта, чтобы внедрить постоянное руководство по поведению для каждого проекта в каждый сеанс агента. Этот файл загружается автоматически и предоставляет контекст конкретного проекта, который всегда должен быть у LLM: стандарты кодирования, архитектурные решения, терминологию предметной области или настройки рабочего процесса.
 
-### Debug Mode
+### Режим отладки
 
-Start GSD with `gsd --debug` to enable structured JSONL diagnostic logging. Debug logs capture dispatch decisions, state transitions, and timing data for troubleshooting auto-mode issues.
+Начните GSD с `gsd --debug`, чтобы включить структурированное ведение журнала диагностики JSONL. Журналы отладки фиксируют решения по диспетчеризации, переходы между состояниями и данные о времени для устранения неполадок в автоматическом режиме.
 
-### Token Optimization (v2.17)
+### Оптимизация токенов (v2.17)
 
-GSD 2.17 introduced a coordinated token optimization system that reduces usage by 40-60% on cost-sensitive workloads. Set a single preference to coordinate model selection, phase skipping, and context compression:
+В версии GSD 2.17 представлена скоординированная система оптимизации токенов, которая снижает использование на 40–60 % при чувствительных к затратам рабочих нагрузках. Установите одно предпочтение для координации выбора модели, пропуска фазы и сжатия контекста:
 
 ```yaml
 token_profile: budget      # or balanced (default), quality
 ```
 
-| Profile | Savings | What It Does |
+| Профиль | Экономия | Что он делает |
 |---------|---------|-------------|
-| `budget` | 40-60% | Cheap models, skip research/reassess, minimal context inlining |
-| `balanced` | 10-20% | Default models, skip slice research, standard context |
-| `quality` | 0% | All phases, all context, full model power |
+| `budget` | 40-60% | Дешевые модели, отсутствие исследования/переоценки, минимальное встраивание контекста |
+| `balanced` | 10-20% | Модели по умолчанию, пропуск исследования срезов, стандартный контекст |
+| `quality` | 0% | Все этапы, весь контекст, полная мощность модели |
 
-**Complexity-based routing** automatically classifies tasks as simple/standard/complex and routes to appropriate models. Simple docs tasks get Haiku; complex architectural work gets Opus. The classification is heuristic (sub-millisecond, no LLM calls) and learns from outcomes via a persistent routing history.
+**Маршрутизация на основе сложности** автоматически классифицирует задачи как простые/стандартные/сложные и направляет их к соответствующим моделям. Простые задачи по работе с документами получают Haiku; сложная архитектурная работа получает Opus. Классификация является эвристической (менее миллисекунды, без вызовов LLM) и учитывает результаты посредством постоянной истории маршрутизации.
 
-**Budget pressure** graduates model downgrading as you approach your budget ceiling — 50%, 75%, and 90% thresholds progressively shift work to cheaper tiers.
+**Бюджетное давление** Выпускники моделируют понижение рейтинга по мере приближения к потолку бюджета: пороговые значения в 50 %, 75 % и 90 % постепенно переводят работу на более дешевые уровни.
 
-See the full [Token Optimization Guide](./docs/token-optimization.md) for details.
+Подробную информацию см. в полном [Руководстве по оптимизации токенов] (./docs/token-optimization.md).
 
-### Bundled Tools
+### Инструменты в комплекте
 
-GSD ships with 18 extensions, all loaded automatically:
+GSD поставляется с 18 расширениями, все из которых загружаются автоматически:
 
-| Extension              | What it provides                                                                                                       |
+| Расширение | Что это дает |
 | ---------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| **GSD**                | Core workflow engine, auto mode, commands, dashboard                                                                   |
-| **Browser Tools**      | Playwright-based browser with form intelligence, intent-ranked element finding, semantic actions, PDF export, session state persistence, network mocking, device emulation, structured extraction, visual diffing, region zoom, test code generation, and prompt injection detection |
-| **Search the Web**     | Brave Search, Tavily, or Jina page extraction                                                                          |
-| **Google Search**      | Gemini-powered web search with AI-synthesized answers                                                                  |
-| **Context7**           | Up-to-date library/framework documentation                                                                             |
-| **Background Shell**   | Long-running process management with readiness detection                                                               |
-| **Subagent**           | Delegated tasks with isolated context windows                                                                          |
-| **Mac Tools**          | macOS native app automation via Accessibility APIs                                                                     |
-| **MCP Client**         | Native MCP server integration via @modelcontextprotocol/sdk                                                            |
-| **Voice**              | Real-time speech-to-text transcription (macOS, Linux — Ubuntu 22.04+)                                                  |
-| **Slash Commands**     | Custom command creation                                                                                                |
-| **LSP**                | Language Server Protocol integration — diagnostics, go-to-definition, references, hover, symbols, rename, code actions |
-| **Ask User Questions** | Structured user input with single/multi-select                                                                         |
-| **Secure Env Collect** | Masked secret collection without manual .env editing                                                                   |
-| **Remote Questions**   | Route decisions to Slack/Discord when human input is needed in headless/CI mode                                         |
-| **Universal Config**   | Discover and import MCP servers and rules from other AI coding tools                                                    |
-| **AWS Auth**           | Automatic Bedrock credential refresh for AWS-hosted models                                                              |
-| **TTSR**               | Tool-use type-safe runtime validation                                                                                   |
+| **GSD** | Основной механизм рабочего процесса, автоматический режим, команды, панель мониторинга |
+| **Инструменты браузера** | Браузер на основе драматурга с интеллектом форм, поиском элементов по намерению, семантическими действиями, экспортом PDF, сохранением состояния сеанса, сетевым макетированием, эмуляцией устройств, структурированным извлечением, визуальным различием, масштабированием области, генерацией тестового кода и обнаружением быстрого внедрения |
+| **Поиск в Интернете** | Извлечение страниц Brave Search, Tavily или Jina |
+| **Поиск Google** | Веб-поиск на базе Gemini с ответами, синтезированными по AI |
+| **Контекст7** | Современная документация по библиотеке/фреймворку |
+| **Фоновая оболочка** | Управление длительными процессами с определением готовности |
+| **Субагент** | Делегированные задачи с изолированными контекстными окнами |
+| **Инструменты Mac** | macOS встроенная автоматизация приложений с помощью специальных возможностей APIs |
+| **MCP Клиент** | Интеграция с собственным сервером MCP через @modelcontextprotocol/sdk |
+| **Голос** | Транскрипция речи в текст в реальном времени (macOS, Linux — Ubuntu 22.04+) |
+| **Слэш-команды** | Создание собственных команд |
+| **LSP** | Интеграция протокола языкового сервера — диагностика, переход к определению, ссылки, наведение, символы, переименование, действия кода |
+| **Задавайте вопросы пользователям** | Структурированный пользовательский ввод с возможностью одиночного или множественного выбора |
+| **Безопасный сбор конвертов** | Секретная коллекция в маске без ручного редактирования .env |
+| **Удаленные вопросы** | Направляйте решения в Slack/Discord, когда требуется участие человека в режиме Headless/CI |
+| **Универсальная конфигурация** | Обнаружение и импорт серверов и правил MCP из других инструментов кодирования AI |
+| **AWS Авторизация** | Автоматическое обновление учетных данных Bedrock для моделей, размещенных на сервере AWS |
+| **TTSR** | Типобезопасная проверка среды выполнения при использовании инструментов |
 
-### Bundled Agents
+### Агенты в комплекте
 
-Three specialized subagents for delegated work:
+Три специализированных субагента для делегированной работы:
 
-| Agent          | Role                                                         |
+| Агент | Роль |
 | -------------- | ------------------------------------------------------------ |
-| **Scout**      | Fast codebase recon — returns compressed context for handoff |
-| **Researcher** | Web research — finds and synthesizes current information     |
-| **Worker**     | General-purpose execution in an isolated context window      |
+| **Разведчик** | Быстрая проверка кодовой базы — возвращает сжатый контекст для передачи |
+| **Исследователь** | Веб-исследования — поиск и обобщение актуальной информации |
+| **Работник** | Общее выполнение в изолированном контекстном окне |
 
 ---
 
-## Working in teams
+## Работа в команде
 
-The best practice for working in teams is to ensure unique milestone names across all branches (by using `unique_milestone_ids`) and checking in the right `.gsd/` artifacts to share valuable context between teammates.
+Лучшая практика для работы в группах — обеспечить уникальные имена вех во всех ветвях (с помощью `unique_milestone_ids`) и проверять правильные артефакты `.gsd/`, чтобы обмениваться ценным контекстом между товарищами по команде.
 
-### Suggested .gitignore setup
+### Рекомендуемая настройка .gitignore
 
 ```bash
 # ── GSD: Runtime / Ephemeral (per-developer, per-session) ──────────────────
@@ -549,9 +549,9 @@ The best practice for working in teams is to ensure unique milestone names acros
 .gsd/milestones/**/*-CONTINUE.md
 ```
 
-### Unique Milestone Names
+### Уникальные названия этапов
 
-Create or amend your `.gsd/preferences.md` file within the repo to include `unique_milestone_ids: true` e.g.
+Создайте или измените файл `.gsd/preferences.md` в репозитории, включив в него `unique_milestone_ids: true`, например.
 
 ```markdown
 ---
@@ -560,23 +560,23 @@ unique_milestone_ids: true
 ---
 ```
 
-With the above `.gitignore` set up, the `.gsd/preferences.md` file is checked into the repo ensuring all teammates use unique milestone names to avoid collisions.
+При настройке `.gitignore`, указанной выше, файл `.gsd/preferences.md` регистрируется в репозитории, гарантируя, что все товарищи по команде будут использовать уникальные имена этапов во избежание коллизий.
 
-Milestone names will now be generated with a 6 char random string appended e.g. instead of `M001` you'll get something like `M001-ush8s3`
+Названия этапов теперь будут генерироваться с добавлением случайной строки из 6 символов, например: вместо `M001` вы получите что-то вроде `M001-ush8s3`.
 
-### Migrating an existing git ignored `.gsd/` folder
+### Перенос существующей папки Git игнорируется `.gsd/`
 
-1. Ensure you are not in the middle of any milestones (clean state)
-2. Update the `.gsd/` related entries in your `.gitignore` to follow the `Suggested .gitignore setup` section under `Working in teams` (ensure you are no longer blanket ignoring the whole `.gsd/` directory)
-3. Update your `.gsd/preferences.md` file within the repo as per section `Unique Milestone Names`
-4. If you want to update all your existing milestones use this prompt in GSD: `I have turned on unique milestone ids, please update all old milestone ids to use this new format e.g. M001-abc123 where abc123 is a random 6 char lowercase alpha numeric string. Update all references in all .gsd file contents, file names and directory names. Validate your work once done to ensure referential integrity.`
-5. Commit to git
+1. Убедитесь, что вы не находитесь в середине каких-либо этапов (чистое состояние)
+2. Обновите записи, связанные с `.gsd/`, в вашем `.gitignore`, чтобы они соответствовали разделу `Suggested .gitignore setup` в разделе `Working in teams` (убедитесь, что вы больше не игнорируете весь каталог `.gsd/`).
+3. Обновите файл `.gsd/preferences.md` в репозитории согласно разделу `Unique Milestone Names`.
+4. Если вы хотите обновить все существующие вехи, используйте этот запрос в GSD: `I have turned on unique milestone ids, please update all old milestone ids to use this new format e.g. M001-abc123 where abc123 is a random 6 char lowercase alpha numeric string. Update all references in all .gsd file contents, file names and directory names. Validate your work once done to ensure referential integrity.`
+5. Примите меры к Git
 
 ---
 
-## Architecture
+## Архитектура
 
-GSD is a TypeScript application that embeds the Pi coding agent SDK.
+GSD — это приложение TypeScript, в которое встроен агент кодирования Pi SDK.
 
 ```
 gsd (CLI binary)
@@ -595,58 +595,58 @@ gsd (CLI binary)
               └─ GSD-WORKFLOW.md    Manual bootstrap protocol
 ```
 
-**Key design decisions:**
+**Ключевые дизайнерские решения:**
 
-- **`pkg/` shim directory** — `PI_PACKAGE_DIR` points here (not project root) to avoid Pi's theme resolution collision with our `src/` directory. Contains only `piConfig` and theme assets.
-- **Two-file loader pattern** — `loader.ts` sets all env vars with zero SDK imports, then dynamic-imports `cli.ts` which does static SDK imports. This ensures `PI_PACKAGE_DIR` is set before any SDK code evaluates.
-- **Always-overwrite sync** — `npm update -g` takes effect immediately. Bundled extensions and agents are synced to `~/.gsd/agent/` on every launch, not just first run.
-- **State lives on disk** — `.gsd/` is the source of truth. Auto mode reads it, writes it, and advances based on what it finds. No in-memory state survives across sessions.
-
----
-
-## Requirements
-
-- **Node.js** ≥ 22.0.0 (24 LTS recommended)
-- **An LLM provider** — any of the 20+ supported providers (see [Use Any Model](#use-any-model))
-- **Git** — initialized automatically if missing
-
-Optional:
-
-- Brave Search API key (web research)
-- Tavily API key (web research — alternative to Brave)
-- Google Gemini API key (web research via Gemini Search grounding)
-- Context7 API key (library docs)
-- Jina API key (page extraction)
+- **Каталог прокладки `pkg/`** — здесь указывает `PI_PACKAGE_DIR` (не корень проекта), чтобы избежать конфликта разрешения темы Pi с нашим каталогом `src/`. Содержит только `piConfig` и ресурсы темы.
+- **Шаблон двухфайлового загрузчика** — `loader.ts` устанавливает все переменные окружения с нулевым импортом SDK, затем выполняет динамический импорт `cli.ts`, который выполняет статический импорт SDK. Это гарантирует, что `PI_PACKAGE_DIR` будет установлен до оценки любого кода SDK.
+- **Синхронизация с постоянной перезаписью** — `npm update -g` вступает в силу немедленно. Расширения и агенты в комплекте синхронизируются с `~/.gsd/agent/` при каждом запуске, а не только при первом запуске.
+- **Состояние живет на диске** — `.gsd/` — источник истины. Автоматический режим читает его, записывает и продвигается вперед в зависимости от того, что он находит. Никакое состояние в памяти не сохраняется между сеансами.
 
 ---
 
-## Use Any Model
+## Требования
 
-GSD isn't locked to one provider. It runs on the [Pi SDK](https://github.com/badlogic/pi-mono), which supports **20+ model providers** out of the box. Use different models for different phases — Opus for planning, Sonnet for execution, a fast model for research.
+- **Node.js** ≥ 22.0.0 (рекомендуется 24 LTS)
+- **Поставщик LLM** — любой из более чем 20 поддерживаемых поставщиков (см. [Использовать любую модель](#use-any-model))
+- **Git** — инициализируется автоматически, если отсутствует.
 
-### Built-in Providers
+Необязательно:
 
-Anthropic, OpenAI, Google (Gemini), OpenRouter, GitHub Copilot, Amazon Bedrock, Azure OpenAI, Google Vertex, Groq, Cerebras, Mistral, xAI, HuggingFace, Vercel AI Gateway, and more.
+- Ключ Brave Search API (веб-исследование)
+- Ключ Тавили API (веб-исследование — альтернатива Brave)
+- Ключ Google Gemini API (веб-исследование с помощью поиска Gemini Search)
+- Ключ Context7 API (документация библиотеки)
+- Ключ Джина API (извлечение страницы)
 
-### OAuth / Max Plans
+---
 
-If you have a **Claude Max**, **Codex**, or **GitHub Copilot** subscription, you can use those directly — Pi handles the OAuth flow. No API key needed.
+## Используйте любую модель
 
-> **⚠️ Important:** Using OAuth tokens from subscription plans outside their native applications may violate the provider's Terms of Service. In particular:
+GSD не привязан к одному провайдеру. Он работает на процессоре [Pi SDK](https://github.com/badlogic/pi-mono), который сразу же поддерживает **более 20 поставщиков моделей**. Используйте разные модели для разных этапов — Opus для планирования, Sonnet для исполнения, быструю модель для исследования.
+
+### Встроенные провайдеры
+
+Anthropic, OpenAI, Google (Gemini), OpenRouter, GitHub Copilot, Amazon Bedrock, Azure OpenAI, Google Vertex, Groq, Cerebras, Mistral, xAI, HuggingFace, Vercel AI Gateway и другие.
+
+### OAuth / Макс. планы
+
+Если у вас есть подписка **Claude Max**, **Codex** или **GitHub Copilot**, вы можете использовать их напрямую — Pi обрабатывает поток OAuth. Ключ API не требуется.
+
+> **⚠️ Важно:** Использование токенов OAuth из планов подписки вне их собственных приложений может нарушить Условия обслуживания провайдера. В частности:
 >
-> - **Google Gemini** — Using Gemini CLI or Antigravity OAuth tokens in third-party tools has resulted in **Google account suspensions**. This affects your entire Google account, not just the Gemini service. **Use a Gemini API key instead.**
-> - **Claude Max** — Anthropic's ToS may not explicitly permit OAuth use outside Claude's own applications.
-> - **GitHub Copilot** — Usage outside GitHub's own tools may be restricted by your subscription terms.
+> - **Google Gemini** — использование токенов Gemini CLI или Antigravity OAuth в сторонних инструментах привело к **блокировке учетной записи Google**. Это влияет на всю вашу учетную запись Google, а не только на службу Gemini. **Вместо этого используйте ключ Gemini API.**
+> - **Клод Макс** — Условия обслуживания Anthropic не могут явно разрешать использование OAuth за пределами собственных приложений Клода.
+> - **GitHub Copilot** — использование за пределами собственных инструментов GitHub может быть ограничено условиями вашей подписки.
 >
-> GSD supports API key authentication for all providers as the safe alternative. **We strongly recommend using API keys over OAuth for Google Gemini.**
+> GSD поддерживает аутентификацию по ключу API для всех поставщиков в качестве безопасной альтернативы. **Мы настоятельно рекомендуем использовать ключи API вместо OAuth для Google Gemini.**
 
 ### OpenRouter
 
-[OpenRouter](https://openrouter.ai) gives you access to hundreds of models through a single API key. Use it to run GSD with Llama, DeepSeek, Qwen, or anything else OpenRouter supports.
+[OpenRouter](https://openrouter.ai) дает вам доступ к сотням моделей с помощью одной клавиши API. Используйте его для запуска GSD с Llama, DeepSeek, Qwen или чем-либо еще, поддерживаемым OpenRouter.
 
-### Per-Phase Model Selection
+### Выбор модели по фазе
 
-In your preferences (`/gsd prefs`), assign different models to different phases:
+В настройках (`/gsd prefs`) назначьте разные модели разным этапам:
 
 ```yaml
 models:
@@ -659,11 +659,11 @@ models:
   completion: claude-sonnet-4-6
 ```
 
-Use expensive models where quality matters (planning, complex execution) and cheaper/faster models where speed matters (research, simple completions). Each phase accepts a simple model string or an object with `model` and `fallbacks` — if the primary model fails (provider outage, rate limit, credit exhaustion), GSD automatically tries the next fallback. GSD tracks cost per-model so you can see exactly where your budget goes.
+Используйте дорогие модели, где важно качество (планирование, сложное выполнение), и более дешевые/быстрые модели, где важна скорость (исследования, простое выполнение). На каждом этапе принимается простая строка модели или объект с `model` и `fallbacks` — если основная модель дает сбой (отключение поставщика, ограничение скорости, исчерпание кредита), GSD автоматически пытается перейти к следующему резервному варианту. GSD отслеживает стоимость каждой модели, поэтому вы можете точно видеть, на что расходуется ваш бюджет.
 
 ---
 
-## Star History
+## Звездная история
 
 <a href="https://star-history.com/#gsd-build/gsd-2&Date">
   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=gsd-build/gsd-2&type=Date" />
@@ -671,15 +671,15 @@ Use expensive models where quality matters (planning, complex execution) and che
 
 ---
 
-## License
+## Лицензия
 
-[MIT License](LICENSE)
+[MIT Лицензия](LICENSE)
 
 ---
 
 <div align="center">
 
-**The original GSD showed what was possible. This version delivers it.**
+**Оригинальный GSD показал все, что было возможно. В этой версии это реализовано.**
 
 **`npm install -g gsd-pi && gsd`**
 

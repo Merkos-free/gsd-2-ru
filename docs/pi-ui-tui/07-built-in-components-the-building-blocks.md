@@ -1,10 +1,10 @@
-# Built-in Components — The Building Blocks
+# Встроенные компоненты — строительные блоки
 
-Import from `@mariozechner/pi-tui`:
+Импорт из `@mariozechner/pi-tui`:
 
-### Text
+### Текст
 
-Multi-line text with automatic word wrapping and optional background.
+Многострочный текст с автоматическим переносом слов и дополнительным фоном.
 
 ```typescript
 import { Text } from "@mariozechner/pi-tui";
@@ -19,11 +19,11 @@ const text = new Text(
 text.setText("Updated content");  // Update text dynamically
 ```
 
-**When to use:** Single or multi-line text blocks, styled labels, error messages.
+**Когда использовать:** одно- или многострочные текстовые блоки, стилизованные метки, сообщения об ошибках.
 
-### Box
+### Коробка
 
-Container with padding and background color. Add children inside it.
+Контейнер с отступом и цветом фона. Добавьте туда детей.
 
 ```typescript
 import { Box } from "@mariozechner/pi-tui";
@@ -37,11 +37,11 @@ box.addChild(new Text("Content inside a box", 0, 0));
 box.setBgFn((s) => bgBlue(s));  // Change background dynamically
 ```
 
-**When to use:** Visually grouping content with a colored background.
+**Когда использовать:** Визуальная группировка контента с помощью цветного фона.
 
-### Container
+### Контейнер
 
-Groups child components vertically (stacked). No visual styling of its own.
+Группирует дочерние компоненты вертикально (сложены). Никакого собственного визуального стиля.
 
 ```typescript
 import { Container } from "@mariozechner/pi-tui";
@@ -53,11 +53,11 @@ container.removeChild(component1);
 container.clear();  // Remove all children
 ```
 
-**When to use:** Composing complex layouts from simpler components.
+**Когда использовать:** Составление сложных макетов из более простых компонентов.
 
-### Spacer
+### Проставка
 
-Empty vertical space.
+Пустое вертикальное пространство.
 
 ```typescript
 import { Spacer } from "@mariozechner/pi-tui";
@@ -65,11 +65,11 @@ import { Spacer } from "@mariozechner/pi-tui";
 const spacer = new Spacer(2);  // 2 empty lines
 ```
 
-**When to use:** Visual separation between components.
+**Когда использовать:** Визуальное разделение компонентов.
 
-### Markdown
+### Уценка
 
-Renders markdown with full formatting and syntax highlighting.
+Отображает уценку с полным форматированием и подсветкой синтаксиса.
 
 ```typescript
 import { Markdown } from "@mariozechner/pi-tui";
@@ -85,11 +85,11 @@ const md = new Markdown(
 md.setText("Updated markdown content");
 ```
 
-**When to use:** Rendering documentation, help text, formatted content.
+**Когда использовать:** Отрисовка документации, справочного текста, форматированного контента.
 
-### Image
+### Изображение
 
-Renders images in supported terminals (Kitty, iTerm2, Ghostty, WezTerm).
+Отрисовывает изображения в поддерживаемых терминалах (Kitty, iTerm2, Ghostty, WezTerm).
 
 ```typescript
 import { Image } from "@mariozechner/pi-tui";
@@ -102,11 +102,11 @@ const image = new Image(
 );
 ```
 
-**When to use:** Displaying generated images, screenshots, diagrams.
+**Когда использовать:** Отображение сгенерированных изображений, снимков экрана, диаграмм.
 
-### SelectList
+### Список выбора
 
-Interactive selection from a list with search, scrolling, and descriptions.
+Интерактивный выбор из списка с поиском, прокруткой и описанием.
 
 ```typescript
 import { SelectList, type SelectItem } from "@mariozechner/pi-tui";
@@ -133,11 +133,11 @@ selectList.onSelect = (item) => { /* item.value */ };
 selectList.onCancel = () => { /* escape pressed */ };
 ```
 
-**When to use:** Letting users pick from a list. Handles arrow keys, search filtering, scrolling.
+**Когда использовать:** пользователи могут выбирать из списка. Управляет клавишами со стрелками, фильтрацией поиска, прокруткой.
 
-### SettingsList
+###Список настроек
 
-Toggle settings with left/right arrow keys.
+Переключайте настройки с помощью клавиш со стрелками влево/вправо.
 
 ```typescript
 import { SettingsList, type SettingItem } from "@mariozechner/pi-tui";
@@ -158,11 +158,11 @@ const settingsList = new SettingsList(
 );
 ```
 
-**When to use:** Settings panels, toggle groups, configuration UIs.
+**Когда использовать:** Панели настроек, группы переключения, конфигурация UIs.
 
-### Input
+### Ввод
 
-Text input field with cursor.
+Поле ввода текста с курсором.
 
 ```typescript
 import { Input } from "@mariozechner/pi-tui";
@@ -172,9 +172,9 @@ input.setText("initial value");
 // Route keyboard input via handleInput
 ```
 
-### Editor
+### Редактор
 
-Multi-line text editor with undo, word deletion, cursor movement.
+Многострочный текстовый редактор с возможностью отмены, удаления слов, перемещения курсора.
 
 ```typescript
 import { Editor, type EditorTheme } from "@mariozechner/pi-tui";

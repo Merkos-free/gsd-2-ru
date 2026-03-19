@@ -1,50 +1,50 @@
-# GSD Documentation
+# GSD Документация
 
-Welcome to the GSD documentation. This covers everything from getting started to advanced configuration, auto-mode internals, and extending GSD with the Pi SDK.
+Добро пожаловать в документацию GSD. Здесь рассматривается все: от начала работы до расширенной настройки, внутреннего автоматического режима и расширения GSD с помощью Pi SDK.
 
-## User Documentation
+## Пользовательская документация
 
-| Guide | Description |
+| Путеводитель | Описание |
 |-------|-------------|
-| [Getting Started](./getting-started.md) | Installation, first run, and basic usage |
-| [Auto Mode](./auto-mode.md) | How autonomous execution works — the state machine, crash recovery, and steering |
-| [Commands Reference](./commands.md) | All commands, keyboard shortcuts, and CLI flags |
-| [Remote Questions](./remote-questions.md) | Discord and Slack integration for headless auto-mode |
-| [Configuration](./configuration.md) | Preferences, model selection, git settings, and token profiles |
-| [Token Optimization](./token-optimization.md) | Token profiles, context compression, complexity routing, and adaptive learning (v2.17) |
-| [Dynamic Model Routing](./dynamic-model-routing.md) | Complexity-based model selection, cost tables, escalation, and budget pressure (v2.19) |
-| [Captures & Triage](./captures-triage.md) | Fire-and-forget thought capture during auto-mode with automated triage (v2.19) |
-| [Workflow Visualizer](./visualizer.md) | Interactive TUI overlay for progress, dependencies, metrics, and timeline (v2.19) |
-| [Cost Management](./cost-management.md) | Budget ceilings, cost tracking, projections, and enforcement modes |
-| [Git Strategy](./git-strategy.md) | Worktree isolation, branching model, and merge behavior |
-| [Parallel Orchestration](./parallel-orchestration.md) | Run multiple milestones simultaneously with worker isolation and coordination |
-| [Working in Teams](./working-in-teams.md) | Unique milestone IDs, `.gitignore` setup, and shared planning artifacts |
-| [Skills](./skills.md) | Bundled skills, skill discovery, and custom skill authoring |
-| [Migration from v1](./migration.md) | Migrating `.planning` directories from the original GSD |
-| [Troubleshooting](./troubleshooting.md) | Common issues, `/gsd doctor`, and recovery procedures |
-| [VS Code Extension](../vscode-extension/README.md) | Chat participant, sidebar dashboard, and RPC integration for VS Code |
+| [Начало работы](./getting-started.md) | Установка, первый запуск и базовое использование |
+| [Авторежим](./auto-mode.md) | Как работает автономное выполнение — конечный автомат, восстановление после сбоя и управление |
+| [Справочник команд](./commands.md) | Все команды, сочетания клавиш и флаги CLI |
+| [Удаленные вопросы](./remote-questions.md) | Интеграция Discord и Slack для автономного автоматического режима |
+| [Конфигурация](./configuration.md) | Настройки, выбор модели, настройки git и профили токенов |
+| [Оптимизация токенов](./token-optimization.md) | Профили токенов, сжатие контекста, сложная маршрутизация и адаптивное обучение (v2.17) |
+| [Маршрутизация динамической модели](./dynamic-model-routing.md) | Выбор модели на основе сложности, таблицы затрат, эскалация и бюджетное давление (v2.19) |
+| [Захват и сортировка](./captures-triage.md) | Захват мыслей по принципу «выстрелил и забыл» в автоматическом режиме с автоматической сортировкой (v2.19) |
+| [Визуализатор рабочего процесса](./visualizer.md) | Интерактивное наложение TUI для отображения прогресса, зависимостей, показателей и временной шкалы (v2.19) |
+| [Управление затратами](./cost-management.md) | Бюджетные потолки, отслеживание затрат, прогнозы и режимы обеспечения исполнения |
+| [Стратегия Git](./git-strategy.md) | Изоляция рабочего дерева, модель ветвления и поведение слияния |
+| [Параллельная оркестровка](./parallel-orchestration.md) | Выполняйте несколько этапов одновременно с изоляцией и координацией работников |
+| [Работа в команде](./working-in-teams.md) | Уникальная настройка этапов IDs, `.gitignore` и общие артефакты планирования |
+| [Навыки](./skills.md) | Объединенные навыки, обнаружение навыков и создание индивидуальных навыков |
+| [Миграция с версии 1](./migration.md) | Перенос каталогов `.planning` из исходного GSD |
+| [Устранение неполадок](./troubleshooting.md) | Распространенные проблемы, `/gsd doctor` и процедуры восстановления |
+| [Расширение кода VS](../vscode-extension/README.md) | Участник чата, панель боковой панели и интеграция RPC для VS Code |
 
-## Architecture & Internals
+## Архитектура и внутреннее устройство
 
-| Guide | Description |
+| Путеводитель | Описание |
 |-------|-------------|
-| [Architecture Overview](./architecture.md) | System design, extension model, state-on-disk, and dispatch pipeline |
-| [Native Engine](../native/README.md) | Rust N-API modules for performance-critical operations |
-| [ADR-001: Branchless Worktree Architecture](./ADR-001-branchless-worktree-architecture.md) | Decision record for the v2.14 git architecture |
+| [Обзор архитектуры](./architecture.md) | Проектирование системы, модель расширения, состояние на диске и конвейер отправки |
+| [Родной движок](../native/README.md) | Модули Rust N-API для операций, критичных к производительности |
+| [ADR-001: Архитектура рабочего дерева без ветвей](./ADR-001-branchless-worktree-architecture.md) | Запись решения для архитектуры git v2.14 |
 
-## Pi SDK Documentation
+## Пи SDK Документация
 
-These guides cover the underlying Pi SDK that GSD is built on. Useful if you want to extend GSD or build your own agent application.
+Эти руководства охватывают базовый Pi SDK, на котором построен GSD. Полезно, если вы хотите расширить GSD или создать собственное приложение-агент.
 
-| Guide | Description |
+| Путеводитель | Описание |
 |-------|-------------|
-| [What is Pi](./what-is-pi/README.md) | Core concepts — modes, agent loop, sessions, tools, providers |
-| [Extending Pi](./extending-pi/README.md) | Building extensions — tools, commands, UI, events, state |
-| [Context & Hooks](./context-and-hooks/README.md) | Context pipeline, hook reference, inter-extension communication |
-| [Pi UI / TUI](./pi-ui-tui/README.md) | Terminal UI components, theming, keyboard input, rendering |
+| [Что такое Пи](./what-is-pi/README.md) | Основные понятия — режимы, цикл агента, сеансы, инструменты, поставщики |
+| [Расширение Пи](./extending-pi/README.md) | Создание расширений — инструменты, команды, UI, события, состояние |
+| [Контекст и хуки](./context-and-hooks/README.md) | Контекстный конвейер, ссылка на перехватчик, связь между расширениями |
+| [Пи UI / TUI](./pi-ui-tui/README.md) | Компоненты терминала UI, темы, ввод с клавиатуры, рендеринг |
 
-## Research
+## Исследования
 
-| Guide | Description |
+| Путеводитель | Описание |
 |-------|-------------|
-| [Building Coding Agents](./building-coding-agents/README.md) | Research notes on agent design — decomposition, context engineering, cost/quality tradeoffs |
+| [Агенты строительного кодирования](./building-coding-agents/README.md) | Исследовательские заметки по проектированию агентов — декомпозиция, контекстная инженерия, компромисс между стоимостью и качеством |

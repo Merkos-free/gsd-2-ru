@@ -127,17 +127,17 @@ function getWorktreeStatus(ext: ExtensionModules, basePath: string, name: string
 function formatStatus(s: WorktreeStatus): string {
   const lines: string[] = []
   const badge = s.uncommitted
-    ? chalk.yellow(' (uncommitted)')
+    ? chalk.yellow(' (не закоммичено)')
     : s.filesChanged > 0
-      ? chalk.cyan(' (unmerged)')
-      : chalk.green(' (clean)')
+      ? chalk.cyan(' (не слито)')
+      : chalk.green(' (чисто)')
 
   lines.push(`  ${chalk.bold.cyan(s.name)}${badge}`)
   lines.push(`    ${chalk.dim('branch')}  ${chalk.magenta(s.branch)}`)
   lines.push(`    ${chalk.dim('path')}    ${chalk.dim(s.path)}`)
 
   if (s.filesChanged > 0) {
-    lines.push(`    ${chalk.dim('diff')}    ${s.filesChanged} files, ${chalk.green(`+${s.linesAdded}`)} ${chalk.red(`-${s.linesRemoved}`)}, ${s.commits} commit${s.commits === 1 ? '' : 's'}`)
+    lines.push(`    ${chalk.dim('diff')}    ${s.filesChanged} файлов, ${chalk.green(`+${s.linesAdded}`)} ${chalk.red(`-${s.linesRemoved}`)}, ${s.commits} коммит${s.commits === 1 ? '' : 'ов'}`)
   }
 
   return lines.join('\n')
@@ -150,11 +150,11 @@ async function handleList(basePath: string): Promise<void> {
   const worktrees = ext.listWorktrees(basePath)
 
   if (worktrees.length === 0) {
-    process.stderr.write(chalk.dim('No worktrees. Create one with: gsd -w <name>\n'))
+    process.stderr.write(chalk.dim('Worktree нет. Создайте его командой: gsd -w <name>\n'))
     return
   }
 
-  process.stderr.write(chalk.bold('\nWorktrees\n\n'))
+  process.stderr.write(chalk.bold('\nWorktree\n\n'))
   for (const wt of worktrees) {
     const status = getWorktreeStatus(ext, basePath, wt.name, wt.path)
     process.stderr.write(formatStatus(status) + '\n\n')
@@ -174,7 +174,7 @@ async function handleMerge(basePath: string, args: string[]): Promise<void> {
       return
     }
     process.stderr.write(chalk.red('Usage: gsd worktree merge <name>\n'))
-    process.stderr.write(chalk.dim('Run gsd worktree list to see worktrees.\n'))
+    process.stderr.write(chalk.dim('Выполните gsd worktree list, чтобы увидеть worktree.\n'))
     process.exit(1)
   }
   await doMerge(ext, basePath, name)
@@ -184,16 +184,16 @@ async function doMerge(ext: ExtensionModules, basePath: string, name: string): P
   const worktrees = ext.listWorktrees(basePath)
   const wt = worktrees.find(w => w.name === name)
   if (!wt) {
-    process.stderr.write(chalk.red(`Worktree "${name}" not found.\n`))
+    process.stderr.write(chalk.red(`Worktree "${name}" не найден.\n`))
     process.exit(1)
   }
 
   const status = getWorktreeStatus(ext, basePath, name, wt.path)
   if (status.filesChanged === 0 && !status.uncommitted) {
-    process.stderr.write(chalk.dim(`Worktree "${name}" has no changes to merge.\n`))
+    process.stderr.write(chalk.dim(`В worktree "${name}" нет изменений для merge.\n`))
     // Clean up empty worktree
     ext.removeWorktree(basePath, name, { deleteBranch: true })
-    process.stderr.write(chalk.green(`Removed empty worktree ${chalk.bold(name)}.\n`))
+    process.stderr.write(chalk.green(`Пустой worktree ${chalk.bold(name)} удалён.\n`))
     return
   }
 
@@ -201,25 +201,25 @@ async function doMerge(ext: ExtensionModules, basePath: string, name: string): P
   if (status.uncommitted) {
     try {
       ext.autoCommitCurrentBranch(wt.path, 'worktree-merge', name)
-      process.stderr.write(chalk.dim('  Auto-committed dirty work before merge.\n'))
+      process.stderr.write(chalk.dim('  Незакоммиченная работа автоматически закоммичена перед merge.\n'))
     } catch { /* best-effort */ }
   }
 
   const commitType = ext.inferCommitType(name)
   const commitMessage = `${commitType}(${name}): merge worktree ${name}`
 
-  process.stderr.write(`\nMerging ${chalk.bold.cyan(name)} → ${chalk.magenta(ext.nativeDetectMainBranch(basePath))}\n`)
+  process.stderr.write(`\nСлияние ${chalk.bold.cyan(name)} → ${chalk.magenta(ext.nativeDetectMainBranch(basePath))}\n`)
   process.stderr.write(chalk.dim(`  ${status.filesChanged} files, ${chalk.green(`+${status.linesAdded}`)} ${chalk.red(`-${status.linesRemoved}`)}\n\n`))
 
   try {
     ext.mergeWorktreeToMain(basePath, name, commitMessage)
     ext.removeWorktree(basePath, name, { deleteBranch: true })
-    process.stderr.write(chalk.green(`✓ Merged and cleaned up ${chalk.bold(name)}\n`))
-    process.stderr.write(chalk.dim(`  commit: ${commitMessage}\n`))
+    process.stderr.write(chalk.green(`✓ ${chalk.bold(name)} слит и очищен\n`))
+    process.stderr.write(chalk.dim(`  коммит: ${commitMessage}\n`))
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err)
-    process.stderr.write(chalk.red(`✗ Merge failed: ${msg}\n`))
-    process.stderr.write(chalk.dim('  Resolve conflicts manually, then run gsd worktree merge again.\n'))
+    process.stderr.write(chalk.red(`✗ Не удалось выполнить merge: ${msg}\n`))
+    process.stderr.write(chalk.dim('  Разрешите конфликты вручную, затем снова выполните gsd worktree merge.\n'))
     process.exit(1)
   }
 }
@@ -230,7 +230,7 @@ async function handleClean(basePath: string): Promise<void> {
   const ext = await loadExtensionModules()
   const worktrees = ext.listWorktrees(basePath)
   if (worktrees.length === 0) {
-    process.stderr.write(chalk.dim('No worktrees to clean.\n'))
+    process.stderr.write(chalk.dim('Нет worktree для очистки.\n'))
     return
   }
 
@@ -240,17 +240,17 @@ async function handleClean(basePath: string): Promise<void> {
     if (status.filesChanged === 0 && !status.uncommitted) {
       try {
         ext.removeWorktree(basePath, wt.name, { deleteBranch: true })
-        process.stderr.write(chalk.green(`  ✓ Removed ${chalk.bold(wt.name)} (clean)\n`))
+        process.stderr.write(chalk.green(`  ✓ Удалён ${chalk.bold(wt.name)} (чистый)\n`))
         cleaned++
       } catch {
-        process.stderr.write(chalk.yellow(`  ✗ Failed to remove ${wt.name}\n`))
+        process.stderr.write(chalk.yellow(`  ✗ Не удалось удалить ${wt.name}\n`))
       }
     } else {
-      process.stderr.write(chalk.dim(`  ─ Kept ${chalk.bold(wt.name)} (${status.filesChanged} changed files)\n`))
+      process.stderr.write(chalk.dim(`  ─ Оставлен ${chalk.bold(wt.name)} (${status.filesChanged} изменённых файлов)\n`))
     }
   }
 
-  process.stderr.write(chalk.dim(`\nCleaned ${cleaned} worktree${cleaned === 1 ? '' : 's'}.\n`))
+  process.stderr.write(chalk.dim(`\nОчищено ${cleaned} worktree${cleaned === 1 ? '' : 's'}.\n`))
 }
 
 // ─── Subcommand: remove ─────────────────────────────────────────────────────
@@ -266,21 +266,21 @@ async function handleRemove(basePath: string, args: string[]): Promise<void> {
   const worktrees = ext.listWorktrees(basePath)
   const wt = worktrees.find(w => w.name === name)
   if (!wt) {
-    process.stderr.write(chalk.red(`Worktree "${name}" not found.\n`))
+    process.stderr.write(chalk.red(`Worktree "${name}" не найден.\n`))
     process.exit(1)
   }
 
   const status = getWorktreeStatus(ext, basePath, name, wt.path)
   if (status.filesChanged > 0 || status.uncommitted) {
-    process.stderr.write(chalk.yellow(`⚠ Worktree "${name}" has unmerged changes (${status.filesChanged} files).\n`))
-    process.stderr.write(chalk.yellow('  Use --force to remove anyway, or merge first: gsd worktree merge ' + name + '\n'))
+    process.stderr.write(chalk.yellow(`⚠ В worktree "${name}" есть несмёрженные изменения (${status.filesChanged} файлов).\n`))
+    process.stderr.write(chalk.yellow('  Используйте --force, чтобы всё равно удалить, или сначала выполните merge: gsd worktree merge ' + name + '\n'))
     if (!process.argv.includes('--force')) {
       process.exit(1)
     }
   }
 
   ext.removeWorktree(basePath, name, { deleteBranch: true })
-  process.stderr.write(chalk.green(`✓ Removed worktree ${chalk.bold(name)}\n`))
+  process.stderr.write(chalk.green(`✓ Worktree ${chalk.bold(name)} удалён\n`))
 }
 
 // ─── Subcommand: status (default when no args) ─────────────────────────────
@@ -302,10 +302,10 @@ async function handleStatusBanner(basePath: string): Promise<void> {
   const names = withChanges.map(w => chalk.cyan(w.name)).join(', ')
   process.stderr.write(
     chalk.dim('[gsd] ') +
-    chalk.yellow(`${withChanges.length} worktree${withChanges.length === 1 ? '' : 's'} with unmerged changes: `) +
+    chalk.yellow(`${withChanges.length} worktree${withChanges.length === 1 ? '' : 's'} с несмёрженными изменениями: `) +
     names + '\n' +
     chalk.dim('[gsd] ') +
-    chalk.dim('Resume: gsd -w <name>  |  Merge: gsd worktree merge <name>  |  List: gsd worktree list\n\n'),
+    chalk.dim('Продолжить: gsd -w <name>  |  Merge: gsd worktree merge <name>  |  Список: gsd worktree list\n\n'),
   )
 }
 
@@ -331,7 +331,7 @@ async function handleWorktreeFlag(worktreeFlag: boolean | string): Promise<void>
       process.chdir(wt.path)
       process.env.GSD_CLI_WORKTREE = wt.name
       process.env.GSD_CLI_WORKTREE_BASE = basePath
-      process.stderr.write(chalk.green(`✓ Resumed worktree ${chalk.bold(wt.name)}\n`))
+      process.stderr.write(chalk.green(`✓ Worktree ${chalk.bold(wt.name)} продолжен\n`))
       process.stderr.write(chalk.dim(`  path   ${wt.path}\n`))
       process.stderr.write(chalk.dim(`  branch ${wt.branch}\n\n`))
       return
@@ -339,12 +339,12 @@ async function handleWorktreeFlag(worktreeFlag: boolean | string): Promise<void>
 
     if (withChanges.length > 1) {
       // Multiple active worktrees — show them and ask user to pick
-      process.stderr.write(chalk.yellow(`${withChanges.length} worktrees have unmerged changes:\n\n`))
+      process.stderr.write(chalk.yellow(`${withChanges.length} worktree имеют несмёрженные изменения:\n\n`))
       for (const wt of withChanges) {
         const status = getWorktreeStatus(ext, basePath, wt.name, wt.path)
         process.stderr.write(formatStatus(status) + '\n\n')
       }
-      process.stderr.write(chalk.dim('Specify which one: gsd -w <name>\n'))
+      process.stderr.write(chalk.dim('Укажите нужный: gsd -w <name>\n'))
       process.exit(0)
     }
 
@@ -363,7 +363,7 @@ async function handleWorktreeFlag(worktreeFlag: boolean | string): Promise<void>
     process.chdir(found.path)
     process.env.GSD_CLI_WORKTREE = name
     process.env.GSD_CLI_WORKTREE_BASE = basePath
-    process.stderr.write(chalk.green(`✓ Resumed worktree ${chalk.bold(name)}\n`))
+    process.stderr.write(chalk.green(`✓ Worktree ${chalk.bold(name)} продолжен\n`))
     process.stderr.write(chalk.dim(`  path   ${found.path}\n`))
     process.stderr.write(chalk.dim(`  branch ${found.branch}\n\n`))
   } else {
@@ -383,12 +383,12 @@ async function createAndEnter(ext: ExtensionModules, basePath: string, name: str
     process.chdir(info.path)
     process.env.GSD_CLI_WORKTREE = name
     process.env.GSD_CLI_WORKTREE_BASE = basePath
-    process.stderr.write(chalk.green(`✓ Created worktree ${chalk.bold(name)}\n`))
+    process.stderr.write(chalk.green(`✓ Worktree ${chalk.bold(name)} создан\n`))
     process.stderr.write(chalk.dim(`  path   ${info.path}\n`))
     process.stderr.write(chalk.dim(`  branch ${info.branch}\n\n`))
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err)
-    process.stderr.write(chalk.red(`[gsd] Failed to create worktree: ${msg}\n`))
+    process.stderr.write(chalk.red(`[gsd] Не удалось создать worktree: ${msg}\n`))
     process.exit(1)
   }
 }

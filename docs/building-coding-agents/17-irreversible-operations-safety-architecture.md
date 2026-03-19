@@ -1,31 +1,31 @@
-# Irreversible Operations & Safety Architecture
+# Необратимые операции и архитектура безопасности
 
-**The core principle (universal agreement):** Irreversible operations should **never be executed by the agent.** The agent prepares them; the human executes them.
+**Основной принцип (универсальное соглашение):** Необратимые операции **никогда не должны выполняться агентом.** Агент подготавливает их; человек их выполняет.
 
-### Risk-Graded Action Classification
+### Классификация действий по степени риска
 
-| Class | Examples | Policy |
+| Класс | Примеры | Политика |
 |-------|----------|--------|
-| **Reversible** | Code edits, UI changes, unit tests | Full autonomy + auto-revert on failure |
-| **Semi-Reversible** | New files, dependencies | Auto-execute + git checkpoint |
-| **Irreversible** | DB migrations, external API changes, data transformations | Human-in-the-loop required |
-| **External Side-Effect** | Payment charges, third-party API calls with side effects | Human approval + dry-run + rollback plan |
+| **Двусторонний** | Редактирование кода, изменения UI, модульные тесты | Полная автономия + автоматический возврат в случае сбоя |
+| **Полуреверсивный** | Новые файлы, зависимости | Автовыполнение + контрольная точка git |
+| **Необратимый** | DB миграции, внешние API изменения, преобразования данных | Требуется человек в курсе |
+| **Внешний побочный эффект** | Плата за оплату, сторонние звонки API с побочными эффектами | Человеческое одобрение + пробный прогон + план отката |
 
-### Per-Operation Protocols
+### Протоколы для каждой операции
 
-| Operation | Agent Does | Human Does |
+| Операция | Агент делает | Человек делает |
 |-----------|-----------|-----------|
-| **Database migrations** | Write migration + rollback + tests, run against test DB, produce review package | Review package, execute migration |
-| **External APIs** | Build + test against sandbox/mock versions | Switch from sandbox to production |
-| **Deployment** | Produce artifacts, verify in staging | Trigger production deployment |
+| **Миграция баз данных** | Написать миграцию + откат + тесты, выполнить тест DB, подготовить пакет проверки | Просмотрите пакет, выполните миграцию |
+| **Внешний APIs** | Сборка + тестирование на песочнице/макет-версиях | Переход от песочницы к производству |
+| **Развертывание** | Создание артефактов, проверка в промежуточном режиме | Запустить развертывание производства |
 
-### The Classification Must Be:
-- **Static and deterministic** (not left to the agent's judgment)
-- **Conservative** (if there's doubt, classify as irreversible)
-- **Enforced by the orchestrator** (the agent never encounters an irreversible operation without interception)
+### Классификация должна быть:
+- **Статический и детерминированный** (не оставлен на усмотрение агента)
+- **Консервативный** (при наличии сомнений классифицировать как необратимый)
+- **Принудительно со стороны оркестратора** (агент никогда не сталкивается с необратимой операцией без перехвата)
 
-### The Subtlety Most Miss
+### Тонкость, которую больше всего не хватает
 
-Data transformations that technically don't delete anything but **lose information through reformatting**. Converting a nullable column to non-nullable with a default value permanently destroys the distinction between rows that had real values and rows that got the default. These must be flagged with the same severity as deletions.
+Преобразования данных, которые технически ничего не удаляют, но **теряют информацию в результате переформатирования**. Преобразование столбца, допускающего значение NULL, в столбец, не допускающий значения NULL, со значением по умолчанию навсегда уничтожает различие между строками, имеющими реальные значения, и строками, получившими значение по умолчанию. Они должны быть помечены с той же серьезностью, что и удаления.
 
 ---

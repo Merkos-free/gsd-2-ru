@@ -1,10 +1,10 @@
-# State Machine & Context Management
+# Конечный автомат и управление контекстом
 
-### The Fundamental Tension
+### Фундаментальное напряжение
 
-The agent needs to understand the whole project to make good decisions, but any single context window degrades with too much information — not just from token limits but from **attention dilution**.
+Агенту необходимо понимать весь проект, чтобы принимать правильные решения, но любое отдельное контекстное окно ухудшается из-за слишком большого количества информации — не только из-за ограничений токенов, но и из-за **разбавления внимания**.
 
-### Layered Memory Architecture (Universal Agreement)
+### Многоуровневая архитектура памяти (универсальное соглашение)
 
 ```
 Project Manifest (always loaded, <1000 tokens)
@@ -16,31 +16,31 @@ Retrieval Layer (pull-based, on-demand)
 Ground Truth (filesystem, git, actual code)
 ```
 
-| Layer | Content | Access Pattern | Token Impact |
+| Слой | Содержание | Шаблон доступа | Влияние токена |
 |-------|---------|---------------|--------------|
-| **Working Context** (L1) | Current task + 3–5 relevant files | Dynamically assembled per LLM call | 8k–25k tokens |
-| **Session/Episodic** (L2) | Compressed history + recent decisions | Auto-summarized at transitions | Summary only |
-| **Project Semantic** (L3) | Full codebase summaries, dependency graph, ADRs | Vector + Graph retrieval | Pointers only |
-| **Ground Truth** (L4) | Actual files, git history, test results | Agent reads via tools | Zero in prompt |
+| **Рабочий контекст** (L1) | Текущая задача + 3–5 соответствующих файлов | Динамическая сборка за вызов LLM | 8–25 тыс. жетонов |
+| **Сеанс/Эпизод** (L2) | Сжатая история + недавние решения | Автоматическое суммирование при переходах | Только сводка |
+| **Семантика проекта** (L3) | Полное описание кодовой базы, график зависимостей, ADRs | Вектор + Получение графика | Только указатели |
+| **Основная истина** (L4) | Актуальные файлы, история git, результаты тестов | Агент читает с помощью инструментов | Ноль в строке |
 
-### The State Machine
+### Государственная машина
 
-The agent should always be in one explicit state:
+Агент всегда должен находиться в одном явном состоянии:
 
 ```
 PLAN → IMPLEMENT → TEST → DEBUG → VERIFY → DOCUMENT
 ```
 
-**Critical transitions that matter:**
-- **Task completion:** Defined by automated tests passing + acceptance criteria met
-- **Stuck detection:** Triggered by repeated failed attempts or missing information
-- **Plan revision:** Triggered when completed tasks reveal wrong assumptions
+**Важные переходы:**
+- **Выполнение задачи:** определяется прохождением автоматических тестов + соответствие критериям приемки.
+- **Обнаружение зависаний:** активируется повторными неудачными попытками или отсутствием информации.
+- **Пересмотр плана.** Активируется, когда выполненные задачи выявляют неверные предположения.
 
-### Key Principles
+### Ключевые принципы
 
-- **Summarize aggressively between phases.** Don't carry full implementation context forward — carry compressed summaries: what was built, what decisions were made, what interfaces were created.
-- **Pull-based, not push-based context.** Don't preload everything the agent might need. Let it ask for what it discovers it needs.
-- **Use structured state for reliability.** Natural language summaries drift. Use JSON/typed configs for anything the system needs to track. Reserve natural language for reasoning.
-- **The filesystem is external memory.** The codebase itself is the most detailed representation of current state. Hold *understanding* about code in context, not the code itself.
+- **Агрессивно подводите итоги между этапами.** Не передавайте полный контекст реализации — делайте сжатые сводки: что было построено, какие решения были приняты, какие интерфейсы были созданы.
+- **Контекст на основе запроса, а не на основе push.** Не загружайте заранее все, что может понадобиться агенту. Пусть он просит то, что, как он обнаружит, ему нужно.
+- **Используйте структурированное состояние для обеспечения надежности.** Сводки на естественном языке отклоняются. Используйте JSON/типизированные конфигурации для всего, что система должна отслеживать. Оставьте естественный язык для рассуждений.
+- **Файловая система — это внешняя память.** Сама кодовая база является наиболее подробным представлением текущего состояния. Сохраняйте *понимание* кода в контексте, а не сам код.
 
 ---

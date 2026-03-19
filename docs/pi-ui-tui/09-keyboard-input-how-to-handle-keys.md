@@ -1,6 +1,6 @@
-# Keyboard Input — How to Handle Keys
+# Ввод с клавиатуры — как работать с клавишами
 
-### matchesKey — The Key Detection Function
+### matchesKey — Функция обнаружения клавиш
 
 ```typescript
 import { matchesKey, Key } from "@mariozechner/pi-tui";
@@ -39,15 +39,15 @@ handleInput(data: string) {
 }
 ```
 
-### Key identifiers Reference
+### Идентификаторы ключей Ссылка
 
-| Category | Keys |
+| Категория | Ключи |
 |----------|------|
-| Basic | `enter`, `escape`, `tab`, `space`, `backspace`, `delete`, `home`, `end` |
-| Arrow | `up`, `down`, `left`, `right` |
-| Modifiers | `ctrl("x")`, `shift("tab")`, `alt("left")`, `ctrlShift("p")` |
+| Базовый | `enter`, `escape`, `tab`, `space`, `backspace`, `delete`, `home`, `end` |
+| Стрелка | `up`, `down`, `left`, `right` |
+| Модификаторы | `ctrl("x")`, `shift("tab")`, `alt("left")`, `ctrlShift("p")` |
 
-### The handleInput Contract
+### Контракт handleInput
 
 ```typescript
 handleInput(data: string): void {

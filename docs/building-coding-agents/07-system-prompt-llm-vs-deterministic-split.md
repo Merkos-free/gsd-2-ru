@@ -1,38 +1,38 @@
-# System Prompt & LLM vs Deterministic Split
+# Системная подсказка и LLM против детерминированного разделения
 
-### The Core Separation Principle
+### Основной принцип разделения
 
-> If you could write an if-else statement that handles it correctly every time, **it should not be in the LLM's context**. Every token the model spends reasoning about something deterministic is wasted and introduces hallucination risk.
+> Если бы вы могли написать оператор if-else, который каждый раз обрабатывал бы его правильно, **он не должен находиться в контексте LLM**. Каждый жетон, который модель тратит на рассуждения о чем-то детерминированном, тратится впустую и создает риск галлюцинаций.
 
-### What the LLM Owns
+### Чем владеет LLM
 
-| Capability | Why LLM |
+| Возможность | Почему LLM |
 |-----------|---------|
-| Understanding intent | Interpretation, judgment |
-| Architectural reasoning | Weighing tradeoffs |
-| Code generation | Creative, context-dependent |
-| Debugging & diagnosis | Abductive reasoning, hypothesis formation |
-| Self-critique & quality assessment | Judgment calls |
+| Понимание намерения | Интерпретация, суждение |
+| Архитектурное рассуждение | Взвешивание компромиссов |
+| Генерация кода | Креативно, контекстно-зависимо |
+| Отладка и диагностика | Абдуктивное рассуждение, формирование гипотез |
+| Самокритика и оценка качества | Решение призывает |
 
-### What TypeScript/Deterministic Code Owns
+### Чем владеет TypeScript/детерминированный код
 
-| Capability | Why Deterministic |
+| Возможность | Почему детерминированный |
 |-----------|-------------------|
-| State machine transitions | Typed state object, no ambiguity |
-| Context assembly | Predict + pre-load what agent needs |
-| File operations | Validate paths, handle encoding, manage permissions |
-| Test execution & result parsing | Structured results, not raw terminal output |
-| Build & environment management | Install deps, start servers, manage ports |
-| Code formatting | Run prettier automatically, never waste LLM tokens |
-| Task scheduling & dependency resolution | Graph traversal, instant vs 5-second LLM call |
-| Summarization triggers | Mechanical workflow, LLM provides content |
+| Переходы конечного автомата | Типизированный объект состояния, нет двусмысленности |
+| Сборка контекста | Прогнозирование и предварительная загрузка того, что нужно агенту |
+| Операции с файлами | Проверка путей, обработка кодировки, управление разрешениями |
+| Выполнение теста и анализ результатов | Структурированные результаты, а не необработанный вывод терминала |
+| Управление строительством и окружающей средой | Устанавливайте deps, запускайте серверы, управляйте портами |
+| Форматирование кода | Работайте красивее автоматически, никогда не тратьте жетоны LLM |
+| Планирование задач и разрешение зависимостей | Обход графа, мгновенный вызов по сравнению с 5-секундным вызовом LLM |
+| Триггеры обобщения | Механический рабочий процесс, LLM содержит контент |
 
-### Modular System Prompt Architecture
+### Архитектура подсказок модульной системы
 
 ```
 Base Layer (always present, ~500 tokens)
   → Identity, core behavioral rules, general approach
-  
+
 Phase-Specific Layer (swapped based on state)
   → Planning mode: decomposition, interfaces, risks
   → Execution mode: implementation, testing, iteration
@@ -45,38 +45,38 @@ Tools Layer
   → Available tool definitions and parameters
 ```
 
-### Tool Design Philosophy
+### Философия проектирования инструментов
 
-> Each tool should do one thing, do it completely, and return structured results the LLM can immediately act on.
+> Каждый инструмент должен делать одну вещь, делать ее полностью и возвращать структурированные результаты, на которые LLM можно немедленно воздействовать.
 
-**Bad:** LLM calls `readFile` → `parseJSON` → `runCommand` (3 calls, 3 failure points)  
-**Good:** LLM calls `runTests(filter)` → gets structured pass/fail with locations (1 call, clean result)
+**Плохо:** LLM вызывает `readFile` → `parseJSON` → `runCommand` (3 вызова, 3 точки отказа)
+**Хорошо:** LLM вызывает `runTests(filter)` → получает структурированную информацию о прохождении/неудаче с указанием местоположений (1 вызов, чистый результат)
 
-### Essential Tools
+### Основные инструменты
 
-| Tool | Returns |
+| Инструмент | Возврат |
 |------|---------|
-| `runTests` | Structured results: pass count, fail count, per-failure details |
-| `readFiles` | Batched file contents (array of paths, not one at a time) |
-| `writeFile` | Auto-formats before writing |
-| `searchCodebase` | Grep-like results with file paths and line numbers |
-| `getProjectState` | Manifest + current task spec + related task statuses |
-| `updateTaskStatus` | Handles downstream state updates automatically |
-| `buildProject` | Structured errors with file paths and line numbers |
-| `browserCheck` | Screenshot or structured description of rendered output |
-| `commitChanges` | Enforces conventions, runs pre-commit hooks |
-| `revertToCheckpoint` | Rolls back to last known good state |
+| `runTests` | Структурированные результаты: количество проходов, количество неудач, сведения о каждой неудаче |
+| `readFiles` | Содержимое пакетного файла (массив путей, а не по одному) |
+| `writeFile` | Автоформатирование перед записью |
+| `searchCodebase` | Результаты, подобные Grep, с путями к файлам и номерами строк |
+| `getProjectState` | Манифест + текущая спецификация задачи + статусы связанных задач |
+| `updateTaskStatus` | Автоматически обрабатывает обновления состояния нижестоящих устройств |
+| `buildProject` | Структурированные ошибки с путями к файлам и номерами строк |
+| `browserCheck` | Снимок экрана или структурированное описание визуализированного вывода |
+| `commitChanges` | Обеспечивает соблюдение соглашений, запускает перехватчики перед фиксацией |
+| `revertToCheckpoint` | Откат к последнему известному хорошему состоянию |
 
-### Prompt Patterns That Maximize Agency
+### Подсказки, которые максимизируют свободу действий
 
-1. **Tell it what it CAN do, not what it can't.** "Full authority as long as acceptance criteria and tests pass."
-2. **Explicit permission to iterate.** "First attempt doesn't need to be perfect. Write, run, observe, improve."
-3. **Clear exit conditions.** Concrete, measurable, unambiguous definition of "done."
-4. **Built-in scratchpad.** "Write reasoning in thinking blocks. Track attempts and outcomes."
-5. **Recovery protocol.** "After 3 failed approaches, produce structured escalation."
+1. **Расскажите ему, что он CAN может, а не о том, чего он не может.** «Полные полномочия при условии, что критерии приемки и тесты пройдены».
+2. **Явное разрешение на повторение.** «Первая попытка не обязательно должна быть идеальной. Пишите, запускайте, наблюдайте, совершенствуйтесь».
+3. **Четкие условия выхода.** Конкретное, измеримое, однозначное определение «готово».
+4. **Встроенный блокнот.** «Записывайте рассуждения в блоках мышления. Отслеживайте попытки и результаты».
+5. **Протокол восстановления.** «После трех неудачных попыток провести структурированную эскалацию».
 
-### The Meta-Principle
+### Метапринцип
 
-> Your TypeScript orchestrator is the deterministic skeleton — workflow, state, context, tools, coordination. The LLM is the reasoning muscle — understanding, creativity, judgment, problem-solving. **Neither should do the other's job.** When you get this right, the LLM becomes dramatically more capable because it's only doing what it's good at, with exactly the context it needs.
+> Ваш оркестратор TypeScript — это детерминированный скелет — рабочий процесс, состояние, контекст, инструменты, координация. LLM — это мышца рассуждения: понимание, творчество, суждение, решение проблем. **Ни один из них не должен выполнять работу другого.** Если вы все сделаете правильно, LLM станет значительно более функциональным, поскольку он будет делать только то, в чем он хорош, и именно в том контексте, который ему нужен.
 
 ---

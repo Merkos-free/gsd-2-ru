@@ -1,34 +1,34 @@
-# Encoding Taste & Aesthetics
+# Кодирование вкуса и эстетики
 
-**The honest frontier:** This is where all four models are most candid about current limitations.
+**Честный рубеж:** именно здесь все четыре модели наиболее откровенно говорят о текущих ограничениях.
 
-### What CAN Be Automated
+### Что CAN быть автоматизированным
 
-| Technique | Description |
+| Техника | Описание |
 |-----------|-------------|
-| **Reference-based extraction** | "Feels like Linear" → extract concrete attributes: spacing ratios, animation timing curves, color relationships, typography |
-| **Style specification** | Convert extracted attributes to verifiable parameters: "transitions 150-200ms ease-out, 8px grid spacing, specific contrast ratios" |
-| **Automated verification** | Lighthouse scores, visual regression tests, accessibility audits, performance budgets, design system linting |
-| **Visual comparison** | Render output, compare against reference screenshots using vision-capable models |
-| **A/B comparison** | Show two versions, human picks which "feels better" — faster than absolute judgment |
+| **Извлечение на основе ссылок** | «По ощущениям линейное» → извлеките конкретные атрибуты: соотношение интервалов, кривые времени анимации, цветовые отношения, типографику |
+| **Спецификация стиля** | Преобразование извлеченных атрибутов в проверяемые параметры: «переходы с плавностью 150–200 мс, шаг сетки 8 пикселей, определенные коэффициенты контрастности» |
+| **Автоматическая проверка** | Оценки маяка, тесты визуальной регрессии, аудиты доступности, бюджеты производительности, проверка систем проектирования |
+| **Визуальное сравнение** | Отрисуйте выходные данные, сравните их с эталонными скриншотами, используя модели с поддержкой машинного зрения |
+| **Сравнение A/B** | Показать две версии, люди выбирают ту, которая «приятнее» — быстрее, чем абсолютное суждение |
 
-### What CANNOT Be Automated
+### Что CANNOT Быть автоматизированным
 
-The **gestalt** — the overall feeling, emotional response, sense of quality emerging from a thousand small interacting decisions. *Does this feel premium? Fast? Trustworthy?* These are fundamentally subjective.
+**Гештальт** — общее ощущение, эмоциональная реакция, ощущение качества, возникающее в результате тысячи небольших взаимодействующих решений. *Это кажется премиальным? Быстрый? Заслуживают доверия?* Это в корне субъективно.
 
-### The Optimal Strategy
+### Оптимальная стратегия
 
-**Narrow the gap** by converting as much "taste" as possible into **concrete, verifiable specifications upfront:**
+**Сократите разрыв**, преобразовав как можно больше «вкусов» в **конкретные, поддающиеся проверке спецификации заранее:**
 
-- Not "use nice spacing" → "16px between sections, 8px between related elements, 4px between tightly coupled elements"
-- Exact animation timing curves, color values with contrast ratios, typography weights and sizes
+- Не использовать «хороший интервал» → «16 пикселей между разделами, 8 пикселей между связанными элементами, 4 пикселя между тесно связанными элементами».
+- Точные временные кривые анимации, значения цвета с коэффициентами контрастности, вес и размеры типографики.
 
-Then **reserve human review for the remaining subjective layer** with structured, specific questions:
+Затем **оставьте человеческий анализ для оставшегося субъективного слоя**, задав структурированные конкретные вопросы:
 
-> "Does the density feel right? Does the transition timing feel snappy enough? Does the empty state feel intentional or broken?"
+> «Плотность кажется правильной? Время перехода кажется достаточно быстрым? Пустое состояние кажется намеренным или нарушенным?»
 
-### The Emerging Frontier
+### Новые рубежи
 
-Vision-capable models for aesthetic evaluation — render output, capture screenshot, compare against references on specific visual dimensions. Imperfect but improving rapidly. Grok reports ~80-85% of taste can be automated this way; the remaining 15% stays human-only.
+Модели с возможностью визуального восприятия для эстетической оценки: визуализируйте выходные данные, сделайте снимки экрана, сравните их с эталонами по конкретным визуальным измерениям. Несовершенен, но быстро улучшается. Грок сообщает, что таким образом можно автоматизировать примерно 80-85% вкусовых процессов; оставшиеся 15% остаются только людьми.
 
 ---

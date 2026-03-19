@@ -1,7 +1,7 @@
-# Remote Execution & Tool Overrides
+# Удаленное выполнение и переопределение инструментов
 
 
-### SSH Example Pattern
+### SSH Пример шаблона
 
 ```typescript
 import { createReadTool, createBashTool, createWriteTool } from "@mariozechner/pi-coding-agent";
@@ -27,7 +27,7 @@ export default function (pi: ExtensionAPI) {
 }
 ```
 
-### Tool Override Pattern (Logging/Access Control)
+### Шаблон переопределения инструмента (ведение журнала/контроль доступа)
 
 ```typescript
 pi.registerTool({

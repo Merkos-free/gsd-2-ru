@@ -1,8 +1,8 @@
-# Error Handling
+# Обработка ошибок
 
 
-- **Extension errors** are logged but don't crash pi. The agent continues.
-- **`tool_call` handler errors** block the tool (fail-safe behavior).
-- **Tool `execute` errors** are reported to the LLM with `isError: true`, allowing it to recover.
+- **Ошибки расширения** регистрируются, но не приводят к сбою pi. Агент продолжает.
+- **`tool_call` ошибки обработчика** блокируют инструмент (отказоустойчивое поведение).
+- **Ошибки инструмента `execute`** передаются на LLM с помощью `isError: true`, что позволяет ему восстановиться.
 
 ---

@@ -1,7 +1,7 @@
-# Custom Commands — User-Facing Actions
+# Пользовательские команды — действия с пользователем
 
 
-Commands let users invoke your extension directly via `/mycommand`.
+Команды позволяют пользователям вызывать ваше расширение напрямую через `/mycommand`.
 
 ```typescript
 pi.registerCommand("deploy", {
@@ -25,16 +25,16 @@ pi.registerCommand("deploy", {
 });
 ```
 
-### Command Context Extras
+### Дополнительные возможности контекста команды
 
-Command handlers get `ExtensionCommandContext` which extends `ExtensionContext` with:
+Обработчики команд получают `ExtensionCommandContext`, который расширяет `ExtensionContext`:
 
-- `ctx.waitForIdle()` — Wait for agent to finish
-- `ctx.newSession(options?)` — Create a new session
-- `ctx.fork(entryId)` — Fork from an entry
-- `ctx.navigateTree(targetId, options?)` — Navigate the session tree
-- `ctx.reload()` — Hot-reload everything
+- `ctx.waitForIdle()` — Подождите, пока агент закончит
+- `ctx.newSession(options?)` — Создать новый сеанс.
+- `ctx.fork(entryId)` — Развилка от записи
+- `ctx.navigateTree(targetId, options?)` — Навигация по дереву сеансов.
+- `ctx.reload()` — Горячая перезагрузка всего
 
-> **Important:** These methods are only available in commands, not in event handlers, because they would deadlock there.
+> **Важно!** Эти методы доступны только в командах, но не в обработчиках событий, поскольку там они могут привести к взаимоблокировке.
 
 ---

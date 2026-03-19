@@ -1,34 +1,34 @@
-# Design Philosophy
+# Философия дизайна
 
-Pi has a very specific philosophy that explains almost every architectural decision:
+У Пи очень специфическая философия, которая объясняет почти каждое архитектурное решение:
 
-### "Extend, don't fork"
+### «Расширять, не разветвлять»
 
-Other coding agents bake features in. If you want sub-agents, plan mode, permission gates, or custom tools, you either use what they built or you fork the project. Pi takes the opposite approach: the core is deliberately minimal, and everything beyond the basics is built through the extension system.
+Другие агенты кодирования внедряют функции. Если вам нужны субагенты, режим планирования, шлюзы разрешений или специальные инструменты, вы либо используете то, что они создали, либо разветвляете проект. Pi придерживается противоположного подхода: ядро ​​намеренно минимально, а все, что выходит за рамки основ, создается через систему расширений.
 
-### What Pi ships without (on purpose)
+### Без чего поставляется Pi (намеренно)
 
-| Feature | Pi's approach |
+| Особенность | Подход Пи |
 |---------|--------------|
-| Sub-agents | Build with extensions, or install a package |
-| Plan mode | Build with extensions, or install a package |
-| Permission popups | Build with extensions — design your own security model |
-| MCP support | Build with extensions — or use Skills instead |
-| Background bash | Use tmux — full observability, direct interaction |
-| Built-in todos | They confuse models. Use a TODO.md, or build with extensions |
+| Субагенты | Сборка с расширениями или установка пакета |
+| Режим планирования | Сборка с расширениями или установка пакета |
+| Всплывающие окна разрешений | Создавайте с помощью расширений — создайте собственную модель безопасности |
+| MCP поддержка | Создавайте с помощью расширений или вместо этого используйте навыки |
+| Фоновый удар | Используйте tmux — полная наблюдаемость, прямое взаимодействие |
+| Встроенные задачи | Они путают модели. Используйте TODO.md или создайте с расширениями |
 
-This isn't missing features — it's a deliberate architectural choice. Every baked-in feature is an opinion that might not match your workflow. Pi gives you the primitives to build exactly what you need.
+Это не отсутствие функций — это осознанный архитектурный выбор. Каждая встроенная функция — это мнение, которое может не соответствовать вашему рабочему процессу. Пи дает вам примитивы для создания именно того, что вам нужно.
 
-### The extension system as a first-class citizen
+### Система расширения как первоклассный гражданин
 
-Extensions aren't an afterthought. The entire event system, tool registration, command system, custom UI, and session persistence were designed from the ground up to make extensions as powerful as built-in features. An extension can:
-- Override any built-in tool
-- Replace the system prompt
-- Modify every message sent to the LLM
-- Replace the input editor entirely
-- Register new model providers
-- Control the agent's tool set at runtime
+Расширения не являются второстепенной мыслью. Вся система событий, регистрация инструментов, система команд, пользовательские UI и сохранение сеансов были разработаны с нуля, чтобы сделать расширения такими же мощными, как и встроенные функции. Расширение может:
+- Переопределить любой встроенный инструмент
+- Заменить системную подсказку
+- Изменить каждое сообщение, отправленное на LLM.
+- Полностью заменить редактор ввода.
+- Зарегистрируйте новых поставщиков моделей.
+- Контролируйте набор инструментов агента во время выполнения.
 
-This is the core value proposition: **pi is a platform, not just a tool.**
+Это основное ценностное предложение: **pi — это платформа, а не просто инструмент.**
 
 ---

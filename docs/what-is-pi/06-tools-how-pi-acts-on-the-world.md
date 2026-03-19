@@ -1,22 +1,22 @@
-# Tools — How Pi Acts on the World
+# Инструменты — как Пи действует в мире
 
-Tools are functions the LLM can call to interact with your system. The LLM sees tool descriptions in its system prompt and decides when to use them.
+Инструменты — это функции, которые LLM может вызывать для взаимодействия с вашей системой. LLM видит описания инструментов в системной подсказке и решает, когда их использовать.
 
-### Built-in Tools
+### Встроенные инструменты
 
-Pi ships with 7 built-in tools (4 active by default):
+Pi поставляется с 7 встроенными инструментами (4 по умолчанию активны):
 
-| Tool | Default | What it does |
+| Инструмент | По умолчанию | Что он делает |
 |------|---------|-------------|
-| `read` | ✅ | Read file contents (text and images). Supports offset/limit for large files. Truncates to 2000 lines / 50KB. |
-| `bash` | ✅ | Execute shell commands. Returns stdout, stderr, exit code. Truncates to 2000 lines / 50KB. |
-| `edit` | ✅ | Surgical text replacement — find exact text and replace it. |
-| `write` | ✅ | Create or overwrite files. Auto-creates parent directories. |
-| `grep` | ❌ | Search file contents with regex patterns. |
-| `find` | ❌ | Find files by name/pattern. |
-| `ls` | ❌ | List directory contents. |
+| `read` | ✅ | Чтение содержимого файла (текст и изображения). Поддерживает смещение/ограничение для больших файлов. Усекается до 2000 строк/50 КБ. |
+| `bash` | ✅ | Выполнение команд оболочки. Возвращает стандартный вывод, стандартный вывод, код выхода. Усекается до 2000 строк/50 КБ. |
+| `edit` | ✅ | Хирургическая замена текста — найдите точный текст и замените его. |
+| `write` | ✅ | Создайте или перезапишите файлы. Автоматически создает родительские каталоги. |
+| `grep` | ❌ | Поиск содержимого файла с помощью шаблонов регулярных выражений. |
+| `find` | ❌ | Найти файлы по имени/шаблону. |
+| `ls` | ❌ | Вывести содержимое каталога. |
 
-### Tool Control
+### Управление инструментом
 
 ```bash
 pi --tools read,bash,edit,write       # Specify active tools (default)
@@ -24,18 +24,18 @@ pi --tools read,grep,find,ls          # Read-only exploration
 pi --no-tools                         # No built-in tools (extensions only)
 ```
 
-Extensions can also manage tools at runtime:
+Расширения также могут управлять инструментами во время выполнения:
 ```typescript
 pi.setActiveTools(["read", "bash"]);   // Switch to read-only + bash
 pi.setActiveTools(pi.getAllTools().map(t => t.name));  // Enable all
 ```
 
-### How Tools Appear to the LLM
+### Как инструменты выглядят в LLM
 
-The system prompt includes an "Available tools" section listing each active tool with its description and parameter schema. The LLM reads this and decides when to call which tool. This is standard LLM tool-calling — the model outputs a structured tool call, pi executes it, and feeds the result back.
+Системное приглашение включает раздел «Доступные инструменты», в котором перечислен каждый активный инструмент с его описанием и схемой параметров. LLM считывает это и решает, когда какой инструмент вызывать. Это стандартный вызов инструмента LLM — модель выводит структурированный вызов инструмента, pi выполняет его и возвращает результат.
 
-### Output Truncation
+### Усечение вывода
 
-**All tools truncate output** to 50KB / 2000 lines (whichever is hit first). This prevents a single tool call from consuming the entire context window. When truncated, the full output is saved to a temp file and the LLM is told where to find it.
+**Все инструменты обрезают выходные данные** до 50 КБ/2000 строк (в зависимости от того, что произойдет раньше). Это предотвращает использование всего контекстного окна одним вызовом инструмента. При усечении полный вывод сохраняется во временный файл, и LLM сообщается, где его найти.
 
 ---

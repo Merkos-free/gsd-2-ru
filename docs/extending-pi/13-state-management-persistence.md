@@ -1,9 +1,9 @@
-# State Management & Persistence
+# Управление состоянием и сохранение
 
 
-### Pattern: State in Tool Result Details
+### Шаблон: состояние в сведениях о результатах инструмента
 
-The recommended approach for stateful tools. State lives in `details` so it works correctly with branching/forking.
+Рекомендуемый подход для инструментов с отслеживанием состояния. Состояние находится в `details`, поэтому оно корректно работает с ветвлением/разветвлением.
 
 ```typescript
 export default function (pi: ExtensionAPI) {
@@ -35,9 +35,9 @@ export default function (pi: ExtensionAPI) {
 }
 ```
 
-### Pattern: Extension-Private State (appendEntry)
+### Шаблон: Расширение-частное состояние (appendEntry)
 
-For state that doesn't participate in LLM context but needs to survive restarts:
+Для состояния, которое не участвует в контексте LLM, но должно пережить перезапуск:
 
 ```typescript
 pi.appendEntry("my-state", { count: 42, lastRun: Date.now() });

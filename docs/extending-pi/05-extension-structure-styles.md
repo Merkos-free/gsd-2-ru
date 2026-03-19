@@ -1,14 +1,14 @@
-# Extension Structure & Styles
+# Структура и стили расширения
 
 
-### Single File (simplest)
+### Один файл (самый простой)
 
 ```
 ~/.gsd/agent/extensions/
 └── my-extension.ts
 ```
 
-### Directory with index.ts (multi-file)
+### Каталог с index.ts (многофайловый)
 
 ```
 ~/.gsd/agent/extensions/
@@ -18,7 +18,7 @@
     └── utils.ts
 ```
 
-### Package with Dependencies (npm packages needed)
+### Пакет с зависимостями (необходимы пакеты npm)
 
 ```
 ~/.gsd/agent/extensions/
@@ -39,16 +39,16 @@
 }
 ```
 
-Run `npm install` in the extension directory. Imports from `node_modules/` resolve automatically.
+Запустите `npm install` в каталоге расширения. Импорт из `node_modules/` разрешается автоматически.
 
-### Available Imports
+### Доступный импорт
 
-| Package | Purpose |
+| Пакет | Цель |
 |---------|---------|
-| `@mariozechner/pi-coding-agent` | Extension types (`ExtensionAPI`, `ExtensionContext`, event types, utilities) |
-| `@sinclair/typebox` | Schema definitions for tool parameters (`Type.Object`, `Type.String`, etc.) |
-| `@mariozechner/pi-ai` | AI utilities (`StringEnum` for Google-compatible enums) |
-| `@mariozechner/pi-tui` | TUI components (`Text`, `Box`, `Container`, `SelectList`, etc.) |
-| Node.js built-ins | `node:fs`, `node:path`, `node:child_process`, etc. |
+| `@mariozechner/pi-coding-agent` | Типы расширений (`ExtensionAPI`, `ExtensionContext`, типы событий, утилиты) |
+| `@sinclair/typebox` | Определения схем для параметров инструмента (`Type.Object`, `Type.String` и т. д.) |
+| `@mariozechner/pi-ai` | Утилиты AI (`StringEnum` для перечислений, совместимых с Google) |
+| `@mariozechner/pi-tui` | Компоненты TUI (`Text`, `Box`, `Container`, `SelectList` и т.д.) |
+| Node.js встроенные | `node:fs`, `node:path`, `node:child_process` и т.д. |
 
 ---

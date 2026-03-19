@@ -1,32 +1,32 @@
-# Cost Management
+# Управление затратами
 
-GSD tracks token usage and cost for every unit of work dispatched during auto mode. This data powers the dashboard, budget enforcement, and cost projections.
+GSD отслеживает использование токенов и стоимость каждой единицы работы, отправленной в автоматическом режиме. Эти данные используются для информационной панели, обеспечения исполнения бюджета и прогнозирования затрат.
 
-## Cost Tracking
+## Отслеживание затрат
 
-Every unit's metrics are captured automatically:
+Показатели каждого подразделения фиксируются автоматически:
 
-- **Token counts** — input, output, cache read, cache write, total
-- **Cost** — USD cost per unit
-- **Duration** — wall-clock time
-- **Tool calls** — number of tool invocations
-- **Message counts** — assistant and user messages
+- **Количество токенов** — ввод, вывод, чтение кэша, запись кэша, итого.
+- **Стоимость** — стоимость USD за единицу.
+- **Продолжительность** — время на настенных часах.
+- **Вызовы инструментов** — количество вызовов инструментов.
+- **Количество сообщений** — сообщения помощника и пользователя.
 
-Data is stored in `.gsd/metrics.json` and survives across sessions.
+Данные хранятся в `.gsd/metrics.json` и сохраняются между сеансами.
 
-### Viewing Costs
+### Стоимость просмотра
 
-**Dashboard:** `Ctrl+Alt+G` or `/gsd status` shows real-time cost breakdown.
+**Панель управления**: `Ctrl+Alt+G` или `/gsd status` отображают разбивку затрат в реальном времени.
 
-**Aggregations available:**
-- By phase (research, planning, execution, completion, reassessment)
-- By slice (M001/S01, M001/S02, ...)
-- By model (which models consumed the most budget)
-- Project totals
+**Доступные агрегаты:**
+- По этапам (исследование, планирование, выполнение, завершение, переоценка)
+- По срезам (M001/S01, M001/S02, ...)
+- По модели (какие модели потребляют больше всего бюджета)
+- Итоги проекта
 
-## Budget Ceiling
+## Потолок бюджета
 
-Set a maximum spend for a project:
+Установите максимальную сумму расходов на проект:
 
 ```yaml
 ---
@@ -35,59 +35,59 @@ budget_ceiling: 50.00
 ---
 ```
 
-### Enforcement Modes
+### Режимы принудительного применения
 
-Control what happens when the ceiling is reached:
+Управляйте тем, что происходит при достижении потолка:
 
 ```yaml
 budget_enforcement: pause    # default when ceiling is set
 ```
 
-| Mode | Behavior |
+| Режим | Поведение |
 |------|----------|
-| `warn` | Log a warning, continue executing |
-| `pause` | Pause auto mode, wait for user action |
-| `halt` | Stop auto mode entirely |
+| `warn` | Зарегистрировать предупреждение, продолжить выполнение |
+| `pause` | Приостановить автоматический режим и дождаться действий пользователя |
+| `halt` | Полностью отключить автоматический режим |
 
-## Cost Projections
+## Прогнозы затрат
 
-Once at least two slices have completed, GSD projects the remaining cost:
+Как только будут завершены хотя бы два фрагмента, GSD прогнозирует оставшуюся стоимость:
 
 ```
 Projected remaining: $12.40 ($6.20/slice avg × 2 remaining)
 ```
 
-Projections use per-slice averages from completed work. If the budget ceiling has been reached, a warning is appended.
+В прогнозах используются средние значения по каждому срезу завершенной работы. Если потолок бюджета достигнут, добавляется предупреждение.
 
-## Budget Pressure & Model Downgrading
+## Бюджетное давление и понижение модели
 
-When approaching the budget ceiling, the [complexity router](./token-optimization.md#budget-pressure) automatically downgrades model assignments to cheaper tiers. This is graduated:
+При приближении к потолку бюджета [маршрутизатор сложности](./token-optimization.md#budget-pressure) автоматически понижает назначения моделей до более дешевых уровней. Это окончено:
 
-- **< 50% used** — no adjustment
-- **50-75% used** — standard tasks downgrade to light
-- **75-90% used** — same, more aggressive
-- **> 90% used** — nearly everything downgrades; only heavy tasks stay at standard
+- **< 50% использовано** — без регулировки
+- **Использовано 50–75 %** — стандартные задачи переходят в легкие
+- **использовано 75–90%** — то же, более агрессивно
+- **> 90% использовано** — почти всё деградирует; только тяжелые задачи остаются стандартными
 
-This ensures the budget is spread across remaining work instead of being exhausted early on complex tasks.
+Это гарантирует, что бюджет будет распределен между оставшимися работами, а не будет исчерпан на ранних этапах выполнения сложных задач.
 
-## Token Profiles & Cost
+## Профили токенов и стоимость
 
-The `token_profile` preference directly affects cost:
+Предпочтение `token_profile` напрямую влияет на стоимость:
 
-| Profile | Typical Savings | How |
+| Профиль | Типичная экономия | Как |
 |---------|----------------|-----|
-| `budget` | 40-60% | Cheaper models, phase skipping, minimal context |
-| `balanced` | 10-20% | Default models, skip slice research, standard context |
-| `quality` | 0% (baseline) | Full models, all phases, full context |
+| `budget` | 40-60% | Более дешевые модели, пропуск фаз, минимальный контекст |
+| `balanced` | 10-20% | Модели по умолчанию, пропуск исследования срезов, стандартный контекст |
+| `quality` | 0% (базовый уровень) | Полные модели, все этапы, полный контекст |
 
-See [Token Optimization](./token-optimization.md) for details.
+Подробности см. в разделе [Оптимизация токенов](./token-optimization.md).
 
-## Tips
+## Советы
 
-- Start with `balanced` profile and a generous `budget_ceiling` to establish baseline costs
-- Check `/gsd status` after a few slices to see per-slice cost averages
-- Switch to `budget` profile for well-understood, repetitive work
-- Use `quality` only when architectural decisions are being made
-- Per-phase model selection lets you use Opus only for planning while keeping execution on Sonnet
-- Enable `dynamic_routing` for automatic model downgrading on simple tasks — see [Dynamic Model Routing](./dynamic-model-routing.md)
-- Use `/gsd visualize` → Metrics tab to see where your budget is going
+- Начните с профиля `balanced` и щедрого значения `budget_ceiling`, чтобы определить базовые затраты.
+– Проверьте `/gsd status` после нескольких фрагментов, чтобы увидеть среднюю стоимость каждого фрагмента.
+- Переключитесь на профиль `budget` для четкой и повторяющейся работы.
+- Используйте `quality` только при принятии архитектурных решений.
+- Поэтапный выбор модели позволяет использовать Opus только для планирования, сохраняя при этом выполнение в Sonnet.
+- Включите `dynamic_routing` для автоматического понижения версии модели при выполнении простых задач — см. [Динамическая маршрутизация модели](./dynamic-model-routing.md).
+– Используйте `/gsd visualize` → вкладка «Показатели», чтобы увидеть, на что расходуется ваш бюджет.

@@ -1,93 +1,93 @@
-# File Reference — Example Extensions with UI
+# Ссылка на файл — примеры расширений с UI
 
-All paths relative to:
+Все пути относительно:
 ```
 /Users/lexchristopherson/.nvm/versions/node/v22.20.0/lib/node_modules/@mariozechner/pi-coding-agent/examples/extensions/
 ```
 
-### Full Custom Components
-| File | What It Demonstrates |
+### Полные пользовательские компоненты
+| Файл | Что это демонстрирует |
 |------|---------------------|
-| `snake.ts` | **Game** — Timer loop, keyboard handling, WASD + arrows, render caching, session persistence, pause/resume |
-| `space-invaders.ts` | **Game** — Similar patterns to snake with more complex rendering |
-| `doom-overlay/` | **Game as overlay** — DOOM running at 35 FPS in a floating overlay, real-time rendering |
-| `questionnaire.ts` | **Multi-tab wizard** — Tab navigation, embedded `Editor` for free-text, option selection, submission flow |
-| `modal-editor.ts` | **Custom editor** — Vim-like modal editing with mode indicator |
-| `rainbow-editor.ts` | **Custom editor** — Animated text effects |
+| `snake.ts` | **Игра** — цикл таймера, обработка клавиатуры, WASD + стрелки, кэширование рендеринга, сохранение сеанса, пауза/возобновление |
+| `space-invaders.ts` | **Игра** — шаблоны, похожие на змею, но с более сложной визуализацией |
+| `doom-overlay/` | **Игра как наложение** — DOOM работает на 35 FPS в плавающем наложении, рендеринг в реальном времени |
+| `questionnaire.ts` | **Мастер работы с несколькими вкладками** — навигация по вкладкам, встроенный `Editor` для произвольного текста, выбор параметров, поток отправки |
+| `modal-editor.ts` | **Пользовательский редактор** — модальное редактирование в стиле Vim с индикатором режима |
+| `rainbow-editor.ts` | **Пользовательский редактор** — Анимированные текстовые эффекты |
 
-### Dialogs and Selection
-| File | What It Demonstrates |
+### Диалоги и выбор
+| Файл | Что это демонстрирует |
 |------|---------------------|
-| `preset.ts` | `SelectList` with `DynamicBorder`, complex multi-value presets |
-| `tools.ts` | `SettingsList` for toggling tools on/off |
-| `question.ts` | `ctx.ui.select()` inside a tool |
-| `timed-confirm.ts` | Dialogs with `timeout` and `AbortSignal` |
+| `preset.ts` | `SelectList` с `DynamicBorder`, сложные многозначные пресеты |
+| `tools.ts` | `SettingsList` для включения/выключения инструментов |
+| `question.ts` | `ctx.ui.select()` внутри инструмента |
+| `timed-confirm.ts` | Диалоги с `timeout` и `AbortSignal` |
 
-### Overlays
-| File | What It Demonstrates |
+### Наложения
+| Файл | Что это демонстрирует |
 |------|---------------------|
-| `overlay-test.ts` | Basic overlay compositing with inline inputs |
-| `overlay-qa-tests.ts` | **Comprehensive** — All 9 anchors, margins, offsets, stacking, responsive visibility, animation at ~30 FPS, percentage sizing, max-height |
+| `overlay-test.ts` | Базовое наложение композиции с помощью встроенных входов |
+| `overlay-qa-tests.ts` | **Комплексный** — все 9 привязок, поля, смещения, штабелирование, адаптивная видимость, анимация при ~30 FPS, процентный размер, максимальная высота |
 
-### Persistent UI
-| File | What It Demonstrates |
+### Стойкий UI
+| Файл | Что это демонстрирует |
 |------|---------------------|
-| `plan-mode/` | `setStatus` + `setWidget` for progress tracking, reactive updates |
-| `status-line.ts` | `setStatus` with themed colors |
-| `widget-placement.ts` | `setWidget` above and below editor |
-| `custom-footer.ts` | `setFooter` with git branch, token stats, reactive branch changes |
-| `custom-header.ts` | `setHeader` for custom startup header |
+| `plan-mode/` | `setStatus` + `setWidget` для отслеживания прогресса и реактивных обновлений |
+| `status-line.ts` | `setStatus` с тематическими цветами |
+| `widget-placement.ts` | `setWidget` редактор сверху и снизу |
+| `custom-footer.ts` | `setFooter` с веткой git, статистикой токенов, реактивными изменениями ветки |
+| `custom-header.ts` | `setHeader` для пользовательского заголовка запуска |
 
-### Tool Rendering
-| File | What It Demonstrates |
+### Рендеринг инструментов
+| Файл | Что это демонстрирует |
 |------|---------------------|
-| `todo.ts` | **Complete example** — `renderCall` and `renderResult` with expanded/collapsed views, state in details |
-| `built-in-tool-renderer.ts` | Custom compact rendering for built-in tools |
-| `minimal-mode.ts` | Override rendering for minimal display |
+| `todo.ts` | **Полный пример** — `renderCall` и `renderResult` с развернутым/свернутым видом, указать подробно |
+| `built-in-tool-renderer.ts` | Пользовательский компактный рендеринг для встроенных инструментов |
+| `minimal-mode.ts` | Переопределить рендеринг для минимального отображения |
 
-### Message Rendering
-| File | What It Demonstrates |
+### Отображение сообщений
+| Файл | Что это демонстрирует |
 |------|---------------------|
-| `message-renderer.ts` | `registerMessageRenderer` with colors and expandable details |
+| `message-renderer.ts` | `registerMessageRenderer` с цветами и расширяемыми деталями |
 
-### Async Operations
-| File | What It Demonstrates |
+### Асинхронные операции
+| Файл | Что это демонстрирует |
 |------|---------------------|
-| `qna.ts` | `BorderedLoader` for async LLM calls with cancel |
-| `summarize.ts` | Summarize conversation with transient UI |
+| `qna.ts` | `BorderedLoader` для асинхронных вызовов LLM с отменой |
+| `summarize.ts` | Подведите итоги разговора с переходным UI |
 
-### Notifications and Status
-| File | What It Demonstrates |
+### Уведомления и статус
+| Файл | Что это демонстрирует |
 |------|---------------------|
-| `notify.ts` | Desktop notifications via OSC 777 (Ghostty, iTerm2, WezTerm) |
-| `titlebar-spinner.ts` | Braille spinner animation in terminal title |
-| `model-status.ts` | React to model changes with `setStatus` |
+| `notify.ts` | Уведомления на рабочем столе через OSC 777 (Ghostty, iTerm2, WezTerm) |
+| `titlebar-spinner.ts` | Анимация счетчика Брайля в заголовке терминала |
+| `model-status.ts` | Реагируйте на изменения модели с помощью `setStatus` |
 
-### Documentation References
-| File | What It Covers |
+### Ссылки на документацию
+| Файл | Что это охватывает |
 |------|---------------|
-| `docs/tui.md` | Full TUI component API, all patterns, performance, theming |
-| `docs/extensions.md` | Custom UI section, custom components, overlays, rendering |
-| `docs/themes.md` | Creating custom themes, full color palette |
-| `docs/keybindings.md` | Keyboard shortcut format, customization |
+| `docs/tui.md` | Полный компонент TUI API, все шаблоны, производительность, тематика |
+| `docs/extensions.md` | Пользовательский раздел UI, пользовательские компоненты, наложения, рендеринг |
+| `docs/themes.md` | Создание пользовательских тем, полноцветная палитра |
+| `docs/keybindings.md` | Формат сочетания клавиш, настройка |
 
-### Debug Logging
+### Ведение журнала отладки
 
 ```bash
 PI_TUI_WRITE_LOG=/tmp/tui-ansi.log pi
 ```
 
-Captures the raw ANSI stream for debugging rendering issues.
+Захватывает необработанный поток ANSI для устранения проблем с рендерингом.
 
 ---
 
-*This document was generated from Pi's TUI and extension documentation. Source files:*
+*Этот документ был создан на основе документации Pi TUI и расширений. Исходные файлы:*
 ```
 /Users/lexchristopherson/.nvm/versions/node/v22.20.0/lib/node_modules/@mariozechner/pi-coding-agent/docs/tui.md
 /Users/lexchristopherson/.nvm/versions/node/v22.20.0/lib/node_modules/@mariozechner/pi-coding-agent/docs/extensions.md
 /Users/lexchristopherson/.nvm/versions/node/v22.20.0/lib/node_modules/@mariozechner/pi-coding-agent/examples/extensions/
 ```
 
-*Companion documents on Desktop:*
-- **Pi-What-It-Is-And-How-It-Works.md** — What Pi is and how it works
-- **Pi-Extensions-Complete-Guide.md** — Full extensions API reference
+*Сопутствующие документы на рабочем столе:*
+- **Pi-What-It-Is-And-How-It-Works.md** — Что такое Пи и как оно работает
+- **Pi-Extensions-Complete-Guide.md** — Полное выдвижение, ссылка на API

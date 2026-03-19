@@ -1,36 +1,36 @@
-# Git Strategy
+# Git-стратегия
 
-GSD uses git for milestone isolation and sequential commits within each milestone. You choose an **isolation mode** that controls where work happens. The strategy is fully automated — you don't need to manage branches manually.
+GSD использует git для изоляции вех и последовательных коммитов внутри каждой вехи. Вы выбираете **режим изоляции**, который контролирует, где будет происходить работа. Стратегия полностью автоматизирована — вам не нужно управлять филиалами вручную.
 
-## Isolation Modes
+## Режимы изоляции
 
-GSD supports three isolation modes, configured via the `git.isolation` preference:
+GSD поддерживает три режима изоляции, настроенные с помощью предпочтения `git.isolation`:
 
-| Mode | Working Directory | Branch | Best For |
+| Режим | Рабочий каталог | Филиал | Лучшее для |
 |------|-------------------|--------|----------|
-| `worktree` (default) | `.gsd/worktrees/<MID>/` | `milestone/<MID>` | Most projects — full file isolation between milestones |
-| `branch` | Project root | `milestone/<MID>` | Submodule-heavy repos where worktrees don't work well |
-| `none` | Project root | Current branch (no milestone branch) | Hot-reload workflows where file isolation breaks dev tooling |
+| `worktree` (по умолчанию) | `.gsd/worktrees/<MID>/` | `milestone/<MID>` | Большинство проектов — полная изоляция файлов между этапами |
+| `branch` | Корень проекта | `milestone/<MID>` | Репозитории с большим количеством подмодулей, где рабочие деревья работают плохо |
+| `none` | Корень проекта | Текущая ветка (без вехи) | Рабочие процессы с горячей перезагрузкой, при которых изоляция файлов нарушает работу инструментов разработки |
 
-### `worktree` Mode (Default)
+### `worktree` Режим (по умолчанию)
 
-Each milestone gets its own git worktree at `.gsd/worktrees/<MID>/` on a `milestone/<MID>` branch. All execution happens inside the worktree. On completion, the worktree is squash-merged to main as one clean commit. The worktree and branch are then cleaned up.
+Каждая веха получает свое собственное рабочее дерево git на уровне `.gsd/worktrees/<MID>/` ветки `milestone/<MID>`. Все выполнение происходит внутри рабочего дерева. По завершении рабочее дерево объединяется с основным как один чистый коммит. Затем рабочее дерево и ветвь очищаются.
 
-This provides full file isolation — changes in a milestone can't interfere with your main working copy.
+Это обеспечивает полную изоляцию файлов — изменения в контрольной точке не могут повлиять на вашу основную рабочую копию.
 
-### `branch` Mode
+### `branch` Режим
 
-Work happens in the project root on a `milestone/<MID>` branch. No worktree is created. On completion, the branch is merged to main (squash or regular merge, per `merge_strategy`).
+Работа происходит в корне проекта на ветке `milestone/<MID>`. Рабочее дерево не создается. По завершении ветка объединяется с основной (сквош или обычное слияние, согласно `merge_strategy`).
 
-Use this when worktrees cause problems — submodule-heavy repos, repos with hardcoded paths, or environments where worktree symlinks don't behave.
+Используйте это, когда рабочие деревья вызывают проблемы — репозитории с большим количеством подмодулей, репозитории с жестко запрограммированными путями или среды, где символические ссылки рабочего дерева не работают.
 
-### `none` Mode
+### `none` Режим
 
-Work happens directly on your current branch. No worktree, no milestone branch. GSD still commits sequentially with conventional commit messages, but there's no branch isolation.
+Работа происходит непосредственно в вашей текущей ветке. Ни рабочего дерева, ни ветки вех. GSD по-прежнему выполняет последовательную фиксацию с обычными сообщениями о фиксации, но изоляции ветвей нет.
 
-Use this for hot-reload workflows where file isolation breaks dev tooling (e.g., file watchers that only see the project root), or for small projects where branch overhead isn't worth it.
+Используйте это для рабочих процессов с горячей перезагрузкой, где изоляция файлов нарушает работу инструментов разработки (например, средства наблюдения за файлами, которые видят только корень проекта), или для небольших проектов, где накладные расходы на ветки того не стоят.
 
-## Branching Model (Worktree Mode)
+## Модель ветвления (режим рабочего дерева)
 
 ```
 main ─────────────────────────────────────────────────────────
@@ -44,13 +44,13 @@ main ─────────────────────────
        → squash-merged to main as single commit
 ```
 
-In **branch mode**, the flow is the same except work happens in the project root instead of a separate worktree directory.
+В **режиме ветвления** порядок действий тот же, за исключением того, что работа происходит в корне проекта, а не в отдельном каталоге рабочего дерева.
 
-In **none mode**, commits land directly on the current branch — no milestone branch is created, and no merge step is needed.
+В режиме **none** коммиты попадают непосредственно в текущую ветку — веха не создается, и этап слияния не требуется.
 
-### Parallel Worktrees
+### Параллельные рабочие деревья
 
-With [parallel orchestration](./parallel-orchestration.md) enabled, multiple milestones run in separate worktrees simultaneously:
+Если включена [параллельная оркестровка](./parallel-orchestration.md), несколько этапов одновременно выполняются в отдельных рабочих деревьях:
 
 ```
 main ──────────────────────────────────────────────────────────
@@ -66,16 +66,16 @@ main ─────────────────────────
        → squash-merged second
 ```
 
-Each worktree operates on its own branch with its own commit history. Merges happen sequentially to avoid conflicts.
+Каждое рабочее дерево работает в своей ветке со своей историей коммитов. Слияния происходят последовательно, чтобы избежать конфликтов.
 
-### Key Properties
+### Ключевые свойства
 
-- **Sequential commits on one branch** — no per-slice branches, no merge conflicts within a milestone
-- **Squash merge to main** — in worktree and branch modes, all commits are squashed into one clean commit on main (configurable via `merge_strategy`)
+- **Последовательные фиксации в одной ветке** — нет ветвей для каждого среза, нет конфликтов слияния в пределах вехи.
+- **Слияние с основной ** — в режимах рабочего дерева и ветки все коммиты объединяются в одну чистую фиксацию на главной (настраивается с помощью `merge_strategy`)
 
-### Commit Format
+### Формат фиксации
 
-Commits use conventional commit format with scope:
+Коммиты используют обычный формат коммитов с областью действия:
 
 ```
 feat(S01/T01): core type definitions
@@ -84,23 +84,23 @@ fix(M001/S03): bug fixes and doc corrections
 docs(M001/S04): workflow documentation
 ```
 
-## Worktree Management
+## Управление рабочим деревом
 
-These features apply only in **worktree mode**.
+Эти функции применяются только в **режиме рабочего дерева**.
 
-### Automatic (Auto Mode)
+### Автоматический (автоматический режим)
 
-Auto mode creates and manages worktrees automatically:
+Автоматический режим автоматически создает рабочие деревья и управляет ими:
 
-1. When a milestone starts, a worktree is created at `.gsd/worktrees/<MID>/` on branch `milestone/<MID>`
-2. Planning artifacts from `.gsd/milestones/` are copied into the worktree
-3. All execution happens inside the worktree
-4. On milestone completion, the worktree is squash-merged to the integration branch
-5. The worktree and branch are removed
+1. Когда начинается этап, рабочее дерево создается в точке `.gsd/worktrees/<MID>/` ветки `milestone/<MID>`.
+2. Артефакты планирования из `.gsd/milestones/` копируются в рабочее дерево.
+3. Все выполнение происходит внутри рабочего дерева.
+4. По завершении этапа рабочее дерево объединяется с ветвью интеграции.
+5. Рабочее дерево и ветка удалены.
 
-### Manual
+### Руководство
 
-Use the `/worktree` (or `/wt`) command for manual worktree management:
+Используйте команду `/worktree` (или `/wt`) для ручного управления рабочим деревом:
 
 ```
 /worktree create
@@ -109,16 +109,16 @@ Use the `/worktree` (or `/wt`) command for manual worktree management:
 /worktree remove
 ```
 
-## Workflow Modes
+## Режимы рабочего процесса
 
-Instead of configuring each git setting individually, set `mode` to get sensible defaults for your workflow:
+Вместо того, чтобы настраивать каждый параметр git индивидуально, установите `mode`, чтобы получить разумные значения по умолчанию для вашего рабочего процесса:
 
 ```yaml
 mode: solo    # personal projects — auto-push, squash, simple IDs
 mode: team    # shared repos — unique IDs, push branches, pre-merge checks
 ```
 
-| Setting | `solo` | `team` |
+| Настройка | `solo` | `team` |
 |---|---|---|
 | `git.auto_push` | `true` | `false` |
 | `git.push_branches` | `false` | `true` |
@@ -128,13 +128,13 @@ mode: team    # shared repos — unique IDs, push branches, pre-merge checks
 | `git.commit_docs` | `true` | `true` |
 | `unique_milestone_ids` | `false` | `true` |
 
-Mode defaults are the lowest priority — any explicit preference overrides them. For example, `mode: solo` with `git.auto_push: false` gives you everything from solo except auto-push.
+Режимы по умолчанию имеют самый низкий приоритет — любые явные предпочтения переопределяют их. Например, сочетание `mode: solo` с `git.auto_push: false` дает вам все возможности, начиная соло, кроме автоматического пуша.
 
-Existing configs without `mode` work exactly as before — no defaults are injected.
+Существующие конфигурации без `mode` работают точно так же, как и раньше — значения по умолчанию не вводятся.
 
-## Git Preferences
+## Настройки Git
 
-Configure git behavior in preferences:
+Настройте поведение git в настройках:
 
 ```yaml
 git:
@@ -151,9 +151,9 @@ git:
   pr_target_branch: develop   # PR target branch (default: main)
 ```
 
-### Automatic Pull Requests
+### Автоматические запросы на включение
 
-For teams using Gitflow or branch-based workflows, GSD can automatically create a pull request when a milestone completes:
+Для команд, использующих Gitflow или рабочие процессы на основе ветвей, GSD может автоматически создавать запрос на включение после завершения контрольной точки:
 
 ```yaml
 git:
@@ -162,7 +162,7 @@ git:
   pr_target_branch: develop
 ```
 
-This pushes the milestone branch and creates a PR targeting `develop` (or whichever branch you specify). Requires `gh` CLI installed and authenticated. See [git.auto_pr](./configuration.md#gitauto_pr) for details.
+Это переместит ветку этапа и создаст PR с таргетингом на `develop` (или любую другую указанную вами ветку). Требуется установка `gh` CLI и проверка подлинности. Подробности см. в [git.auto_pr](./configuration.md#gitauto_pr).
 ```
 
 ### `commit_docs: false`

@@ -1,6 +1,6 @@
-# IME Support — The Focusable Interface
+Поддержка # IME — фокусируемый интерфейс
 
-For components that display a text cursor and need IME (Input Method Editor) support for CJK languages:
+Для компонентов, которые отображают текстовый курсор и которым требуется поддержка IME (редактора метода ввода) для языков CJK:
 
 ```typescript
 import { CURSOR_MARKER, type Component, type Focusable } from "@mariozechner/pi-tui";
@@ -15,9 +15,9 @@ class MyInput implements Component, Focusable {
 }
 ```
 
-### Container with Embedded Input
+### Контейнер со встроенным вводом
 
-If your container contains an `Input` or `Editor` child, propagate focus:
+Если ваш контейнер содержит дочерний элемент `Input` или `Editor`, распространите фокус:
 
 ```typescript
 class SearchDialog extends Container implements Focusable {
@@ -38,6 +38,6 @@ class SearchDialog extends Container implements Focusable {
 }
 ```
 
-Without this, IME candidate windows (Chinese, Japanese, Korean input) appear in the wrong position.
+Без этого окна кандидатов IME (китайский, японский, корейский ввод) будут отображаться в неправильном положении.
 
 ---

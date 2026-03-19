@@ -1,9 +1,9 @@
-# Custom UI — Visual Components
+# Пользовательский UI — Визуальные компоненты
 
 
-Pi's extension UI has multiple layers, from simple notifications to full custom components.
+Расширение Pi UI имеет несколько уровней: от простых уведомлений до полностью настраиваемых компонентов.
 
-### 12.1 Dialogs (Blocking)
+### 12.1 Диалоги (Блокировка)
 
 ```typescript
 // Selection
@@ -19,7 +19,7 @@ const name = await ctx.ui.input("Name:", "placeholder");
 const text = await ctx.ui.editor("Edit:", "prefilled text");
 ```
 
-#### Timed Dialogs
+#### Диалоги по времени
 
 ```typescript
 // Auto-dismiss after 5s with countdown: "Title (5s)" → "Title (4s)" → ...
@@ -27,7 +27,7 @@ const ok = await ctx.ui.confirm("Auto-confirm?", "Proceeds in 5s", { timeout: 50
 // Returns false on timeout
 ```
 
-### 12.2 Persistent UI Elements
+### 12.2 Постоянные элементы UI
 
 ```typescript
 // Footer status (persistent until cleared)
@@ -71,9 +71,9 @@ const themes = ctx.ui.getAllThemes();
 ctx.ui.setTheme("light");
 ```
 
-### 12.3 Custom Components (ctx.ui.custom)
+### 12.3 Пользовательские компоненты (ctx.ui.custom)
 
-For complex UI, `ctx.ui.custom()` temporarily replaces the editor with your component:
+Для сложного UI `ctx.ui.custom()` временно заменяет редактор вашим компонентом:
 
 ```typescript
 const result = await ctx.ui.custom<string | null>((tui, theme, keybindings, done) => {
@@ -91,7 +91,7 @@ const result = await ctx.ui.custom<string | null>((tui, theme, keybindings, done
 });
 ```
 
-### 12.4 Overlays (Floating Modals)
+### 12.4 Наложения (плавающие модальные окна)
 
 ```typescript
 const result = await ctx.ui.custom<string | null>(
@@ -112,7 +112,7 @@ const result = await ctx.ui.custom<string | null>(
 );
 ```
 
-### 12.5 Custom Editor (Replace Main Input)
+### 12.5 Пользовательский редактор (замена основного ввода)
 
 ```typescript
 import { CustomEditor } from "@mariozechner/pi-coding-agent";
@@ -141,32 +141,32 @@ ctx.ui.setEditorComponent((_tui, theme, keybindings) => new VimEditor(theme, key
 ctx.ui.setEditorComponent(undefined);  // Restore default
 ```
 
-> **Key point:** Extend `CustomEditor` (not `Editor`) to get app keybindings (escape to abort, ctrl+d, model switching).
+> **Ключевой момент:** Удерживайте `CustomEditor` (а не `Editor`), чтобы получить сочетания клавиш приложения (Escape для отмены, Ctrl+D, переключение модели).
 
-### 12.6 Built-in TUI Components
+### 12.6 Встроенные компоненты TUI
 
-Import from `@mariozechner/pi-tui`:
+Импорт из `@mariozechner/pi-tui`:
 
-| Component | Purpose |
+| Компонент | Цель |
 |-----------|---------|
-| `Text` | Multi-line text with word wrapping |
-| `Box` | Container with padding and background |
-| `Container` | Groups children vertically |
-| `Spacer` | Empty vertical space |
-| `Markdown` | Rendered markdown with syntax highlighting |
-| `Image` | Image rendering (Kitty, iTerm2, etc.) |
-| `SelectList` | Interactive selection from list |
-| `SettingsList` | Toggle settings UI |
-| `Input` | Text input field |
+| `Text` | Многострочный текст с переносом слов |
+| `Box` | Контейнер с заполнением и фоном |
+| `Container` | Группы детей по вертикали |
+| `Spacer` | Пустое вертикальное пространство |
+| `Markdown` | Отрисованная уценка с подсветкой синтаксиса |
+| `Image` | Рендеринг изображения (Китти, iTerm2 и т.д.) |
+| `SelectList` | Интерактивный выбор из списка |
+| `SettingsList` | Переключить настройки UI |
+| `Input` | Поле ввода текста |
 
-Import from `@mariozechner/pi-coding-agent`:
+Импорт из `@mariozechner/pi-coding-agent`:
 
-| Component | Purpose |
+| Компонент | Цель |
 |-----------|---------|
-| `DynamicBorder` | Border line with theming |
-| `BorderedLoader` | Spinner with cancel support |
+| `DynamicBorder` | Граница с темой |
+| `BorderedLoader` | Спиннер с поддержкой отмены |
 
-### 12.7 Keyboard Input
+### 12.7 Ввод с клавиатуры
 
 ```typescript
 import { matchesKey, Key } from "@mariozechner/pi-tui";
@@ -180,9 +180,9 @@ handleInput(data: string) {
 }
 ```
 
-### 12.8 Line Width Rules
+### 12.8 Правила ширины линии
 
-**Critical:** Each line from `render()` must not exceed the `width` parameter.
+**Критично:** Каждая строка из `render()` не должна превышать значение параметра `width`.
 
 ```typescript
 import { visibleWidth, truncateToWidth, wrapTextWithAnsi } from "@mariozechner/pi-tui";

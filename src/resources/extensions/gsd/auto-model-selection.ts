@@ -71,7 +71,7 @@ export async function selectAndApplyModel(
           };
           if (verbose) {
             ctx.ui.notify(
-              `Dynamic routing [${tierLabel(classification.tier)}]: ${routingResult.modelId} (${classification.reason})`,
+              `Динамический роутинг [${tierLabel(classification.tier)}]: ${routingResult.modelId} (${classification.reason})`,
               "info",
             );
           }
@@ -87,7 +87,7 @@ export async function selectAndApplyModel(
       const model = resolveModelId(modelId, availableModels, ctx.model?.provider);
 
       if (!model) {
-        if (verbose) ctx.ui.notify(`Model ${modelId} not found, trying fallback.`, "info");
+        if (verbose) ctx.ui.notify(`Модель ${modelId} не найдена, пробую fallback.`, "info");
         continue;
       }
 
@@ -96,8 +96,8 @@ export async function selectAndApplyModel(
         const providers = availableModels.filter(m => m.id === modelId).map(m => m.provider);
         if (providers.length > 1 && model.provider !== ctx.model?.provider) {
           ctx.ui.notify(
-            `Model ID "${modelId}" exists in multiple providers (${providers.join(", ")}). ` +
-            `Resolved to ${model.provider}. Use "provider/model" format for explicit targeting.`,
+            `ID модели "${modelId}" существует у нескольких провайдеров (${providers.join(", ")}). ` +
+            `Разрешено как ${model.provider}. Для явного выбора используйте формат "provider/model".`,
             "warning",
           );
         }
@@ -107,16 +107,16 @@ export async function selectAndApplyModel(
       if (ok) {
         const fallbackNote = modelId === effectiveModelConfig.primary
           ? ""
-          : ` (fallback from ${effectiveModelConfig.primary})`;
+          : ` (fallback от ${effectiveModelConfig.primary})`;
         const phase = unitPhaseLabel(unitType);
-        ctx.ui.notify(`Model [${phase}]${routingTierLabel}: ${model.provider}/${model.id}${fallbackNote}`, "info");
+        ctx.ui.notify(`Модель [${phase}]${routingTierLabel}: ${model.provider}/${model.id}${fallbackNote}`, "info");
         break;
       } else {
         const nextModel = modelsToTry[modelsToTry.indexOf(modelId) + 1];
         if (nextModel) {
-          if (verbose) ctx.ui.notify(`Failed to set model ${modelId}, trying ${nextModel}...`, "info");
+          if (verbose) ctx.ui.notify(`Не удалось установить модель ${modelId}, пробую ${nextModel}...`, "info");
         } else {
-          ctx.ui.notify(`All preferred models unavailable for ${unitType}. Using default.`, "warning");
+          ctx.ui.notify(`Для ${unitType} недоступны все предпочтительные модели. Использую модель по умолчанию.`, "warning");
         }
       }
     }

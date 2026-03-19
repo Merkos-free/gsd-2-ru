@@ -1,28 +1,28 @@
-# Workflow Visualizer
+# Визуализатор рабочего процесса
 
-*Introduced in v2.19.0*
+*Введено в версии 2.19.0*
 
-The workflow visualizer is a full-screen TUI overlay that shows project progress, dependencies, cost metrics, and execution timeline in an interactive four-tab view.
+Визуализатор рабочего процесса представляет собой полноэкранное наложение TUI, которое показывает ход проекта, зависимости, показатели затрат и сроки выполнения в интерактивном представлении с четырьмя вкладками.
 
-## Opening the Visualizer
+## Открытие визуализатора
 
 ```
 /gsd visualize
 ```
 
-Or configure automatic display after milestone completion:
+Или настройте автоматическое отображение после завершения этапа:
 
 ```yaml
 auto_visualize: true
 ```
 
-## Tabs
+## Вкладки
 
-Switch tabs with `Tab`, `1`-`4`, or arrow keys.
+Переключайте вкладки с помощью клавиш `Tab`, `1`–`4` или клавиш со стрелками.
 
-### 1. Progress
+### 1. Прогресс
 
-A tree view of milestones, slices, and tasks with completion status:
+Древовидное представление вех, фрагментов и задач со статусом завершения:
 
 ```
 M001: User Management                        3/6 tasks ⏳
@@ -36,68 +36,68 @@ M001: User Management                        3/6 tasks ⏳
   ⬜ S03: Admin panel                         0/1 tasks
 ```
 
-Shows checkmarks for completed items, spinners for in-progress, and empty boxes for pending. Task counts and completion percentages are displayed at each level.
+Показывает галочки для завершенных элементов, счетчики для незавершенных и пустые поля для ожидающих выполнения. Количество задач и процент выполнения отображаются на каждом уровне.
 
-**Discussion status** is also shown when milestones have been through a discussion phase — indicates whether requirements were captured and what state the discussion left off in.
+**Статус обсуждения** также отображается, когда этапы прошли стадию обсуждения. Он указывает, были ли зафиксированы требования и на каком этапе обсуждение закончилось.
 
-### 2. Dependencies
+### 2. Зависимости
 
-An ASCII dependency graph showing slice relationships:
+График зависимостей ASCII, показывающий отношения срезов:
 
 ```
 S01 ──→ S02 ──→ S04
   └───→ S03 ──↗
 ```
 
-Visualizes the `depends:` field from the roadmap, making it easy to see which slices are blocked and which can proceed.
+Визуализирует поле `depends:` дорожной карты, позволяя легко увидеть, какие фрагменты заблокированы, а какие можно продолжить.
 
-### 3. Metrics
+### 3. Метрики
 
-Bar charts showing cost and token usage breakdowns:
+Гистограммы, показывающие разбивку затрат и использования токенов:
 
-- **By phase** — research, planning, execution, completion, reassessment
-- **By slice** — cost per slice with running totals
-- **By model** — which models consumed the most budget
+- **По этапам** — исследование, планирование, выполнение, завершение, переоценка.
+- **По срезу** — стоимость за срез с текущими итогами.
+- **По модели** — какие модели потребляют больше всего бюджета.
 
-Uses data from `.gsd/metrics.json`.
+Использует данные из `.gsd/metrics.json`.
 
-### 4. Timeline
+### 4. Временная шкала
 
-Chronological execution history showing:
+Хронологическая история казней показывает:
 
-- Unit type and ID
-- Start/end timestamps
-- Duration
-- Model used
-- Token counts
+- Тип устройства и ID
+- Временные метки начала/окончания
+- Продолжительность
+- Используемая модель
+- Количество токенов
 
-Ordered by execution time, showing the full history of auto-mode dispatches.
+Отсортировано по времени выполнения и показывает полную историю отправок в автоматическом режиме.
 
-## Controls
+## Элементы управления
 
-| Key | Action |
+| Ключ | Действие |
 |-----|--------|
-| `Tab` | Next tab |
-| `Shift+Tab` | Previous tab |
-| `1`-`4` | Jump to tab |
-| `↑`/`↓` | Scroll within tab |
-| `Escape` / `q` | Close visualizer |
+| `Tab` | Следующая вкладка |
+| `Shift+Tab` | Предыдущая вкладка |
+| `1`-`4` | Перейти на вкладку |
+| `↑`/`↓` | Прокрутка внутри вкладки |
+| `Escape` / `q` | Закрыть визуализатор |
 
-## Auto-Refresh
+## Автообновление
 
-The visualizer refreshes data from disk every 2 seconds, so it stays current if opened alongside a running auto-mode session.
+Визуализатор обновляет данные с диска каждые 2 секунды, поэтому они остаются актуальными, если их открывать одновременно с работающим сеансом в автоматическом режиме.
 
-## HTML Export (v2.26)
+## HTML Экспорт (v2.26)
 
-For shareable reports outside the terminal, use `/gsd export --html`. This generates a self-contained HTML file in `.gsd/reports/` with the same data as the TUI visualizer — progress tree, dependency graph (SVG DAG), cost/token bar charts, execution timeline, changelog, and knowledge base. All CSS and JS are inlined — no external dependencies. Printable to PDF from any browser.
+Для совместного использования отчетов за пределами терминала используйте `/gsd export --html`. В результате создается автономный файл HTML в `.gsd/reports/` с теми же данными, что и в визуализаторе TUI: дерево прогресса, график зависимостей (SVG DAG), гистограммы стоимости/токенов, временная шкала выполнения, журнал изменений и база знаний. Все CSS и JS встроены — никаких внешних зависимостей. Можно распечатать до PDF из любого браузера.
 
-An auto-generated `index.html` shows all reports with progression metrics across milestones.
+Автоматически созданный `index.html` показывает все отчеты с показателями прогресса по этапам.
 
 ```yaml
 auto_report: true    # auto-generate after milestone completion (default)
 ```
 
-## Configuration
+## Конфигурация
 
 ```yaml
 auto_visualize: true    # show visualizer after milestone completion

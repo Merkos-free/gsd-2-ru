@@ -1,9 +1,9 @@
-# Compaction & Session Control
+# Сжатие и контроль сеанса
 
 
-### Custom Compaction
+### Пользовательское сжатие
 
-Override the default compaction behavior:
+Переопределить поведение сжатия по умолчанию:
 
 ```typescript
 pi.on("session_before_compact", async (event, ctx) => {
@@ -23,7 +23,7 @@ pi.on("session_before_compact", async (event, ctx) => {
 });
 ```
 
-### Triggering Compaction
+### Запуск сжатия
 
 ```typescript
 ctx.compact({
@@ -32,7 +32,7 @@ ctx.compact({
 });
 ```
 
-### Session Control (Commands Only)
+### Управление сеансом (только команды)
 
 ```typescript
 pi.registerCommand("handoff", {

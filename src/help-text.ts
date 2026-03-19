@@ -2,109 +2,109 @@ const SUBCOMMAND_HELP: Record<string, string> = {
   config: [
     'Usage: gsd config',
     '',
-    'Re-run the interactive setup wizard to configure:',
+    'Повторно запустить интерактивный мастер настройки для конфигурации:',
     '  - LLM provider (Anthropic, OpenAI, Google, etc.)',
-    '  - Web search provider (Brave, Tavily, built-in)',
-    '  - Remote questions (Discord, Slack, Telegram)',
-    '  - Tool API keys (Context7, Jina, Groq)',
+    '  - Провайдера веб-поиска (Brave, Tavily, встроенный)',
+    '  - Удалённых вопросов (Discord, Slack, Telegram)',
+    '  - API-ключей инструментов (Context7, Jina, Groq)',
     '',
-    'All steps are skippable and can be changed later with /login or /search-provider.',
+    'Все шаги можно пропустить и позже изменить через /login или /search-provider.',
   ].join('\n'),
 
   update: [
     'Usage: gsd update',
     '',
-    'Update GSD to the latest version.',
+    'Обновить GSD до последней версии.',
     '',
-    'Equivalent to: npm install -g gsd-pi@latest',
+    'Эквивалентно: npm install -g gsd-pi@latest',
   ].join('\n'),
 
   sessions: [
     'Usage: gsd sessions',
     '',
-    'List all saved sessions for the current directory and interactively',
-    'pick one to resume. Shows date, message count, and a preview of the',
-    'first message for each session.',
+    'Показать все сохранённые сессии для текущей директории и интерактивно',
+    'выбрать одну для продолжения. Показывает дату, число сообщений и превью',
+    'первого сообщения для каждой сессии.',
     '',
-    'Sessions are stored per-directory, so you only see sessions that were',
-    'started from the current working directory.',
+    'Сессии хранятся отдельно для каждой директории, поэтому вы видите только',
+    'те, что были начаты из текущей рабочей директории.',
     '',
-    'Compare with --continue (-c) which always resumes the most recent session.',
+    'Сравните с --continue (-c), который всегда продолжает самую недавнюю сессию.',
   ].join('\n'),
 
   worktree: [
     'Usage: gsd worktree <command> [args]',
     '',
-    'Manage isolated git worktrees for parallel work streams.',
+    'Управление изолированными git worktree для параллельных потоков работы.',
     '',
-    'Commands:',
-    '  list                 List worktrees with status (files changed, commits, dirty)',
-    '  merge [name]         Squash-merge a worktree into main and clean up',
-    '  clean                Remove all worktrees that have been merged or are empty',
-    '  remove <name>        Remove a worktree (--force to remove with unmerged changes)',
+    'Команды:',
+    '  list                 Показать worktree со статусом (изменённые файлы, коммиты, грязное состояние)',
+    '  merge [name]         Выполнить squash-merge worktree в main и очистить',
+    '  clean                Удалить все worktree, которые уже слиты или пусты',
+    '  remove <name>        Удалить worktree (--force удаляет даже с несмёрженными изменениями)',
     '',
-    'The -w flag creates/resumes worktrees for interactive sessions:',
-    '  gsd -w               Auto-name a new worktree, or resume the only active one',
-    '  gsd -w my-feature    Create or resume a named worktree',
+    'Флаг -w создаёт/возобновляет worktree для интерактивных сессий:',
+    '  gsd -w               Автоматически назвать новый worktree или возобновить единственный активный',
+    '  gsd -w my-feature    Создать или возобновить именованный worktree',
     '',
-    'Lifecycle:',
-    '  1. gsd -w             Create worktree, start session inside it',
-    '  2. (work normally)    All changes happen on the worktree branch',
-    '  3. Ctrl+C             Exit — dirty work is auto-committed',
-    '  4. gsd -w             Resume where you left off',
-    '  5. gsd worktree merge Squash-merge into main when done',
+    'Жизненный цикл:',
+    '  1. gsd -w             Создать worktree и запустить сессию внутри него',
+    '  2. (работайте как обычно) Все изменения происходят в ветке worktree',
+    '  3. Ctrl+C             Выход — незакоммиченная работа закоммитится автоматически',
+    '  4. gsd -w             Продолжить с того места, где остановились',
+    '  5. gsd worktree merge Когда закончите, выполнить squash-merge в main',
     '',
-    'Examples:',
-    '  gsd -w                              Start in a new auto-named worktree',
-    '  gsd -w auth-refactor                Create/resume "auth-refactor" worktree',
-    '  gsd worktree list                   See all worktrees and their status',
-    '  gsd worktree merge auth-refactor    Merge and clean up',
-    '  gsd worktree clean                  Remove all merged/empty worktrees',
-    '  gsd worktree remove old-branch      Remove a specific worktree',
-    '  gsd worktree remove old-branch --force  Remove even with unmerged changes',
+    'Примеры:',
+    '  gsd -w                              Запустить новый worktree с автоименем',
+    '  gsd -w auth-refactor                Создать/возобновить worktree "auth-refactor"',
+    '  gsd worktree list                   Показать все worktree и их статус',
+    '  gsd worktree merge auth-refactor    Слить и очистить',
+    '  gsd worktree clean                  Удалить все слитые/пустые worktree',
+    '  gsd worktree remove old-branch      Удалить конкретный worktree',
+    '  gsd worktree remove old-branch --force  Удалить даже с несмёрженными изменениями',
   ].join('\n'),
 
   headless: [
     'Usage: gsd headless [flags] [command] [args...]',
     '',
-    'Run /gsd commands without the TUI. Default command: auto',
+    'Запуск команд /gsd без TUI. Команда по умолчанию: auto',
     '',
-    'Flags:',
-    '  --timeout N          Overall timeout in ms (default: 300000)',
-    '  --json               JSONL event stream to stdout',
-    '  --model ID           Override model',
-    '  --supervised           Forward interactive UI requests to orchestrator via stdout/stdin',
-    '  --response-timeout N   Timeout (ms) for orchestrator response (default: 30000)',
-    '  --answers <path>       Pre-supply answers and secrets (JSON file)',
-    '  --events <types>       Filter JSONL output to specific event types (comma-separated)',
+    'Флаги:',
+    '  --timeout N          Общий таймаут в мс (по умолчанию: 300000)',
+    '  --json               Поток событий JSONL в stdout',
+    '  --model ID           Переопределить модель',
+    '  --supervised           Передавать интерактивные UI-запросы оркестратору через stdout/stdin',
+    '  --response-timeout N   Таймаут (мс) ответа оркестратора (по умолчанию: 30000)',
+    '  --answers <path>       Заранее передать ответы и секреты (JSON-файл)',
+    '  --events <types>       Фильтровать вывод JSONL по конкретным типам событий (через запятую)',
     '',
-    'Commands:',
-    '  auto                 Run all queued units continuously (default)',
-    '  next                 Run one unit',
-    '  status               Show progress dashboard',
-    '  new-milestone        Create a milestone from a specification document',
-    '  query                JSON snapshot: state + next dispatch + costs (no LLM)',
+    'Команды:',
+    '  auto                 Непрерывно выполнять все элементы в очереди (по умолчанию)',
+    '  next                 Выполнить один элемент',
+    '  status               Показать панель прогресса',
+    '  new-milestone        Создать milestone из документа спецификации',
+    '  query                JSON-снимок: состояние + следующий dispatch + стоимость (без LLM)',
     '',
-    'new-milestone flags:',
-    '  --context <path>     Path to spec/PRD file (use \'-\' for stdin)',
-    '  --context-text <txt> Inline specification text',
-    '  --auto               Start auto-mode after milestone creation',
-    '  --verbose            Show tool calls in progress output',
+    'Флаги new-milestone:',
+    '  --context <path>     Путь к файлу spec/PRD (используйте \'-\' для stdin)',
+    '  --context-text <txt> Текст спецификации inline',
+    '  --auto               Запустить auto-mode после создания milestone',
+    '  --verbose            Показывать вызовы инструментов в выводе прогресса',
     '',
-    'Examples:',
-    '  gsd headless                                    Run /gsd auto',
-    '  gsd headless next                               Run one unit',
-    '  gsd headless --json status                      Machine-readable status',
-    '  gsd headless --timeout 60000                    With 1-minute timeout',
-    '  gsd headless new-milestone --context spec.md    Create milestone from file',
-    '  cat spec.md | gsd headless new-milestone --context -   From stdin',
-    '  gsd headless new-milestone --context spec.md --auto    Create + auto-execute',
-    '  gsd headless --supervised auto                     Supervised orchestrator mode',
-    '  gsd headless --answers answers.json auto              With pre-supplied answers',
-    '  gsd headless --events agent_end,extension_ui_request auto   Filtered event stream',
-    '  gsd headless query                              Instant JSON state snapshot',
+    'Примеры:',
+    '  gsd headless                                    Запустить /gsd auto',
+    '  gsd headless next                               Выполнить один элемент',
+    '  gsd headless --json status                      Статус в машиночитаемом виде',
+    '  gsd headless --timeout 60000                    С таймаутом 1 минута',
+    '  gsd headless new-milestone --context spec.md    Создать milestone из файла',
+    '  cat spec.md | gsd headless new-milestone --context -   Получить из stdin',
+    '  gsd headless new-milestone --context spec.md --auto    Создать и сразу запустить',
+    '  gsd headless --supervised auto                     Режим оркестратора с сопровождением',
+    '  gsd headless --answers answers.json auto              С заранее переданными ответами',
+    '  gsd headless --events agent_end,extension_ui_request auto   Отфильтрованный поток событий',
+    '  gsd headless query                              Мгновенный JSON-снимок состояния',
     '',
-    'Exit codes: 0 = complete, 1 = error/timeout, 2 = blocked',
+    'Коды выхода: 0 = завершено, 1 = ошибка/таймаут, 2 = заблокировано',
   ].join('\n'),
 }
 
@@ -114,25 +114,25 @@ SUBCOMMAND_HELP['wt'] = SUBCOMMAND_HELP['worktree']
 export function printHelp(version: string): void {
   process.stdout.write(`GSD v${version} — Get Shit Done\n\n`)
   process.stdout.write('Usage: gsd [options] [message...]\n\n')
-  process.stdout.write('Options:\n')
-  process.stdout.write('  --mode <text|json|rpc|mcp> Output mode (default: interactive)\n')
-  process.stdout.write('  --print, -p              Single-shot print mode\n')
-  process.stdout.write('  --continue, -c           Resume the most recent session\n')
-  process.stdout.write('  --worktree, -w [name]    Start in an isolated worktree (auto-named if omitted)\n')
-  process.stdout.write('  --model <id>             Override model (e.g. claude-opus-4-6)\n')
-  process.stdout.write('  --no-session             Disable session persistence\n')
-  process.stdout.write('  --extension <path>       Load additional extension\n')
-  process.stdout.write('  --tools <a,b,c>          Restrict available tools\n')
-  process.stdout.write('  --list-models [search]   List available models and exit\n')
-  process.stdout.write('  --version, -v            Print version and exit\n')
-  process.stdout.write('  --help, -h               Print this help and exit\n')
-  process.stdout.write('\nSubcommands:\n')
-  process.stdout.write('  config                   Re-run the setup wizard\n')
-  process.stdout.write('  update                   Update GSD to the latest version\n')
-  process.stdout.write('  sessions                 List and resume a past session\n')
-  process.stdout.write('  worktree <cmd>           Manage worktrees (list, merge, clean, remove)\n')
-  process.stdout.write('  headless [cmd] [args]    Run /gsd commands without TUI (default: auto)\n')
-  process.stdout.write('\nRun gsd <subcommand> --help for subcommand-specific help.\n')
+  process.stdout.write('Параметры:\n')
+  process.stdout.write('  --mode <text|json|rpc|mcp> Режим вывода (по умолчанию: interactive)\n')
+  process.stdout.write('  --print, -p              Режим однократного вывода\n')
+  process.stdout.write('  --continue, -c           Продолжить самую недавнюю сессию\n')
+  process.stdout.write('  --worktree, -w [name]    Запустить в изолированном worktree (если имя не указано, будет автоимя)\n')
+  process.stdout.write('  --model <id>             Переопределить модель (например, claude-opus-4-6)\n')
+  process.stdout.write('  --no-session             Отключить сохранение сессии\n')
+  process.stdout.write('  --extension <path>       Загрузить дополнительное расширение\n')
+  process.stdout.write('  --tools <a,b,c>          Ограничить доступные инструменты\n')
+  process.stdout.write('  --list-models [search]   Показать доступные модели и выйти\n')
+  process.stdout.write('  --version, -v            Показать версию и выйти\n')
+  process.stdout.write('  --help, -h               Показать эту справку и выйти\n')
+  process.stdout.write('\nПодкоманды:\n')
+  process.stdout.write('  config                   Повторно запустить мастер настройки\n')
+  process.stdout.write('  update                   Обновить GSD до последней версии\n')
+  process.stdout.write('  sessions                 Показать и продолжить прошлую сессию\n')
+  process.stdout.write('  worktree <cmd>           Управление worktree (list, merge, clean, remove)\n')
+  process.stdout.write('  headless [cmd] [args]    Запустить команды /gsd без TUI (по умолчанию: auto)\n')
+  process.stdout.write('\nЗапустите gsd <subcommand> --help для справки по конкретной подкоманде.\n')
 }
 
 export function printSubcommandHelp(subcommand: string, version: string): boolean {

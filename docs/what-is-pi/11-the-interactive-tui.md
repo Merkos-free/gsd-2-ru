@@ -1,8 +1,8 @@
-# The Interactive TUI
+# Интерактив TUI
 
-Pi's terminal interface is built with a custom TUI framework (`@mariozechner/pi-tui`).
+Интерфейс терминала Pi построен на основе специальной платформы TUI (`@mariozechner/pi-tui`).
 
-### Layout (top to bottom)
+### Макет (сверху вниз)
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -28,23 +28,23 @@ Pi's terminal interface is built with a custom TUI framework (`@mariozechner/pi-
 └─────────────────────────────────────────────────────────────┘
 ```
 
-### Editor Features
+### Возможности редактора
 
-| Feature | How |
+| Особенность | Как |
 |---------|-----|
-| File reference | Type `@` to fuzzy-search project files |
-| Path completion | Tab to complete paths |
-| Multi-line | Shift+Enter |
-| Images | Ctrl+V to paste, or drag onto terminal |
-| Bash commands | `!command` (sends output to LLM), `!!command` (runs without sending) |
-| External editor | Ctrl+G opens `$VISUAL` or `$EDITOR` |
+| Ссылка на файл | Введите `@` для нечеткого поиска файлов проекта |
+| Завершение пути | Вкладка для завершения путей |
+| Многострочный | Shift+Ввод |
+| Изображения | Ctrl+V для вставки или перетаскивания на терминал |
+| Команды Bash | `!command` (отправляет вывод на LLM), `!!command` (работает без отправки) |
+| Внешний редактор | Ctrl+G открывает `$VISUAL` или `$EDITOR` |
 
-### Tool Output Display
+### Отображение выходных данных инструмента
 
-Tool calls and results are rendered inline with collapsible output:
-- `Ctrl+O` — Toggle expand/collapse all tool output
-- `Ctrl+T` — Toggle expand/collapse thinking blocks
+Вызовы инструментов и результаты отображаются встроенными со сворачиваемым выводом:
+- `Ctrl+O` — переключить развернуть/свернуть все выходные данные инструмента.
+- `Ctrl+T` — Переключить/свернуть блоки мышления.
 
-Extensions can provide custom renderers for their tools, controlling exactly how tool calls and results appear.
+Расширения могут предоставлять собственные средства визуализации для своих инструментов, точно контролируя, как отображаются вызовы инструментов и результаты.
 
 ---

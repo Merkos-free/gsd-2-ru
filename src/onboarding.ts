@@ -44,19 +44,19 @@ const TOOL_KEYS: ToolKeyConfig[] = [
     provider: 'context7',
     envVar: 'CONTEXT7_API_KEY',
     label: 'Context7',
-    hint: 'up-to-date library docs',
+    hint: 'актуальная документация библиотек',
   },
   {
     provider: 'jina',
     envVar: 'JINA_API_KEY',
     label: 'Jina AI',
-    hint: 'clean web page extraction',
+    hint: 'чистое извлечение содержимого веб-страниц',
   },
   {
     provider: 'groq',
     envVar: 'GROQ_API_KEY',
     label: 'Groq',
-    hint: 'voice transcription — free at console.groq.com',
+    hint: 'транскрибация голоса — бесплатно на console.groq.com',
   },
 ]
 
@@ -103,7 +103,7 @@ async function loadClack(): Promise<ClackModule> {
   try {
     return await import('@clack/prompts')
   } catch {
-    throw new Error('[gsd] @clack/prompts not found — onboarding wizard requires this dependency')
+    throw new Error('[gsd] @clack/prompts не найден — мастеру онбординга нужна эта зависимость')
   }
 }
 
@@ -177,13 +177,13 @@ export async function runOnboarding(authStorage: AuthStorage): Promise<void> {
     ;[p, pc] = await Promise.all([loadClack(), loadPico()])
   } catch (err) {
     // If clack isn't available, fall back silently — don't block boot
-    process.stderr.write(`[gsd] Onboarding wizard unavailable: ${err instanceof Error ? err.message : String(err)}\n`)
+    process.stderr.write(`[gsd] Мастер онбординга недоступен: ${err instanceof Error ? err.message : String(err)}\n`)
     return
   }
 
   // ── Intro ─────────────────────────────────────────────────────────────────
   process.stderr.write(renderLogo(pc.cyan))
-  p.intro(pc.bold('Welcome to GSD — let\'s get you set up'))
+  p.intro(pc.bold('Добро пожаловать в GSD — давайте всё настроим'))
 
   // ── LLM Provider Selection ────────────────────────────────────────────────
   let llmConfigured = false
@@ -192,11 +192,11 @@ export async function runOnboarding(authStorage: AuthStorage): Promise<void> {
   } catch (err) {
     // User cancelled (Ctrl+C in clack throws) or unexpected error
     if (isCancelError(p, err)) {
-      p.cancel('Setup cancelled — you can run /login inside GSD later.')
+      p.cancel('Настройка отменена — позже можно выполнить /login внутри GSD.')
       return
     }
-    p.log.warn(`LLM setup failed: ${err instanceof Error ? err.message : String(err)}`)
-    p.log.info('You can configure your LLM provider later with /login inside GSD.')
+    p.log.warn(`Не удалось настроить LLM: ${err instanceof Error ? err.message : String(err)}`)
+    p.log.info('Провайдера LLM можно настроить позже через /login внутри GSD.')
   }
 
   // ── Web Search Provider ──────────────────────────────────────────────────
@@ -205,10 +205,10 @@ export async function runOnboarding(authStorage: AuthStorage): Promise<void> {
     searchConfigured = await runWebSearchStep(p, pc, authStorage, llmConfigured)
   } catch (err) {
     if (isCancelError(p, err)) {
-      p.cancel('Setup cancelled.')
+      p.cancel('Настройка отменена.')
       return
     }
-    p.log.warn(`Web search setup failed: ${err instanceof Error ? err.message : String(err)}`)
+    p.log.warn(`Не удалось настроить веб-поиск: ${err instanceof Error ? err.message : String(err)}`)
   }
 
   // ── Remote Questions ─────────────────────────────────────────────────────
@@ -217,10 +217,10 @@ export async function runOnboarding(authStorage: AuthStorage): Promise<void> {
     remoteConfigured = await runRemoteQuestionsStep(p, pc, authStorage)
   } catch (err) {
     if (isCancelError(p, err)) {
-      p.cancel('Setup cancelled.')
+      p.cancel('Настройка отменена.')
       return
     }
-    p.log.warn(`Remote questions setup failed: ${err instanceof Error ? err.message : String(err)}`)
+    p.log.warn(`Не удалось настроить удалённые вопросы: ${err instanceof Error ? err.message : String(err)}`)
   }
 
   // ── Tool API Keys ─────────────────────────────────────────────────────────
@@ -229,10 +229,10 @@ export async function runOnboarding(authStorage: AuthStorage): Promise<void> {
     toolKeyCount = await runToolKeysStep(p, pc, authStorage)
   } catch (err) {
     if (isCancelError(p, err)) {
-      p.cancel('Setup cancelled.')
+      p.cancel('Настройка отменена.')
       return
     }
-    p.log.warn(`Tool key setup failed: ${err instanceof Error ? err.message : String(err)}`)
+    p.log.warn(`Не удалось настроить ключи инструментов: ${err instanceof Error ? err.message : String(err)}`)
   }
 
   // ── Summary ───────────────────────────────────────────────────────────────
@@ -242,34 +242,34 @@ export async function runOnboarding(authStorage: AuthStorage): Promise<void> {
     const authed = authStorage.list().filter(id => LLM_PROVIDER_IDS.includes(id))
     if (authed.length > 0) {
       const name = authed[0]
-      summaryLines.push(`${pc.green('✓')} LLM provider: ${name}`)
+      summaryLines.push(`${pc.green('✓')} Провайдер LLM: ${name}`)
     } else {
-      summaryLines.push(`${pc.green('✓')} LLM provider configured`)
+      summaryLines.push(`${pc.green('✓')} Провайдер LLM настроен`)
     }
   } else {
-    summaryLines.push(`${pc.yellow('↷')} LLM provider: skipped — use /login inside GSD`)
+    summaryLines.push(`${pc.yellow('↷')} Провайдер LLM: пропущено — используйте /login внутри GSD`)
   }
 
   if (searchConfigured) {
-    summaryLines.push(`${pc.green('✓')} Web search: ${searchConfigured}`)
+    summaryLines.push(`${pc.green('✓')} Веб-поиск: ${searchConfigured}`)
   } else {
-    summaryLines.push(`${pc.dim('↷')} Web search: not configured — use /search-provider inside GSD`)
+    summaryLines.push(`${pc.dim('↷')} Веб-поиск: не настроен — используйте /search-provider внутри GSD`)
   }
 
   if (remoteConfigured) {
-    summaryLines.push(`${pc.green('✓')} Remote questions: ${remoteConfigured}`)
+    summaryLines.push(`${pc.green('✓')} Удалённые вопросы: ${remoteConfigured}`)
   } else {
-    summaryLines.push(`${pc.dim('↷')} Remote questions: not configured — use /gsd remote inside GSD`)
+    summaryLines.push(`${pc.dim('↷')} Удалённые вопросы: не настроены — используйте /gsd remote внутри GSD`)
   }
 
   if (toolKeyCount > 0) {
-    summaryLines.push(`${pc.green('✓')} ${toolKeyCount} tool key${toolKeyCount > 1 ? 's' : ''} saved`)
+    summaryLines.push(`${pc.green('✓')} Сохранено ${toolKeyCount} ключ${toolKeyCount > 1 ? 'ей' : ''} инструмента`)
   } else {
-    summaryLines.push(`${pc.dim('↷')} Tool keys: none configured`)
+    summaryLines.push(`${pc.dim('↷')} Ключи инструментов: не настроены`)
   }
 
-  p.note(summaryLines.join('\n'), 'Setup complete')
-  p.outro(pc.dim('Launching GSD...'))
+  p.note(summaryLines.join('\n'), 'Настройка завершена')
+  p.outro(pc.dim('Запуск GSD...'))
 }
 
 // ─── LLM Authentication Step ──────────────────────────────────────────────────
@@ -287,17 +287,17 @@ async function runLlmStep(p: ClackModule, pc: PicoModule, authStorage: AuthStora
   const authOptions: AuthOption[] = []
 
   if (existingAuth) {
-    authOptions.push({ value: 'keep', label: `Keep current (${existingAuth})`, hint: 'already configured' })
+    authOptions.push({ value: 'keep', label: `Оставить текущий (${existingAuth})`, hint: 'уже настроено' })
   }
 
   authOptions.push(
-    { value: 'browser', label: 'Sign in with your browser', hint: 'recommended — same login as claude.ai / ChatGPT' },
-    { value: 'api-key', label: 'Paste an API key', hint: 'from your provider dashboard' },
-    { value: 'skip', label: 'Skip for now', hint: 'use /login inside GSD later' },
+    { value: 'browser', label: 'Войти через браузер', hint: 'рекомендуется — тот же вход, что и в claude.ai / ChatGPT' },
+    { value: 'api-key', label: 'Вставить API-ключ', hint: 'из панели вашего провайдера' },
+    { value: 'skip', label: 'Пока пропустить', hint: 'позже используйте /login внутри GSD' },
   )
 
   const method = await p.select({
-    message: existingAuth ? `LLM provider: ${existingAuth} — change it?` : 'How do you want to sign in?',
+    message: existingAuth ? `Провайдер LLM: ${existingAuth} — изменить его?` : 'Как вы хотите войти?',
     options: authOptions,
   })
 
@@ -307,9 +307,9 @@ async function runLlmStep(p: ClackModule, pc: PicoModule, authStorage: AuthStora
   // ── Step 2: Which provider? ──────────────────────────────────────────────
   if (method === 'browser') {
     const provider = await p.select({
-      message: 'Choose provider',
+      message: 'Выберите провайдера',
       options: [
-        { value: 'anthropic', label: 'Anthropic (Claude)', hint: 'recommended' },
+        { value: 'anthropic', label: 'Anthropic (Claude)', hint: 'рекомендуется' },
         { value: 'github-copilot', label: 'GitHub Copilot' },
         { value: 'openai-codex', label: 'ChatGPT Plus/Pro (Codex)' },
         { value: 'google-gemini-cli', label: 'Google Gemini CLI' },
@@ -322,7 +322,7 @@ async function runLlmStep(p: ClackModule, pc: PicoModule, authStorage: AuthStora
 
   if (method === 'api-key') {
     const provider = await p.select({
-      message: 'Choose provider',
+      message: 'Выберите провайдера',
       options: [
         { value: 'anthropic', label: 'Anthropic (Claude)' },
         { value: 'openai', label: 'OpenAI' },
@@ -356,12 +356,12 @@ async function runOAuthFlow(
   const usesCallbackServer = providerInfo?.usesCallbackServer ?? false
 
   const s = p.spinner()
-  s.start(`Authenticating with ${providerName}...`)
+  s.start(`Аутентификация в ${providerName}...`)
 
   try {
     await authStorage.login(providerId as any, {
       onAuth: (info: { url: string; instructions?: string }) => {
-        s.stop(`Opening browser for ${providerName}`)
+        s.stop(`Открытие браузера для ${providerName}`)
         openBrowser(info.url)
         p.log.info(`${pc.dim('URL:')} ${pc.cyan(info.url)}`)
         if (info.instructions) {
@@ -382,7 +382,7 @@ async function runOAuthFlow(
       onManualCodeInput: usesCallbackServer
         ? async () => {
             const result = await p.text({
-              message: 'Paste the redirect URL from your browser:',
+              message: 'Вставьте URL перенаправления из браузера:',
               placeholder: 'http://localhost:...',
             })
             if (p.isCancel(result)) return ''
@@ -391,19 +391,19 @@ async function runOAuthFlow(
         : undefined,
     } as any)
 
-    p.log.success(`Authenticated with ${pc.green(providerName)}`)
+    p.log.success(`Аутентификация в ${pc.green(providerName)} выполнена`)
     return true
   } catch (err) {
-    s.stop(`${providerName} authentication failed`)
+    s.stop(`Ошибка аутентификации в ${providerName}`)
     const errorMsg = err instanceof Error ? err.message : String(err)
-    p.log.warn(`OAuth error: ${errorMsg}`)
+    p.log.warn(`Ошибка OAuth: ${errorMsg}`)
 
     // Offer retry or skip
     const retry = await p.select({
-      message: 'What would you like to do?',
+      message: 'Что вы хотите сделать?',
       options: [
-        { value: 'retry', label: 'Try again' },
-        { value: 'skip', label: 'Skip — configure later with /login' },
+        { value: 'retry', label: 'Попробовать снова' },
+        { value: 'skip', label: 'Пропустить — настроить позже через /login' },
       ],
     })
 
@@ -423,7 +423,7 @@ async function runApiKeyFlow(
   providerLabel: string,
 ): Promise<boolean> {
   const key = await p.password({
-    message: `Paste your ${providerLabel} API key:`,
+    message: `Вставьте ваш API-ключ ${providerLabel}:`,
     mask: '●',
   })
 
@@ -434,11 +434,11 @@ async function runApiKeyFlow(
   // Basic prefix validation
   const expectedPrefixes = API_KEY_PREFIXES[providerId]
   if (expectedPrefixes && !expectedPrefixes.some(pfx => trimmed.startsWith(pfx))) {
-    p.log.warn(`Key doesn't start with expected prefix (${expectedPrefixes.join(' or ')}). Saving anyway.`)
+    p.log.warn(`Ключ не начинается с ожидаемого префикса (${expectedPrefixes.join(' or ')}). Всё равно сохраняю.`)
   }
 
   authStorage.set(providerId, { type: 'api_key', key: trimmed })
-  p.log.success(`API key saved for ${pc.green(providerLabel)}`)
+  p.log.success(`API-ключ для ${pc.green(providerLabel)} сохранён`)
   return true
 }
 
@@ -451,15 +451,15 @@ async function runCustomOpenAIFlow(
 ): Promise<boolean> {
   // Prompt for base URL
   const baseUrl = await p.text({
-    message: 'Base URL of your OpenAI-compatible endpoint:',
+    message: 'Базовый URL вашего OpenAI-совместимого endpoint:',
     placeholder: 'https://my-proxy.example.com/v1',
     validate: (val) => {
       const trimmed = val?.trim()
-      if (!trimmed) return 'Base URL is required'
+      if (!trimmed) return 'Base URL обязателен'
       try {
         new URL(trimmed)
       } catch {
-        return 'Must be a valid URL (e.g. https://my-proxy.example.com/v1)'
+        return 'Нужен корректный URL (например, https://my-proxy.example.com/v1)'
       }
     },
   })
@@ -468,7 +468,7 @@ async function runCustomOpenAIFlow(
 
   // Prompt for API key
   const apiKey = await p.password({
-    message: 'API key for this endpoint:',
+    message: 'API-ключ для этого endpoint:',
     mask: '●',
   })
   if (p.isCancel(apiKey) || !apiKey) return false
@@ -477,10 +477,10 @@ async function runCustomOpenAIFlow(
 
   // Prompt for model ID
   const modelId = await p.text({
-    message: 'Model ID to use:',
+    message: 'ID модели для использования:',
     placeholder: 'gpt-4o',
     validate: (val) => {
-      if (!val?.trim()) return 'Model ID is required'
+      if (!val?.trim()) return 'ID модели обязателен'
     },
   })
   if (p.isCancel(modelId) || !modelId) return false
@@ -530,9 +530,9 @@ async function runCustomOpenAIFlow(
   // Also set env var so the current session picks up the key via fallback resolver
   process.env.CUSTOM_OPENAI_API_KEY = trimmedKey
 
-  p.log.success(`Custom endpoint saved: ${pc.green(trimmedUrl)}`)
-  p.log.info(`Model: ${pc.cyan(trimmedModelId)}`)
-  p.log.info(`Config written to ${pc.dim(modelsJsonPath)}`)
+  p.log.success(`Пользовательский endpoint сохранён: ${pc.green(trimmedUrl)}`)
+  p.log.info(`Модель: ${pc.cyan(trimmedModelId)}`)
+  p.log.info(`Конфигурация записана в ${pc.dim(modelsJsonPath)}`)
   return true
 }
 
@@ -558,25 +558,25 @@ async function runWebSearchStep(
   const options: SearchOption[] = []
 
   if (existingSearch) {
-    options.push({ value: 'keep', label: `Keep current (${existingSearch})`, hint: 'already configured' })
+    options.push({ value: 'keep', label: `Оставить текущий (${existingSearch})`, hint: 'уже настроено' })
   }
 
   if (isAnthropic) {
     options.push({
       value: 'anthropic-native',
-      label: 'Anthropic built-in web search',
-      hint: 'no API key needed — already included with Claude',
+      label: 'Встроенный веб-поиск Anthropic',
+      hint: 'API-ключ не нужен — уже включён в Claude',
     })
   }
 
   options.push(
-    { value: 'brave', label: 'Brave Search', hint: 'requires API key — brave.com/search/api' },
-    { value: 'tavily', label: 'Tavily', hint: 'requires API key — tavily.com' },
-    { value: 'skip', label: 'Skip for now', hint: 'use /search-provider inside GSD later' },
+    { value: 'brave', label: 'Brave Search', hint: 'требуется API-ключ — brave.com/search/api' },
+    { value: 'tavily', label: 'Tavily', hint: 'требуется API-ключ — tavily.com' },
+    { value: 'skip', label: 'Пока пропустить', hint: 'позже используйте /search-provider внутри GSD' },
   )
 
   const choice = await p.select({
-    message: 'How do you want to search the web?',
+    message: 'Как вы хотите искать в вебе?',
     options,
   })
 
@@ -584,33 +584,33 @@ async function runWebSearchStep(
   if (choice === 'keep') return existingSearch
 
   if (choice === 'anthropic-native') {
-    p.log.success(`Web search: ${pc.green('Anthropic built-in')} — works out of the box`)
+    p.log.success(`Веб-поиск: ${pc.green('встроенный Anthropic')} — работает сразу`)
     return 'Anthropic built-in'
   }
 
   if (choice === 'brave') {
     const key = await p.password({
-      message: `Paste your Brave Search API key ${pc.dim('(brave.com/search/api)')}:`,
+      message: `Вставьте ваш API-ключ Brave Search ${pc.dim('(brave.com/search/api)')}:`,
       mask: '●',
     })
     if (p.isCancel(key) || !(key as string)?.trim()) return null
     const trimmed = (key as string).trim()
     authStorage.set('brave', { type: 'api_key', key: trimmed })
     process.env.BRAVE_API_KEY = trimmed
-    p.log.success(`Web search: ${pc.green('Brave Search')} configured`)
+    p.log.success(`Веб-поиск: ${pc.green('Brave Search')} настроен`)
     return 'Brave Search'
   }
 
   if (choice === 'tavily') {
     const key = await p.password({
-      message: `Paste your Tavily API key ${pc.dim('(tavily.com)')}:`,
+      message: `Вставьте ваш API-ключ Tavily ${pc.dim('(tavily.com)')}:`,
       mask: '●',
     })
     if (p.isCancel(key) || !(key as string)?.trim()) return null
     const trimmed = (key as string).trim()
     authStorage.set('tavily', { type: 'api_key', key: trimmed })
     process.env.TAVILY_API_KEY = trimmed
-    p.log.success(`Web search: ${pc.green('Tavily')} configured`)
+    p.log.success(`Веб-поиск: ${pc.green('Tavily')} настроен`)
     return 'Tavily'
   }
 
@@ -629,7 +629,7 @@ async function runToolKeysStep(
   if (missing.length === 0) return 0
 
   const wantToolKeys = await p.confirm({
-    message: 'Set up optional tool API keys? (web search, docs, etc.)',
+    message: 'Настроить необязательные API-ключи инструментов? (веб-поиск, docs и т.д.)',
     initialValue: false,
   })
 
@@ -638,7 +638,7 @@ async function runToolKeysStep(
   let savedCount = 0
   for (const tk of missing) {
     const key = await p.password({
-      message: `${tk.label} ${pc.dim(`(${tk.hint})`)} — Enter to skip:`,
+      message: `${tk.label} ${pc.dim(`(${tk.hint})`)} — нажмите Enter, чтобы пропустить:`,
       mask: '●',
     })
 
@@ -648,12 +648,12 @@ async function runToolKeysStep(
     if (trimmed) {
       authStorage.set(tk.provider, { type: 'api_key', key: trimmed })
       process.env[tk.envVar] = trimmed
-      p.log.success(`${tk.label} saved`)
+      p.log.success(`${tk.label} сохранён`)
       savedCount++
     } else {
       // Store empty key so wizard doesn't re-ask on next launch
       authStorage.set(tk.provider, { type: 'api_key', key: '' })
-      p.log.info(pc.dim(`${tk.label} skipped`))
+      p.log.info(pc.dim(`${tk.label} пропущен`))
     }
   }
 
@@ -677,18 +677,18 @@ async function runRemoteQuestionsStep(
   const options: RemoteOption[] = []
 
   if (existingChannel) {
-    options.push({ value: 'keep', label: `Keep current (${existingChannel})`, hint: 'already configured' })
+    options.push({ value: 'keep', label: `Оставить текущий (${existingChannel})`, hint: 'уже настроено' })
   }
 
   options.push(
-    { value: 'discord', label: 'Discord', hint: 'receive questions in a Discord channel' },
-    { value: 'slack', label: 'Slack', hint: 'receive questions in a Slack channel' },
-    { value: 'telegram', label: 'Telegram', hint: 'receive questions via Telegram bot' },
-    { value: 'skip', label: 'Skip for now', hint: 'use /gsd remote inside GSD later' },
+    { value: 'discord', label: 'Discord', hint: 'получать вопросы в канале Discord' },
+    { value: 'slack', label: 'Slack', hint: 'получать вопросы в канале Slack' },
+    { value: 'telegram', label: 'Telegram', hint: 'получать вопросы через Telegram-бота' },
+    { value: 'skip', label: 'Пока пропустить', hint: 'позже используйте /gsd remote внутри GSD' },
   )
 
   const choice = await p.select({
-    message: 'Set up remote questions? (get notified when GSD needs input)',
+    message: 'Настроить удалённые вопросы? (получать уведомления, когда GSD нужен ввод)',
     options,
   })
 
@@ -697,7 +697,7 @@ async function runRemoteQuestionsStep(
 
   if (choice === 'discord') {
     const token = await p.password({
-      message: 'Paste your Discord bot token:',
+      message: 'Вставьте токен вашего Discord-бота:',
       mask: '●',
     })
     if (p.isCancel(token) || !(token as string)?.trim()) return null
@@ -712,19 +712,19 @@ async function runRemoteQuestionsStep(
 
   if (choice === 'slack') {
     const token = await p.password({
-      message: `Paste your Slack bot token ${pc.dim('(xoxb-...)')}:`,
+      message: `Вставьте токен вашего Slack-бота ${pc.dim('(xoxb-...)')}:`,
       mask: '●',
     })
     if (p.isCancel(token) || !(token as string)?.trim()) return null
     const trimmed = (token as string).trim()
     if (!trimmed.startsWith('xoxb-')) {
-      p.log.warn('Invalid token format — Slack bot tokens start with xoxb-.')
+      p.log.warn('Неверный формат токена — токены Slack-ботов начинаются с xoxb-.')
       return null
     }
 
     // Validate
     const s = p.spinner()
-    s.start('Validating Slack token...')
+    s.start('Проверка токена Slack...')
     try {
       const res = await fetch('https://slack.com/api/auth.test', {
         headers: { Authorization: `Bearer ${trimmed}` },
@@ -732,12 +732,12 @@ async function runRemoteQuestionsStep(
       })
       const data = await res.json() as any
       if (!data?.ok) {
-        s.stop('Slack token validation failed')
+        s.stop('Проверка токена Slack не удалась')
         return null
       }
-      s.stop(`Slack authenticated as ${pc.green(data.user ?? 'bot')}`)
+      s.stop(`Slack: вход выполнен как ${pc.green(data.user ?? 'bot')}`)
     } catch {
-      s.stop('Could not reach Slack API')
+      s.stop('Не удалось обратиться к API Slack')
       return null
     }
 
@@ -745,46 +745,46 @@ async function runRemoteQuestionsStep(
     process.env.SLACK_BOT_TOKEN = trimmed
 
     const channelId = await p.text({
-      message: 'Paste the Slack channel ID (e.g. C0123456789):',
+      message: 'Вставьте ID канала Slack (например, C0123456789):',
       validate: (val) => {
-        if (!val || !/^[A-Z0-9]{9,12}$/.test(val.trim())) return 'Expected 9-12 uppercase alphanumeric characters'
+        if (!val || !/^[A-Z0-9]{9,12}$/.test(val.trim())) return 'Ожидается 9-12 заглавных буквенно-цифровых символов'
       },
     })
     if (p.isCancel(channelId) || !channelId) return null
 
     const { saveRemoteQuestionsConfig } = await import('./remote-questions-config.js')
     saveRemoteQuestionsConfig('slack', (channelId as string).trim())
-    p.log.success(`Slack channel: ${pc.green((channelId as string).trim())}`)
+    p.log.success(`Канал Slack: ${pc.green((channelId as string).trim())}`)
     return 'Slack'
   }
 
   if (choice === 'telegram') {
     const token = await p.password({
-      message: 'Paste your Telegram bot token (from @BotFather):',
+      message: 'Вставьте токен вашего Telegram-бота (от @BotFather):',
       mask: '●',
     })
     if (p.isCancel(token) || !(token as string)?.trim()) return null
     const trimmed = (token as string).trim()
     if (!/^\d+:[A-Za-z0-9_-]+$/.test(trimmed)) {
-      p.log.warn('Invalid token format — Telegram bot tokens look like 123456789:ABCdefGHI...')
+      p.log.warn('Неверный формат токена — токены Telegram-ботов выглядят как 123456789:ABCdefGHI...')
       return null
     }
 
     // Validate
     const s = p.spinner()
-    s.start('Validating Telegram bot token...')
+    s.start('Проверка токена Telegram-бота...')
     try {
       const res = await fetch(`https://api.telegram.org/bot${trimmed}/getMe`, {
         signal: AbortSignal.timeout(15_000),
       })
       const data = await res.json() as any
       if (!data?.ok || !data?.result?.id) {
-        s.stop('Telegram token validation failed')
+        s.stop('Проверка токена Telegram не удалась')
         return null
       }
-      s.stop(`Telegram bot: ${pc.green(data.result.first_name ?? data.result.username ?? 'bot')}`)
+      s.stop(`Telegram-бот: ${pc.green(data.result.first_name ?? data.result.username ?? 'bot')}`)
     } catch {
-      s.stop('Could not reach Telegram API')
+      s.stop('Не удалось обратиться к API Telegram')
       return null
     }
 
@@ -792,9 +792,9 @@ async function runRemoteQuestionsStep(
     process.env.TELEGRAM_BOT_TOKEN = trimmed
 
     const chatId = await p.text({
-      message: 'Paste the Telegram chat ID (e.g. -1001234567890):',
+      message: 'Вставьте ID чата Telegram (например, -1001234567890):',
       validate: (val) => {
-        if (!val || !/^-?\d{5,20}$/.test(val.trim())) return 'Expected a numeric chat ID (can be negative for groups)'
+        if (!val || !/^-?\d{5,20}$/.test(val.trim())) return 'Ожидается числовой ID чата (для групп может быть отрицательным)'
       },
     })
     if (p.isCancel(chatId) || !chatId) return null
@@ -802,7 +802,7 @@ async function runRemoteQuestionsStep(
 
     // Test send
     const ts = p.spinner()
-    ts.start('Testing message delivery...')
+    ts.start('Проверка доставки сообщения...')
     try {
       const res = await fetch(`https://api.telegram.org/bot${trimmed}/sendMessage`, {
         method: 'POST',
@@ -812,18 +812,18 @@ async function runRemoteQuestionsStep(
       })
       const data = await res.json() as any
       if (!data?.ok) {
-        ts.stop(`Could not send to chat: ${data?.description ?? 'unknown error'}`)
+        ts.stop(`Не удалось отправить в чат: ${data?.description ?? 'неизвестная ошибка'}`)
         return null
       }
-      ts.stop('Test message sent')
+      ts.stop('Тестовое сообщение отправлено')
     } catch {
-      ts.stop('Could not reach Telegram API')
+      ts.stop('Не удалось обратиться к API Telegram')
       return null
     }
 
     const { saveRemoteQuestionsConfig } = await import('./remote-questions-config.js')
     saveRemoteQuestionsConfig('telegram', trimmedChatId)
-    p.log.success(`Telegram chat: ${pc.green(trimmedChatId)}`)
+    p.log.success(`Чат Telegram: ${pc.green(trimmedChatId)}`)
     return 'Telegram'
   }
 
@@ -835,20 +835,20 @@ async function runDiscordChannelStep(p: ClackModule, pc: PicoModule, token: stri
 
   // Validate token
   const s = p.spinner()
-  s.start('Validating Discord bot token...')
+  s.start('Проверка токена Discord-бота...')
   let auth: any
   try {
     const res = await fetch('https://discord.com/api/v10/users/@me', { headers, signal: AbortSignal.timeout(15_000) })
     auth = await res.json()
   } catch {
-    s.stop('Could not reach Discord API')
+    s.stop('Не удалось обратиться к API Discord')
     return null
   }
   if (!auth?.id) {
-    s.stop('Discord token validation failed')
+    s.stop('Проверка токена Discord не удалась')
     return null
   }
-  s.stop(`Bot authenticated as ${pc.green(auth.username ?? 'unknown')}`)
+  s.stop(`Вход бота выполнен как ${pc.green(auth.username ?? 'unknown')}`)
 
   // Fetch guilds
   let guilds: Array<{ id: string; name: string }>
@@ -857,12 +857,12 @@ async function runDiscordChannelStep(p: ClackModule, pc: PicoModule, token: stri
     const data = await res.json()
     guilds = Array.isArray(data) ? data : []
   } catch {
-    p.log.warn('Could not fetch Discord servers — configure channel later with /gsd remote discord')
+    p.log.warn('Не удалось получить список серверов Discord — настройте канал позже через /gsd remote discord')
     return null
   }
 
   if (guilds.length === 0) {
-    p.log.warn('Bot is not in any Discord servers — configure channel later with /gsd remote discord')
+    p.log.warn('Бот не состоит ни в одном сервере Discord — настройте канал позже через /gsd remote discord')
     return null
   }
 
@@ -872,10 +872,10 @@ async function runDiscordChannelStep(p: ClackModule, pc: PicoModule, token: stri
   if (guilds.length === 1) {
     guildId = guilds[0].id
     guildName = guilds[0].name
-    p.log.info(`Server: ${pc.green(guildName)}`)
+    p.log.info(`Сервер: ${pc.green(guildName)}`)
   } else {
     const choice = await p.select({
-      message: 'Which Discord server?',
+      message: 'Какой сервер Discord?',
       options: guilds.map(g => ({ value: g.id, label: g.name })),
     })
     if (p.isCancel(choice)) return null
@@ -890,22 +890,22 @@ async function runDiscordChannelStep(p: ClackModule, pc: PicoModule, token: stri
     const data = await res.json()
     channels = Array.isArray(data) ? data.filter((ch: any) => ch.type === 0 || ch.type === 5) : []
   } catch {
-    p.log.warn('Could not fetch channels — configure later with /gsd remote discord')
+    p.log.warn('Не удалось получить список каналов — настройте позже через /gsd remote discord')
     return null
   }
 
   if (channels.length === 0) {
-    p.log.warn('No text channels found — configure later with /gsd remote discord')
+    p.log.warn('Текстовые каналы не найдены — настройте позже через /gsd remote discord')
     return null
   }
 
   // Select channel
   const MANUAL_VALUE = '__manual__'
   const channelChoice = await p.select({
-    message: 'Which channel should GSD use for remote questions?',
+    message: 'Какой канал GSD должен использовать для удалённых вопросов?',
     options: [
       ...channels.map(ch => ({ value: ch.id, label: `#${ch.name}` })),
-      { value: MANUAL_VALUE, label: 'Enter channel ID manually' },
+      { value: MANUAL_VALUE, label: 'Ввести ID канала вручную' },
     ],
   })
   if (p.isCancel(channelChoice)) return null
@@ -913,10 +913,10 @@ async function runDiscordChannelStep(p: ClackModule, pc: PicoModule, token: stri
   let channelId: string
   if (channelChoice === MANUAL_VALUE) {
     const manualId = await p.text({
-      message: 'Paste the Discord channel ID:',
+      message: 'Вставьте ID канала Discord:',
       placeholder: '1234567890123456789',
       validate: (val) => {
-        if (!val || !/^\d{17,20}$/.test(val.trim())) return 'Expected 17-20 digit numeric ID'
+        if (!val || !/^\d{17,20}$/.test(val.trim())) return 'Ожидается числовой ID длиной 17-20 цифр'
       },
     })
     if (p.isCancel(manualId) || !manualId) return null
@@ -929,7 +929,7 @@ async function runDiscordChannelStep(p: ClackModule, pc: PicoModule, token: stri
   const { saveRemoteQuestionsConfig } = await import('./remote-questions-config.js')
   saveRemoteQuestionsConfig('discord', channelId)
   const channelName = channels.find(ch => ch.id === channelId)?.name
-  p.log.success(`Discord channel: ${pc.green(channelName ? `#${channelName}` : channelId)}`)
+  p.log.success(`Канал Discord: ${pc.green(channelName ? `#${channelName}` : channelId)}`)
   return channelName ?? null
 }
 

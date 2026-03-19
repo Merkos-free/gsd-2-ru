@@ -1,10 +1,10 @@
-# The SDK & RPC — Embedding Pi
+# SDK и RPC — встраивание Пи
 
-Pi isn't just a terminal tool. It's designed to be embedded in other applications.
+Pi — это не просто терминальный инструмент. Он предназначен для встраивания в другие приложения.
 
 ### SDK (TypeScript)
 
-For Node.js/TypeScript applications, import and use pi directly:
+Для приложений Node.js/TypeScript импортируйте и используйте pi напрямую:
 
 ```typescript
 import { AuthStorage, createAgentSession, ModelRegistry, SessionManager } from "@mariozechner/pi-coding-agent";
@@ -29,24 +29,24 @@ session.subscribe((event) => {
 await session.prompt("What files are in the current directory?");
 ```
 
-The SDK gives you full control: custom tools, custom resource loaders, session management, model selection, event streaming. See the [openclaw/openclaw](https://github.com/openclaw/openclaw) project for a real-world SDK integration.
+SDK предоставляет вам полный контроль: пользовательские инструменты, пользовательские загрузчики ресурсов, управление сеансами, выбор модели, потоковую передачу событий. См. проект [openclaw/openclaw](https://github.com/openclaw/openclaw) для реальной интеграции SDK.
 
-### RPC Mode (Any Language)
+### RPC Режим (любой язык)
 
-For non-Node.js applications, spawn pi as a subprocess and communicate via JSON over stdin/stdout:
+Для приложений non-Node.js создайте pi как подпроцесс и общайтесь через JSON через stdin/stdout:
 
 ```bash
 pi --mode rpc --provider anthropic
 ```
 
-Send commands:
+Отправьте команды:
 ```json
 {"type": "prompt", "message": "Hello, world!"}
 {"type": "steer", "message": "Stop and do this instead"}
 {"type": "follow_up", "message": "After you're done, also do this"}
 ```
 
-Receive events:
+Получать события:
 ```json
 {"type": "event", "event": {"type": "message_update", ...}}
 {"type": "response", "command": "prompt", "success": true}

@@ -1,8 +1,8 @@
-# Performance — Caching and Invalidation
+# Производительность — кэширование и аннулирование
 
-### The Caching Pattern
+### Шаблон кэширования
 
-Always cache `render()` output and recompute only when state changes:
+Всегда кэшируйте вывод `render()` и пересчитывайте только при изменении состояния:
 
 ```typescript
 class CachedComponent {
@@ -29,19 +29,19 @@ class CachedComponent {
 }
 ```
 
-### The Update Cycle
+### Цикл обновления
 
 ```
 State changes → invalidate() → tui.requestRender() → render(width) called
 ```
 
-1. Something changes your component's state (user input, timer, async result)
-2. Call `this.invalidate()` to clear caches
-3. Call `tui.requestRender()` to schedule a re-render
-4. The TUI calls `render(width)` on the next frame
-5. Your component recomputes its output (since cache was cleared)
+1. Что-то меняет состояние вашего компонента (пользовательский ввод, таймер, асинхронный результат)
+2. Вызовите `this.invalidate()`, чтобы очистить кэши.
+3. Позвоните по номеру `tui.requestRender()`, чтобы запланировать повторный рендеринг.
+4. TUI вызывает `render(width)` в следующем кадре.
+5. Ваш компонент пересчитывает свои выходные данные (поскольку кеш был очищен).
 
-### Game Loop Pattern (Real-Time Updates)
+### Шаблон игрового цикла (обновления в реальном времени)
 
 ```typescript
 class GameComponent {

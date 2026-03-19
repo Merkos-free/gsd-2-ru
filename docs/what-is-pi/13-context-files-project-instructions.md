@@ -1,29 +1,29 @@
-# Context Files — Project Instructions
+# Файлы контекста — Инструкции по проекту
 
-Pi loads instruction files automatically at startup:
+Pi автоматически загружает файлы инструкций при запуске:
 
-### AGENTS.md (or CLAUDE.md)
+### AGENTS.md (или CLAUDE.md)
 
-Pi looks for `AGENTS.md` or `CLAUDE.md` in:
-1. `~/.gsd/agent/AGENTS.md` (global)
-2. Every parent directory from cwd up to filesystem root
-3. Current directory
+Пи ищет `AGENTS.md` или `CLAUDE.md` в:
+1. `~/.gsd/agent/AGENTS.md` (глобальный)
+2. Каждый родительский каталог от cwd до корня файловой системы.
+3. Текущий каталог
 
-All matching files are concatenated and included in the system prompt. Use these for project conventions, common commands, architectural notes.
+Все соответствующие файлы объединяются и включаются в системное приглашение. Используйте их для соглашений проекта, общих команд и архитектурных заметок.
 
-### System Prompt Override
+### Переопределение системного запроса
 
-Replace the default system prompt entirely:
-- `.gsd/SYSTEM.md` (project)
-- `~/.gsd/agent/SYSTEM.md` (global)
+Полностью замените системную подсказку по умолчанию:
+- `.gsd/SYSTEM.md` (проект)
+- `~/.gsd/agent/SYSTEM.md` (глобальный)
 
-Append to it instead:
-- `.gsd/APPEND_SYSTEM.md` (project)
-- `~/.gsd/agent/APPEND_SYSTEM.md` (global)
+Вместо этого добавьте к нему:
+- `.gsd/APPEND_SYSTEM.md` (проект)
+- `~/.gsd/agent/APPEND_SYSTEM.md` (глобальный)
 
-### File Arguments
+### Аргументы файла
 
-Include files directly in prompts from the CLI:
+Включайте файлы непосредственно в подсказки из CLI:
 
 ```bash
 pi @prompt.md "Answer this"

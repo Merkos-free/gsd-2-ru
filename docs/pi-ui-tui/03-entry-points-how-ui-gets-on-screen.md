@@ -1,19 +1,19 @@
-# Entry Points — How UI Gets on Screen
+# Точки входа: как UI появляется на экране
 
-There are **six different ways** to put custom UI on screen, each for a different purpose:
+Существует **шесть различных способов** разместить собственный значок UI на экране, каждый из которых предназначен для разных целей:
 
-| Method | Purpose | Blocks? | Replaces editor? |
+| Метод | Цель | Блоки? | Заменяет редактора? |
 |--------|---------|---------|-------------------|
-| `ctx.ui.select/confirm/input/editor` | Quick dialogs | Yes | Temporarily |
-| `ctx.ui.notify` | Toast notifications | No | No |
-| `ctx.ui.setStatus` | Footer status text | No | No |
-| `ctx.ui.setWidget` | Persistent widget above/below editor | No | No |
-| `ctx.ui.setFooter` | Replace entire footer | No | No (replaces footer) |
-| `ctx.ui.custom()` | Full custom component | Yes | Temporarily |
-| `ctx.ui.custom({overlay})` | Floating overlay | Yes | No (renders on top) |
-| `ctx.ui.setEditorComponent` | Replace editor permanently | No | Yes (permanently) |
-| `ctx.ui.setHeader` | Custom startup header | No | No (replaces header) |
-| `renderCall/renderResult` | Tool display | No | No (inline in messages) |
-| `registerMessageRenderer` | Custom message display | No | No (inline in messages) |
+| `ctx.ui.select/confirm/input/editor` | Быстрые диалоги | Да | Временно |
+| `ctx.ui.notify` | Тост-уведомления | Нет | Нет |
+| `ctx.ui.setStatus` | Текст статуса нижнего колонтитула | Нет | Нет |
+| `ctx.ui.setWidget` | Постоянный виджет над/под редактором | Нет | Нет |
+| `ctx.ui.setFooter` | Заменить весь нижний колонтитул | Нет | Нет (заменяет нижний колонтитул) |
+| `ctx.ui.custom()` | Полный пользовательский компонент | Да | Временно |
+| `ctx.ui.custom({overlay})` | Плавающее наложение | Да | Нет (рендерится сверху) |
+| `ctx.ui.setEditorComponent` | Заменить редактор навсегда | Нет | Да (навсегда) |
+| `ctx.ui.setHeader` | Пользовательский заголовок запуска | Нет | Нет (заменяет заголовок) |
+| `renderCall/renderResult` | Дисплей инструментов | Нет | Нет (в сообщениях) |
+| `registerMessageRenderer` | Пользовательское отображение сообщений | Нет | Нет (в сообщениях) |
 
 ---

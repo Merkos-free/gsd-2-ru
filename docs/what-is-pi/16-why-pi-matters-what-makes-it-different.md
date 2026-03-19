@@ -1,29 +1,29 @@
-# Why Pi Matters — What Makes It Different
+# Почему число Пи имеет значение — что отличает его от других
 
-### vs. Other Coding Agents
+### по сравнению с другими агентами кодирования
 
-| Aspect | Typical agents | Pi |
+| Аспект | Типичные агенты | Пи |
 |--------|---------------|-----|
-| **Customization** | Fork the repo or wait for features | Extension system — build anything without forking |
-| **Model lock-in** | One provider, maybe two | 20+ providers, switch mid-conversation |
-| **Session management** | Linear history, maybe undo | Tree-based branching with in-place navigation |
-| **Context management** | Basic truncation | Structured compaction with summaries, customizable via extensions |
-| **Distribution** | No ecosystem | Pi packages via npm/git, shareable extensions/skills/themes |
-| **Embedding** | Not designed for it | SDK + RPC mode, built for integration |
-| **Philosophy** | Opinionated, batteries-included | Minimal core, extend to your workflow |
+| **Кастомизация** | Форкните репозиторий или ждите новых функций | Система расширения — создавайте что угодно без разветвлений |
+| **Привязка модели** | Один провайдер, а может и два | 20+ поставщиков, переключайтесь в середине разговора |
+| **Управление сеансом** | Линейная история, возможно, отменить | Древовидное ветвление с навигацией по месту |
+| **Управление контекстом** | Базовое усечение | Структурированное сжатие со сводками, настраиваемое с помощью расширений |
+| **Распространение** | Нет экосистемы | Пакеты Pi через npm/git, общие расширения/навыки/темы |
+| **Встраивание** | Не предназначен для этого | Режим SDK + RPC, созданный для интеграции |
+| **Философия** | Упрямый, с батарейками | Минимальное ядро, расширяйте свой рабочий процесс |
 
-### The Core Value Propositions
+### Основные ценностные предложения
 
-1. **Extensibility as architecture.** Not an afterthought. The event system, tool registration, command system, and custom UI were designed from day one to make extensions as powerful as built-in features.
+1. **Расширяемость как архитектура.** Не второстепенная мысль. Система событий, регистрация инструментов, система команд и пользовательская UI с самого начала разрабатывались так, чтобы сделать расширения такими же мощными, как и встроенные функции.
 
-2. **Session branching.** Tree-based conversations mean you never lose work. Explore different approaches, keep all of them, jump between them with `/tree`.
+2. **Разветвление сеансов.** Древовидное общение означает, что вы никогда не потеряете работу. Исследуйте разные подходы, сохраняйте их все, прыгайте между ними с помощью `/tree`.
 
-3. **Compaction with structure.** When context gets too large, pi summarizes it with a structured format that preserves goals, decisions, and progress. Extensions can customize this entirely.
+3. **Сжатие со структурой.** Когда контекст становится слишком большим, pi суммирует его в структурированном формате, который сохраняет цели, решения и прогресс. Расширения могут полностью настроить это.
 
-4. **Multi-model fluidity.** Switch between Claude, GPT, Gemini, or any of 20+ providers mid-conversation. Use the best model for each part of the task.
+4. **Мультимодельная плавность.** Переключайтесь между Клодом, GPT, Близнецами или любым из более чем 20 поставщиков во время разговора. Используйте лучшую модель для каждой части задачи.
 
-5. **Progressive disclosure.** Skills load their full instructions only when needed. The system prompt stays lean. Extensions register tools that appear only when active.
+5. **Постепенное раскрытие.** Навыки загружают полные инструкции только при необходимости. Системное приглашение остается скудным. Расширения регистрируют инструменты, которые появляются только тогда, когда они активны.
 
-6. **Platform, not product.** Pi is infrastructure you build on. Sub-agents, plan mode, permission gates, MCP support, custom workflows — build exactly what you need, share it as a package.
+6. **Платформа, а не продукт.** Pi — это инфраструктура, на которой вы строите свою работу. Субагенты, режим планирования, шлюзы разрешений, поддержка MCP, настраиваемые рабочие процессы — создавайте именно то, что вам нужно, делитесь этим как пакетом.
 
 ---

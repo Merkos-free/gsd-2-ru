@@ -1,4 +1,4 @@
-# The Extension Lifecycle
+# Жизненный цикл расширения
 
 
 ```
@@ -37,6 +37,6 @@ pi starts
   User types another prompt ◄──────────────────────────────┘
 ```
 
-**Critical insight:** The event system is your primary mechanism for interacting with pi. Every meaningful thing that happens emits an event, and most events let you modify or block the behavior.
+**Важная информация.** Система событий – это основной механизм взаимодействия с числом pi. Каждое значимое событие порождает событие, и большинство событий позволяют вам изменить или заблокировать поведение.
 
 ---

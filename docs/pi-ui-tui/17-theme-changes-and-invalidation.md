@@ -1,8 +1,8 @@
-# Theme Changes and Invalidation
+# Изменения темы и аннулирование
 
-When the user switches themes, the TUI calls `invalidate()` on all components. If your component pre-bakes theme colors, you must rebuild them.
+Когда пользователь переключает темы, TUI вызывает `invalidate()` для всех компонентов. Если ваш компонент предварительно запекает цвета темы, вам необходимо их перестроить.
 
-### ❌ Wrong — Theme Colors Won't Update
+### ❌ Неправильно — цвета темы не обновляются
 
 ```typescript
 class BadComponent extends Container {
@@ -14,7 +14,7 @@ class BadComponent extends Container {
 }
 ```
 
-### ✅ Correct — Rebuild on Invalidate
+### ✅ Правильно — восстановить при недействительности
 
 ```typescript
 class GoodComponent extends Container {
@@ -40,10 +40,10 @@ class GoodComponent extends Container {
 }
 ```
 
-### When You Need This Pattern
+### Когда вам понадобится этот шаблон
 
-**NEED to rebuild:** Pre-baked `theme.fg()`/`theme.bg()` strings, `highlightCode()` results, complex child trees with embedded colors.
+**NEED для перестроения:** предварительно вычисленные строки `theme.fg()`/`theme.bg()`, результаты `highlightCode()`, сложные дочерние деревья со встроенными цветами.
 
-**DON'T need to rebuild:** Theme callbacks `(text) => theme.fg("accent", text)`, stateless renders that compute fresh each time, simple containers without themed content.
+**DONНе нужно перестраивать:** обратные вызовы тем `(text) => theme.fg("accent", text)`, визуализацию без сохранения состояния, которая каждый раз вычисляет новые данные, простые контейнеры без тематического контента.
 
 ---

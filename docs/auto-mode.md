@@ -1,14 +1,14 @@
-# Auto Mode
+# Автоматический режим
 
-Auto mode is GSD's autonomous execution engine. Run `/gsd auto`, walk away, come back to built software with clean git history.
+Автоматический режим — это автономный механизм выполнения GSD. Запустите `/gsd auto`, уйдите и вернитесь к встроенному программному обеспечению с чистой историей git.
 
-## How It Works
+## Как это работает
 
-Auto mode is a **state machine driven by files on disk**. It reads `.gsd/STATE.md`, determines the next unit of work, creates a fresh agent session, injects a focused prompt with all relevant context pre-inlined, and lets the LLM execute. When the LLM finishes, auto mode reads disk state again and dispatches the next unit.
+Автоматический режим — это **конечный автомат, управляемый файлами на диске**. Он считывает `.gsd/STATE.md`, определяет следующую единицу работы, создает новый сеанс агента, вводит целенаправленное приглашение со всем соответствующим контекстом, предварительно встроенным, и позволяет выполнить LLM. Когда LLM завершается, автоматический режим снова считывает состояние диска и отправляет следующий блок.
 
-### The Loop
+### Петля
 
-Each slice flows through phases automatically:
+Каждый срез автоматически проходит через фазы:
 
 ```
 Plan (with integrated research) → Execute (per task) → Complete → Reassess Roadmap → Next Slice
@@ -16,96 +16,96 @@ Plan (with integrated research) → Execute (per task) → Complete → Reassess
                                                                               Validate Milestone → Complete Milestone
 ```
 
-- **Plan** — scouts the codebase, researches relevant docs, and decomposes the slice into tasks with must-haves
-- **Execute** — runs each task in a fresh context window
-- **Complete** — writes summary, UAT script, marks roadmap, commits
-- **Reassess** — checks if the roadmap still makes sense
-- **Validate Milestone** — reconciliation gate after all slices complete; compares roadmap success criteria against actual results, catches gaps before sealing the milestone
+- **Планирование** — изучает кодовую базу, изучает соответствующую документацию и разбивает фрагмент на задачи с обязательными элементами.
+- **Выполнить** — запускает каждую задачу в новом контекстном окне.
+- **Завершено** — пишет резюме, сценарий UAT, отмечает план действий, фиксирует.
+- **Переоценка** – проверяет, имеет ли дорожная карта смысл.
+- **Проверить этап** — ворота сверки после завершения всех срезов; сравнивает критерии успеха дорожной карты с фактическими результатами, выявляет пробелы, прежде чем зафиксировать важный этап
 
-## Key Properties
+## Ключевые свойства
 
-### Fresh Session Per Unit
+### Свежий сеанс на единицу
 
-Every task, research phase, and planning step gets a clean context window. No accumulated garbage. No degraded quality from context bloat. The dispatch prompt includes everything needed — task plans, prior summaries, dependency context, decisions register — so the LLM starts oriented instead of spending tool calls reading files.
+Каждая задача, этап исследования и этап планирования получают чистое контекстное окно. Никакого накопившегося мусора. Никакого ухудшения качества из-за раздувания контекста. Подсказка отправки включает в себя все необходимое — планы задач, предыдущие сводки, контекст зависимостей, реестр решений — поэтому LLM начинает работать вместо того, чтобы тратить средства на чтение файлов.
 
-### Context Pre-Loading
+### Предварительная загрузка контекста
 
-The dispatch prompt is carefully constructed with:
+Подсказка об отправке тщательно составлена с использованием:
 
-| Inlined Artifact | Purpose |
+| Встроенный артефакт | Цель |
 |------------------|---------|
-| Task plan | What to build |
-| Slice plan | Where this task fits |
-| Prior task summaries | What's already done |
-| Dependency summaries | Cross-slice context |
-| Roadmap excerpt | Overall direction |
-| Decisions register | Architectural context |
+| План задач | Что построить |
+| План среза | Где подходит эта задача |
+| Сводка предыдущих задач | Что уже сделано |
+| Сводка зависимостей | Межсрезовый контекст |
+| Отрывок из дорожной карты | Общее направление |
+| Реестр решений | Архитектурный контекст |
 
-The amount of context inlined is controlled by your [token profile](./token-optimization.md). Budget mode inlines minimal context; quality mode inlines everything.
+Количество встроенного контекста контролируется вашим [профилем токена](./token-optimization.md). Бюджетный режим включает минимальный контекст; режим качества встраивает все.
 
-### Git Isolation
+### Изоляция Git
 
-GSD isolates milestone work using one of three modes (configured via `git.isolation` in preferences):
+GSD изолирует этапную работу, используя один из трех режимов (настраивается с помощью `git.isolation` в настройках):
 
-- **`worktree`** (default): Each milestone runs in its own git worktree at `.gsd/worktrees/<MID>/` on a `milestone/<MID>` branch. All slice work commits sequentially — no branch switching, no merge conflicts mid-milestone. When the milestone completes, it's squash-merged to main as one clean commit.
-- **`branch`**: Work happens in the project root on a `milestone/<MID>` branch. Useful for submodule-heavy repos where worktrees don't work well.
-- **`none`**: Work happens directly on your current branch. No worktree, no milestone branch. Ideal for hot-reload workflows where file isolation breaks dev tooling.
+- **`worktree`** (по умолчанию): каждая веха выполняется в отдельном рабочем дереве git по адресу `.gsd/worktrees/<MID>/` ветки `milestone/<MID>`. Вся работа среза фиксируется последовательно — без переключения ветвей, без конфликтов слияния в середине этапа. Когда веха завершается, она объединяется с основной как один чистый коммит.
+- **`branch`**: работа происходит в корне проекта на ветке `milestone/<MID>`. Полезно для репозиториев с большим количеством подмодулей, где рабочие деревья работают не очень хорошо.
+- **`none`**: Работа происходит непосредственно в вашей текущей ветке. Ни рабочего дерева, ни ветки вех. Идеально подходит для рабочих процессов с горячей перезагрузкой, когда изоляция файлов нарушает работу инструментов разработки.
 
-See [Git Strategy](./git-strategy.md) for details.
+Подробности см. в разделе [Стратегия Git](./git-strategy.md).
 
-### Parallel Execution
+### Параллельное выполнение
 
-When your project has independent milestones, you can run them simultaneously. Each milestone gets its own worker process and worktree. See [Parallel Orchestration](./parallel-orchestration.md) for setup and usage.
+Если в вашем проекте есть независимые этапы, вы можете запускать их одновременно. Каждой вехе соответствует собственный рабочий процесс и рабочее дерево. См. [Параллельная оркестровка](./parallel-orchestration.md) для настройки и использования.
 
-### Crash Recovery
+### Восстановление после сбоя
 
-A lock file tracks the current unit. If the session dies, the next `/gsd auto` reads the surviving session file, synthesizes a recovery briefing from every tool call that made it to disk, and resumes with full context.
+Файл блокировки отслеживает текущее устройство. Если сеанс завершается, следующий `/gsd auto` считывает сохранившийся файл сеанса, синтезирует инструкции по восстановлению из каждого вызова инструмента, который попал на диск, и возобновляет работу с полным контекстом.
 
-**Headless auto-restart (v2.26):** When running `gsd headless auto`, crashes trigger automatic restart with exponential backoff (5s → 10s → 30s cap, default 3 attempts). Configure with `--max-restarts N`. SIGINT/SIGTERM bypasses restart. Combined with crash recovery, this enables true overnight "run until done" execution.
+**Безголовый автоматический перезапуск (v2.26):** При запуске `gsd headless auto` сбои вызывают автоматический перезапуск с экспоненциальной задержкой (ограничение 5 с → 10 с → 30 с, по умолчанию 3 попытки). Настройте с помощью `--max-restarts N`. SIGINT/SIGTERM обходит перезапуск. В сочетании с восстановлением после сбоя это обеспечивает выполнение в течение ночи по принципу «работа до завершения».
 
-### Provider Error Recovery
+### Восстановление ошибок провайдера
 
-GSD classifies provider errors and auto-resumes when safe:
+GSD классифицирует ошибки поставщика и автоматически возобновляет работу в безопасных случаях:
 
-| Error type | Examples | Action |
+| Тип ошибки | Примеры | Действие |
 |-----------|----------|--------|
-| **Rate limit** | 429, "too many requests" | Auto-resume after retry-after header or 60s |
-| **Server error** | 500, 502, 503, "overloaded", "api_error" | Auto-resume after 30s |
-| **Permanent** | "unauthorized", "invalid key", "billing" | Pause indefinitely (requires manual resume) |
+| **Ограничение скорости** | 429, «слишком много запросов» | Автоматическое возобновление после повторной попытки после заголовка или через 60 секунд |
+| **Ошибка сервера** | 500, 502, 503, «перегружен», «api_error» | Автовозобновление через 30 секунд |
+| **Постоянный** | «неавторизованный», «неверный ключ», «биллинг» | Пауза на неопределенный срок (требуется возобновление вручную) |
 
-No manual intervention needed for transient errors — the session pauses briefly and continues automatically.
+В случае временных ошибок не требуется ручное вмешательство — сеанс ненадолго приостанавливается и продолжается автоматически.
 
-### Incremental Memory (v2.26)
+### Дополнительная память (v2.26)
 
-GSD maintains a `KNOWLEDGE.md` file — an append-only register of project-specific rules, patterns, and lessons learned. The agent reads it at the start of every unit and appends to it when discovering recurring issues, non-obvious patterns, or rules that future sessions should follow. This gives auto-mode cross-session memory that survives context window boundaries.
+GSD поддерживает файл `KNOWLEDGE.md` — доступный только для добавления реестр правил, шаблонов и извлеченных уроков, специфичных для проекта. Агент считывает его в начале каждого модуля и добавляет к нему при обнаружении повторяющихся проблем, неочевидных закономерностей или правил, которым должны следовать будущие сеансы. Это обеспечивает межсессионную память в автоматическом режиме, которая выдерживает границы контекстного окна.
 
-### Context Pressure Monitor (v2.26)
+### Монитор давления контекста (v2.26)
 
-When context usage reaches 70%, GSD sends a wrap-up signal to the agent, nudging it to finish durable output (commit, write summaries) before the context window fills. This prevents sessions from hitting the hard context limit mid-task with no artifacts written.
+Когда использование контекста достигает 70 %, GSD отправляет агенту сигнал завершения, побуждая его завершить устойчивый вывод (фиксировать, записать сводки) до того, как окно контекста заполнится. Это предотвращает достижение сеансами жесткого ограничения контекста в середине задачи без записи артефактов.
 
-### Meaningful Commit Messages (v2.26)
+### Значимые сообщения о фиксации (v2.26)
 
-Commits are generated from task summaries — not generic "complete task" messages. Each commit message reflects what was actually built, giving clean `git log` output that reads like a changelog.
+Коммиты генерируются на основе сводок задач, а не общих сообщений о завершении задачи. Каждое сообщение о фиксации отражает то, что было фактически создано, предоставляя чистый вывод `git log`, который читается как журнал изменений.
 
-### Stuck Detection
+### Обнаружение зависаний
 
-If the same unit dispatches twice (the LLM didn't produce the expected artifact), GSD retries once with a deep diagnostic prompt. If it fails again, auto mode stops with the exact file it expected, so you can intervene.
+Если одно и то же устройство отправляет сообщение дважды (LLM не выдал ожидаемого артефакта), GSD повторяет попытку один раз с подсказкой глубокой диагностики. Если снова произойдет сбой, автоматический режим остановится с именно тем файлом, который он ожидал, так что вы можете вмешаться.
 
-### Post-Mortem Investigation
+### Посмертное расследование
 
-When auto mode fails or produces unexpected results, `/gsd forensics` provides structured post-mortem analysis. It inspects activity logs, crash locks, and session state to identify root causes — whether the failure was a model error, missing context, a stuck loop, or a broken tool call. See [Troubleshooting](./troubleshooting.md) for more on diagnosing issues.
+Если автоматический режим дает сбой или дает неожиданные результаты, `/gsd forensics` обеспечивает структурированный посмертный анализ. Он проверяет журналы активности, блокировки сбоев и состояние сеанса для выявления основных причин — был ли сбой ошибкой модели, отсутствующим контекстом, зависанием цикла или неработающим вызовом инструмента. Дополнительную информацию о диагностике проблем см. в разделе [Устранение неполадок](./troubleshooting.md).
 
-### Timeout Supervision
+### Контроль тайм-аута
 
-Three timeout tiers prevent runaway sessions:
+Три уровня тайм-аута предотвращают неконтролируемые сеансы:
 
-| Timeout | Default | Behavior |
+| Тайм-аут | По умолчанию | Поведение |
 |---------|---------|----------|
-| Soft | 20 min | Warns the LLM to wrap up |
-| Idle | 10 min | Detects stalls, intervenes |
-| Hard | 30 min | Pauses auto mode |
+| Мягкий | 20 мин | Предупреждает LLM о необходимости завершения |
+| Простой | 10 мин | Обнаруживает киоски и вмешивается |
+| Жесткий | 30 мин | Приостанавливает автоматический режим |
 
-Recovery steering nudges the LLM to finish durable output before timing out. Configure in preferences:
+Рулевое управление восстановления подталкивает LLM к завершению длительного вывода до истечения времени ожидания. Настройте в настройках:
 
 ```yaml
 auto_supervisor:
@@ -114,19 +114,19 @@ auto_supervisor:
   hard_timeout_minutes: 30
 ```
 
-### Cost Tracking
+### Отслеживание затрат
 
-Every unit's token usage and cost is captured, broken down by phase, slice, and model. The dashboard shows running totals and projections. Budget ceilings can pause auto mode before overspending.
+Использование и стоимость токенов каждого подразделения фиксируются с разбивкой по фазам, срезам и моделям. На информационной панели отображаются текущие итоги и прогнозы. Потолок бюджета позволяет приостановить автоматический режим перед перерасходом средств.
 
-See [Cost Management](./cost-management.md).
+См. [Управление затратами](./cost-management.md).
 
-### Adaptive Replanning
+### Адаптивная перепланировка
 
-After each slice completes, the roadmap is reassessed. If the work revealed new information that changes the plan, slices are reordered, added, or removed before continuing. This can be skipped with the `balanced` or `budget` token profiles.
+После завершения каждого среза дорожная карта пересматривается. Если в работе обнаружена новая информация, меняющая план, перед продолжением срезы переупорядочиваются, добавляются или удаляются. Это можно пропустить с помощью профилей токенов `balanced` или `budget`.
 
-### Verification Enforcement (v2.26)
+### Принудительная проверка (v2.26)
 
-Configure shell commands that run automatically after every task execution:
+Настройте команды оболочки, которые запускаются автоматически после каждого выполнения задачи:
 
 ```yaml
 verification_commands:
@@ -136,108 +136,108 @@ verification_auto_fix: true    # auto-retry on failure (default)
 verification_max_retries: 2    # max retry attempts (default: 2)
 ```
 
-Failures trigger auto-fix retries — the agent sees the verification output and attempts to fix the issues before advancing. This ensures code quality gates are enforced mechanically, not by LLM compliance.
+Сбои вызывают повторные попытки автоматического исправления — агент видит результаты проверки и пытается исправить проблемы, прежде чем продолжить. Это гарантирует, что контроль качества кода обеспечивается механически, а не посредством соответствия LLM.
 
-### Slice Discussion Gate (v2.26)
+### Дискуссионный шлюз Slice (v2.26)
 
-For projects where you want human review before each slice begins:
+Для проектов, в которых требуется проверка человеком перед началом каждого фрагмента:
 
 ```yaml
 require_slice_discussion: true
 ```
 
-Auto-mode pauses before each slice, presenting the slice context for discussion. After you confirm, execution continues. Useful for high-stakes projects where you want to review the plan before the agent builds.
+В автоматическом режиме перед каждым фрагментом делается пауза, предоставляя контекст фрагмента для обсуждения. После вашего подтверждения выполнение продолжится. Полезно для проектов с высокими ставками, в которых вы хотите просмотреть план перед сборкой агента.
 
-### HTML Reports (v2.26)
+### HTML Отчеты (v2.26)
 
-After a milestone completes, GSD auto-generates a self-contained HTML report in `.gsd/reports/`. Reports include project summary, progress tree, slice dependency graph (SVG DAG), cost/token metrics with bar charts, execution timeline, changelog, and knowledge base. No external dependencies — all CSS and JS are inlined.
+После завершения этапа GSD автоматически создает автономный отчет HTML в `.gsd/reports/`. Отчеты включают сводную информацию о проекте, дерево прогресса, график зависимости фрагментов (SVG DAG), показатели стоимости/токена с гистограммами, график выполнения, журнал изменений и базу знаний. Никаких внешних зависимостей — все CSS и JS встроены.
 
 ```yaml
 auto_report: true    # enabled by default
 ```
 
-Generate manually anytime with `/gsd export --html`, or generate reports for all milestones at once with `/gsd export --html --all` (v2.28).
+Создавайте отчеты вручную в любое время с помощью `/gsd export --html` или создавайте отчеты для всех этапов одновременно с помощью `/gsd export --html --all` (v2.28).
 
-### Failure Recovery (v2.28)
+### Восстановление после сбоя (v2.28)
 
-v2.28 hardens auto-mode reliability with multiple safeguards: atomic file writes prevent corruption on crash, OAuth fetch timeouts (30s) prevent indefinite hangs, RPC subprocess exit is detected and reported, and blob garbage collection prevents unbounded disk growth. Combined with the existing crash recovery and headless auto-restart, auto-mode is designed for true "fire and forget" overnight execution.
+Версия 2.28 повышает надежность автоматического режима благодаря множеству мер защиты: атомарные записи файлов предотвращают повреждение при сбое, тайм-ауты выборки OAuth (30 с) предотвращают бесконечные зависания, выход из подпроцесса RPC обнаруживается и сообщается, а сбор мусора больших двоичных объектов предотвращает неограниченный рост диска. В сочетании с существующим восстановлением после сбоя и автоматическим перезапуском без управления автоматический режим предназначен для мгновенного выполнения по принципу «выстрелил и забыл».
 
-## Controlling Auto Mode
+## Управление автоматическим режимом
 
-### Start
-
-```
-/gsd auto
-```
-
-### Pause
-
-Press **Escape**. The conversation is preserved. You can interact with the agent, inspect state, or resume.
-
-### Resume
+### Старт
 
 ```
 /gsd auto
 ```
 
-Auto mode reads disk state and picks up where it left off.
+### Пауза
 
-### Stop
+Нажмите **Escape**. Разговор сохранен. Вы можете взаимодействовать с агентом, проверять состояние или возобновлять работу.
+
+### Резюме
+
+```
+/gsd auto
+```
+
+Автоматический режим считывает состояние диска и продолжает с того места, где оно было остановлено.
+
+### Стоп
 
 ```
 /gsd stop
 ```
 
-Stops auto mode gracefully. Can be run from a different terminal.
+Грамотно останавливает автоматический режим. Можно запустить с другого терминала.
 
-### Steer
+### Руль
 
 ```
 /gsd steer
 ```
 
-Hard-steer plan documents during execution without stopping the pipeline. Changes are picked up at the next phase boundary.
+Жестко управляйте плановыми документами во время выполнения, не останавливая конвейер. Изменения улавливаются на следующей фазовой границе.
 
-### Capture
+### Захват
 
 ```
 /gsd capture "add rate limiting to API endpoints"
 ```
 
-Fire-and-forget thought capture. Captures are triaged automatically between tasks. See [Captures & Triage](./captures-triage.md).
+Захват мыслей по принципу «выстрелил и забыл». Захваты автоматически сортируются между задачами. См. [Захват и сортировка](./captures-triage.md).
 
-### Visualize
+### Визуализируйте
 
 ```
 /gsd visualize
 ```
 
-Open the workflow visualizer — interactive tabs for progress, dependencies, metrics, and timeline. See [Workflow Visualizer](./visualizer.md).
+Откройте визуализатор рабочего процесса — интерактивные вкладки для прогресса, зависимостей, показателей и временной шкалы. См. [Визуализатор рабочего процесса](./visualizer.md).
 
-## Dashboard
+## Панель управления
 
-`Ctrl+Alt+G` or `/gsd status` shows real-time progress:
+`Ctrl+Alt+G` или `/gsd status` показывают прогресс в реальном времени:
 
-- Current milestone, slice, and task
-- Auto mode elapsed time and phase
-- Per-unit cost and token breakdown
-- Cost projections
-- Completed and in-progress units
-- Pending capture count (when captures are awaiting triage)
-- Parallel worker status (when running parallel milestones — includes 80% budget alert)
+- Текущая веха, фрагмент и задача
+- Прошедшее время и фаза автоматического режима
+- Стоимость за единицу и разбивка токенов
+- Прогнозы затрат
+- Завершенные и незавершенные объекты.
+- Количество отловов в ожидании (когда отловы ожидают сортировки)
+- Статус параллельного работника (при выполнении параллельных этапов — включает оповещение о 80 % бюджета)
 
-## Phase Skipping
+## Пропуск фазы
 
-Token profiles can skip certain phases to reduce cost:
+Профили токенов могут пропускать определенные этапы для снижения затрат:
 
-| Phase | `budget` | `balanced` | `quality` |
+| Фаза | `budget` | `balanced` | `quality` |
 |-------|----------|------------|-----------|
-| Milestone Research | Skipped | Runs | Runs |
-| Slice Research | Skipped | Skipped | Runs |
-| Reassess Roadmap | Skipped | Runs | Runs |
+| Веховое исследование | Пропущено | Бежит | Бежит |
+| Срезовые исследования | Пропущено | Пропущено | Бежит |
+| Пересмотреть дорожную карту | Пропущено | Бежит | Бежит |
 
-See [Token Optimization](./token-optimization.md) for details.
+Подробности см. в разделе [Оптимизация токенов](./token-optimization.md).
 
-## Dynamic Model Routing
+## Динамическая маршрутизация модели
 
-When enabled, auto-mode automatically selects cheaper models for simple units (slice completion, UAT) and reserves expensive models for complex work (replanning, architectural tasks). See [Dynamic Model Routing](./dynamic-model-routing.md).
+При включении автоматического режима автоматически выбираются более дешевые модели для простых объектов (завершение срезов, UAT) и резервируются дорогие модели для сложных работ (перепланировка, архитектурные задачи). См. [Маршрутизация динамической модели](./dynamic-model-routing.md).

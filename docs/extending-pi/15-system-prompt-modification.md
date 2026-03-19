@@ -1,7 +1,7 @@
-# System Prompt Modification
+# Изменение системного приглашения
 
 
-### Per-Turn Modification (before_agent_start)
+### Пошаговая модификация (before_agent_start)
 
 ```typescript
 pi.on("before_agent_start", async (event, ctx) => {
@@ -18,9 +18,9 @@ pi.on("before_agent_start", async (event, ctx) => {
 });
 ```
 
-### Context Manipulation (context event)
+### Манипуляция контекстом (контекстное событие)
 
-Modify the messages sent to the LLM on every turn:
+Измените сообщения, отправляемые LLM на каждом ходу:
 
 ```typescript
 pi.on("context", async (event, ctx) => {
@@ -30,9 +30,9 @@ pi.on("context", async (event, ctx) => {
 });
 ```
 
-### Tool-Specific Prompt Content
+### Содержимое подсказки, специфичное для инструмента
 
-Tools can add to the system prompt when they're active:
+Инструменты могут добавлять в системное приглашение, когда они активны:
 
 ```typescript
 pi.registerTool({

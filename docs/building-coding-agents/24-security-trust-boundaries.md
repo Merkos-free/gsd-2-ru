@@ -1,35 +1,35 @@
-# Security & Trust Boundaries
+# Границы безопасности и доверия
 
-### Hard Boundaries — Things the Agent Should NEVER Do (Universal Agreement)
+### Жесткие границы — действия, которые должен NEVER делать агент (Универсальное соглашение)
 
-| Forbidden Action | Why |
+| Запрещенное действие | Почему |
 |-----------------|-----|
-| Access production systems directly | Agent's world is the dev environment, full stop |
-| Access or embed secrets | API keys, credentials should never appear in agent context or output |
-| Make network requests to arbitrary destinations | Restrictive firewall, whitelist only required services |
-| Modify its own orchestrator, prompts, or tools | Prevents removing safety constraints |
-| Execute commands outside the project directory | Sandbox to project dir + temp working dirs only |
+| Прямой доступ к производственным системам | Мир агента — это среда разработки, точка |
+| Доступ или встраивание секретов | API ключи, учетные данные никогда не должны появляться в контексте агента или выводимых данных |
+| Выполнение сетевых запросов к произвольным адресатам | Ограничительный брандмауэр, белый список только необходимых служб |
+| Изменить собственный оркестратор, подсказки или инструменты | Предотвращает удаление ограничений безопасности |
+| Выполнение команд за пределами каталога проекта | Песочница для каталога проекта + только временные рабочие каталоги |
 
-### The Sandboxing Architecture
+### Архитектура песочницы
 
-| Layer | Mechanism |
+| Слой | Механизм |
 |-------|-----------|
-| **Execution** | Containerized (Docker + seccomp), restricted filesystem, network policy |
-| **Filesystem** | Content-addressable storage — agent *proposes* changes, backend validates before writing |
-| **Secrets** | Vault proxy with short-lived tokens, never direct credentials |
-| **Commands** | Parsed and blocked for dangerous patterns (`rm -rf /`, `curl` to unknown hosts) |
-| **Dependencies** | Approved dependency list — new deps require auto-approval (pre-approved list) or human approval |
+| **Исполнение** | Контейнеризованный (Docker + seccomp), файловая система с ограниченным доступом, сетевая политика |
+| **Файловая система** | Хранилище с адресацией по содержимому — агент *предлагает* изменения, серверная часть проверяет перед записью |
+| **Секреты** | Прокси-сервер Vault с недолговечными токенами, никогда не использующий прямые учетные данные |
+| **Команды** | Разобрано и заблокировано на наличие опасных шаблонов (`rm -rf /`, `curl` для неизвестных хостов) |
+| **Зависимости** | Утвержденный список зависимостей — новые решения требуют автоматического одобрения (предварительно утвержденный список) или одобрения человеком |
 
-### The Capability-Based Security Model
+### Модель безопасности, основанная на возможностях
 
-The orchestrator runs **outside** the sandbox. The agent requests operations through a controlled API. The orchestrator validates every request before executing. The agent doesn't have direct access to anything — it has access to **tools that the orchestrator mediates.**
+Оркестратор работает **вне** песочницы. Агент запрашивает операции через контролируемый API. Оркестратор проверяет каждый запрос перед выполнением. У агента нет прямого доступа ни к чему — у него есть доступ к **инструментам, которые опосредует оркестратор**.
 
-### The Subtle Risk
+### Тонкий риск
 
-The agent introduces vulnerabilities not through malice but through **plausible-looking insecure patterns**: string concatenation for SQL queries, disabling CORS for convenience, logging sensitive data for debugging. Security linting rules should be tuned to catch these **AI-common patterns** specifically.
+Агент создает уязвимости не по злому умыслу, а через **правдоподобно выглядящие небезопасные шаблоны**: конкатенацию строк для запросов SQL, отключение CORS для удобства, регистрацию конфиденциальных данных для отладки. Правила проверки безопасности должны быть настроены так, чтобы конкретно улавливать эти **AI-общие шаблоны**.
 
-### The Trust Model
+### Модель доверия
 
-> Think of the agent as a **highly capable but unvetted contractor.** Give them the codebase and dev environment. Don't give them production credentials, deployment access, or the ability to modify security infrastructure. The goal isn't to make the agent safe by limiting capabilities — it's to make the **environment** safe so the agent can be maximally capable within it.
+> Думайте об агенте как о **высокоспособном, но непроверенном подрядчике.** Предоставьте ему кодовую базу и среду разработки. Не давайте им производственные учетные данные, доступ к развертыванию или возможность изменять инфраструктуру безопасности. Цель состоит не в том, чтобы сделать агента безопасным путем ограничения его возможностей, а в том, чтобы сделать **среду** безопасной, чтобы агент мог быть в ней максимально работоспособным.
 
 ---

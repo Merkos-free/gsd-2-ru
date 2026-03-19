@@ -1,54 +1,54 @@
-# File Reference — All Documentation
+# Ссылка на файл — Вся документация
 
-All paths relative to:
+Все пути относительно:
 ```
 /Users/lexchristopherson/.nvm/versions/node/v22.20.0/lib/node_modules/@mariozechner/pi-coding-agent/
 ```
 
-### Core Documentation
+### Основная документация
 
-| File | What It Covers |
+| Файл | Что это охватывает |
 |------|---------------|
-| `README.md` | Main documentation — quick start, all features, CLI reference, philosophy |
-| `docs/extensions.md` | Extensions API — events, tools, commands, UI, state, rendering (1,972 lines) |
-| `docs/tui.md` | TUI component system — Component interface, built-in components, keyboard, theming, overlays |
-| `docs/session.md` | Session format — JSONL tree structure, entry types, message types, SessionManager API |
-| `docs/compaction.md` | Compaction & branch summarization — triggers, algorithm, summary format, extension hooks |
-| `docs/packages.md` | Pi packages — creating, installing, distributing via npm/git |
-| `docs/skills.md` | Skills — structure, frontmatter, locations, invocation |
-| `docs/prompt-templates.md` | Prompt templates — format, arguments, locations |
-| `docs/themes.md` | Themes — creating custom themes, color palette |
-| `docs/settings.md` | Settings — all configuration options |
-| `docs/keybindings.md` | Keyboard shortcuts — format, built-in bindings, customization |
-| `docs/providers.md` | Provider setup — detailed instructions for each provider |
-| `docs/models.md` | Custom models — models.json format |
-| `docs/custom-provider.md` | Custom providers — advanced: OAuth, custom streaming, model definitions |
-| `docs/sdk.md` | SDK — AgentSession, events, embedding pi in applications |
-| `docs/rpc.md` | RPC mode — JSON protocol, commands, events |
-| `docs/json.md` | JSON mode — event stream format |
-| `docs/what-is-pi/19-building-branded-apps-on-top-of-pi.md` | Branded app architecture — shipping your own CLI, app-owned storage, SDK vs RPC, bundling resources |
-| `docs/development.md` | Contributing — development setup, forking, debugging |
-| `docs/windows.md` | Windows platform notes |
-| `docs/termux.md` | Termux (Android) setup |
-| `docs/terminal-setup.md` | Terminal configuration recommendations |
-| `docs/shell-aliases.md` | Shell alias patterns |
+| `README.md` | Основная документация — краткое руководство, все функции, справочник CLI, философия |
+| `docs/extensions.md` | Расширения API — события, инструменты, команды, UI, состояние, рендеринг (1972 строки) |
+| `docs/tui.md` | Система компонентов TUI — Интерфейс компонентов, встроенные компоненты, клавиатура, темы, наложения |
+| `docs/session.md` | Формат сеанса — древовидная структура JSONL, типы записей, типы сообщений, SessionManager API |
+| `docs/compaction.md` | Сжатие и суммирование ветвей — триггеры, алгоритм, формат сводки, перехватчики расширения |
+| `docs/packages.md` | Пакеты Pi — создание, установка, распространение через npm/git |
+| `docs/skills.md` | Навыки — структура, фронтальная часть, локации, вызов |
+| `docs/prompt-templates.md` | Шаблоны подсказок — формат, аргументы, расположение |
+| `docs/themes.md` | Темы — создание собственных тем, цветовая палитра |
+| `docs/settings.md` | Настройки — все параметры конфигурации |
+| `docs/keybindings.md` | Сочетания клавиш — формат, встроенные привязки, настройка |
+| `docs/providers.md` | Настройка провайдера — подробная инструкция для каждого провайдера |
+| `docs/models.md` | Нестандартные модели — формат models.json |
+| `docs/custom-provider.md` | Пользовательские поставщики — расширенные возможности: OAuth, пользовательская потоковая передача, определения моделей |
+| `docs/sdk.md` | SDK — AgentSession, события, встраивание pi в приложения |
+| `docs/rpc.md` | Режим RPC — протокол JSON, команды, события |
+| `docs/json.md` | Режим JSON — формат потока событий |
+| `docs/what-is-pi/19-building-branded-apps-on-top-of-pi.md` | Архитектура фирменного приложения — доставка собственного CLI, хранилище, принадлежащее приложению, SDK против RPC, объединение ресурсов |
+| `docs/development.md` | Содействие — настройка разработки, форк, отладка |
+| `docs/windows.md` | Примечания по платформе Windows |
+| `docs/termux.md` | Настройка Termux (Android) |
+| `docs/terminal-setup.md` | Рекомендации по настройке терминала |
+| `docs/shell-aliases.md` | Шаблоны псевдонимов оболочки |
 
-### Example Extensions
+### Примеры расширений
 
-See the companion doc **Pi-Extensions-Complete-Guide.md** for a categorized reference of all 50+ example extensions.
+См. сопутствующий документ **Pi-Extensions-Complete-Guide.md** для категоризированного справочника по всем более чем 50 примерам расширений.
 
 ```
 examples/extensions/          # All example extensions
 examples/sdk/                 # SDK usage examples
 ```
 
-### Source Code (on GitHub)
+### Исходный код (на GitHub)
 
-| Package | Purpose |
+| Пакет | Цель |
 |---------|---------|
-| `packages/coding-agent` | The main pi package — agent, tools, extensions, session, compaction |
-| `packages/tui` | Terminal UI component library |
-| `packages/ai` | Core LLM toolkit — providers, streaming, message types |
-| `packages/agent` | Agent loop framework |
+| `packages/coding-agent` | Основной пакет pi — агент, инструменты, расширения, сеанс, сжатие |
+| `packages/tui` | Библиотека компонентов терминала UI |
+| `packages/ai` | Базовый инструментарий LLM — провайдеры, потоковая передача, типы сообщений |
+| `packages/agent` | Структура цикла агента |
 
 ---

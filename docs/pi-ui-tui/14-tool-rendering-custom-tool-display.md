@@ -1,8 +1,8 @@
-# Tool Rendering — Custom Tool Display
+# Визуализация инструмента — отображение пользовательского инструмента
 
-Tools can control how their calls and results appear in the message area.
+Инструменты могут контролировать отображение вызовов и результатов в области сообщений.
 
-### renderCall — How the Tool Call Looks
+### renderCall — Как выглядит вызов инструмента
 
 ```typescript
 import { Text } from "@mariozechner/pi-tui";
@@ -21,7 +21,7 @@ pi.registerTool({
 });
 ```
 
-### renderResult — How the Tool Result Looks
+### renderResult — Как выглядит результат работы инструмента
 
 ```typescript
 import { Text } from "@mariozechner/pi-tui";
@@ -65,7 +65,7 @@ pi.registerTool({
 });
 ```
 
-### Key Hints for Keybindings
+### Подсказки для сочетаний клавиш
 
 ```typescript
 import { keyHint, appKeyHint, editorKey, rawKeyHint } from "@mariozechner/pi-coding-agent";
@@ -78,18 +78,18 @@ keyHint("selectConfirm", "to select")  // e.g., "Enter to select"
 rawKeyHint("Ctrl+O", "to expand")      // Always shows "Ctrl+O to expand"
 ```
 
-### Fallback Behavior
+### Резервное поведение
 
-If `renderCall` or `renderResult` is not defined or throws:
-- `renderCall` → shows tool name
-- `renderResult` → shows raw text from `content`
+Если `renderCall` или `renderResult` не определены или выбрасывают:
+- `renderCall` → показывает название инструмента.
+- `renderResult` → показывает необработанный текст из `content`.
 
-### Best Practices
+### Лучшие практики
 
-- Return `Text` with padding `(0, 0)` — the wrapping `Box` handles padding
-- Support `expanded` for detail on demand
-- Handle `isPartial` for streaming progress
-- Keep the default (collapsed) view compact
-- Use `\n` for multi-line content within a single `Text`
+- Возврат `Text` с дополнением `(0, 0)` — обертка `Box` обрабатывает дополнение.
+- Поддержка `expanded` для получения подробной информации по запросу.
+- Ручка `isPartial` для потоковой передачи прогресса.
+- Сохраняйте вид по умолчанию (свернутый) компактным.
+- Используйте `\n` для многострочного содержимого в одном `Text`.
 
 ---

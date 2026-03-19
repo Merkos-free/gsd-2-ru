@@ -1,43 +1,43 @@
-# Skills
+# Навыки
 
-Skills are specialized instruction sets that GSD loads when the task matches. They provide domain-specific guidance for the LLM — coding patterns, framework idioms, testing strategies, and tool usage.
+Навыки — это специализированные наборы инструкций, которые GSD загружаются при совпадении задачи. Они предоставляют конкретные рекомендации по LLM — шаблонам кодирования, идиомам фреймворка, стратегиям тестирования и использованию инструментов.
 
-## Bundled Skills
+## Комплексные навыки
 
-GSD ships with these skills, installed to `~/.gsd/agent/skills/`:
+GSD поставляется со следующими навыками, установленными в `~/.gsd/agent/skills/`:
 
-| Skill | Trigger | Description |
+| Навык | Триггер | Описание |
 |-------|---------|-------------|
-| `frontend-design` | Web UI work — components, pages, dashboards, styling | Production-grade frontend with high design quality |
-| `swiftui` | macOS/iOS apps — SwiftUI, Xcode, App Store | Full lifecycle from creation to shipping |
-| `debug-like-expert` | Complex debugging — after standard approaches fail | Methodical investigation with evidence gathering |
-| `rust-core` | Rust code — ownership, lifetimes, traits, async | Idiomatic, safe, performant Rust patterns |
-| `axum-web-framework` | Axum web apps — routing, middleware, extractors | Complete Axum development guide |
-| `axum-tests` | Testing Axum apps — integration tests, mock state | Test patterns for Axum applications |
-| `tauri` | Tauri v2 desktop apps — setup, plugins, bundling | Cross-platform desktop app development |
-| `tauri-ipc-developer` | Tauri IPC — React-Rust type-safe communication | Command scaffolding and serialization |
-| `tauri-devtools` | Tauri debugging — CrabNebula DevTools integration | Profiling and monitoring |
-| `github-workflows` | GitHub Actions — CI/CD, workflow debugging | Live syntax, run monitoring, failure diagnosis |
-| `security-audit` | Security auditing — dependency scanning, OWASP | Comprehensive security assessment |
-| `security-review` | Code security review — injection, XSS, auth flaws | Vulnerability-focused code review |
-| `security-docker` | Docker security — Dockerfile, runtime hardening | Container security best practices |
-| `review` | Code review — staged changes, PRs, security, performance | Diff-aware code review with quality analysis |
-| `test` | Test generation and execution — auto-detects frameworks | Generate tests or run existing suites with failure analysis |
-| `lint` | Linting and formatting — ESLint, Biome, Prettier | Auto-detect linter, fix issues, report remaining problems |
+| `frontend-design` | Работа с веб-интерфейсом — компоненты, страницы, панели управления, стили | Фронтенд промышленного уровня с высоким качеством дизайна |
+| `swiftui` | Приложения macOS/iOS — SwiftUI, Xcode, App Store | Полный жизненный цикл от создания до поставки |
+| `debug-like-expert` | Сложная отладка — после неудачи стандартных подходов | Методическое расследование со сбором доказательств |
+| `rust-core` | Код Rust — владение, время жизни, особенности, асинхронность | Идиоматические, безопасные и производительные шаблоны Rust |
+| `axum-web-framework` | Веб-приложения Axum — маршрутизация, промежуточное ПО, экстракторы | Полное руководство по разработке Axum |
+| `axum-tests` | Тестирование приложений Axum — интеграционные тесты, макет состояния | Тестовые шаблоны для приложений Axum |
+| `tauri` | Настольные приложения Tauri v2 — настройка, плагины, комплектация | Разработка кроссплатформенных настольных приложений |
+| `tauri-ipc-developer` | Таури IPC — типобезопасная связь React-Rust | Формирование команд и сериализация |
+| `tauri-devtools` | Отладка Tauri — интеграция CrabNebula DevTools | Профилирование и мониторинг |
+| `github-workflows` | Действия GitHub — CI/CD, отладка рабочего процесса | Живой синтаксис, мониторинг выполнения, диагностика сбоев |
+| `security-audit` | Аудит безопасности — сканирование зависимостей, OWASP | Комплексная оценка безопасности |
+| `security-review` | Проверка безопасности кода — внедрение, XSS, недостатки аутентификации | Проверка кода, ориентированная на уязвимости |
+| `security-docker` | Безопасность Docker — Dockerfile, усиление защиты во время выполнения | Лучшие практики обеспечения безопасности контейнеров |
+| `review` | Проверка кода — поэтапные изменения, PRs, безопасность, производительность | Проверка кода с учетом различий и анализ качества |
+| `test` | Генерация и выполнение тестов — автоматическое обнаружение фреймворков | Создавайте тесты или запускайте существующие пакеты с анализом отказов |
+| `lint` | Линтинг и форматирование — ESLint, Biome, Prettier | Автоматическое обнаружение линтера, устранение проблем, отчет об оставшихся проблемах |
 
-## Skill Discovery
+## Открытие навыков
 
-The `skill_discovery` preference controls how GSD finds skills during auto mode:
+Настройка `skill_discovery` определяет, как GSD находит навыки в автоматическом режиме:
 
-| Mode | Behavior |
+| Режим | Поведение |
 |------|----------|
-| `auto` | Skills are found and applied automatically |
-| `suggest` | Skills are identified but require confirmation (default) |
-| `off` | No skill discovery |
+| `auto` | Навыки находятся и применяются автоматически |
+| `suggest` | Навыки идентифицируются, но требуют подтверждения (по умолчанию) |
+| `off` | Нет открытия навыков |
 
-## Skill Preferences
+## Настройки навыков
 
-Control which skills are used via preferences:
+Контролируйте, какие навыки используются, через настройки:
 
 ```yaml
 ---
@@ -56,18 +56,18 @@ skill_rules:
 ---
 ```
 
-### Resolution Order
+### Порядок разрешения
 
-Skills can be referenced by:
-1. **Bare name** — e.g., `frontend-design` → scans `~/.gsd/agent/skills/` and project skills
-2. **Absolute path** — e.g., `/Users/you/.gsd/agent/skills/my-skill/SKILL.md`
-3. **Directory path** — e.g., `~/custom-skills/my-skill` → looks for `SKILL.md` inside
+На навыки можно ссылаться:
+1. **Пустое имя** — например, `frontend-design` → сканы `~/.gsd/agent/skills/` и навыки проекта.
+2. **Абсолютный путь** — например, `/Users/you/.gsd/agent/skills/my-skill/SKILL.md`
+3. **Путь к каталогу** — например, `~/custom-skills/my-skill` → ищет `SKILL.md` внутри.
 
-User skills (`~/.gsd/agent/skills/`) take precedence over project skills.
+Навыки пользователя (`~/.gsd/agent/skills/`) имеют приоритет над навыками проекта.
 
-## Custom Skills
+## Пользовательские навыки
 
-Create your own skills by adding a directory with a `SKILL.md` file:
+Создайте свои собственные навыки, добавив каталог с файлом `SKILL.md`:
 
 ```
 ~/.gsd/agent/skills/my-skill/
@@ -75,28 +75,28 @@ Create your own skills by adding a directory with a `SKILL.md` file:
   references/        — optional reference files
 ```
 
-The `SKILL.md` file contains instructions the LLM follows when the skill is active. Reference files can be loaded by the skill instructions as needed.
+Файл `SKILL.md` содержит инструкции, которым LLM следует, когда навык активен. Справочные файлы могут быть загружены с помощью инструкций по навыкам по мере необходимости.
 
-### Project-Local Skills
+### Проектные местные навыки
 
-Place skills in your project for project-specific guidance:
+Добавьте навыки в свой проект для получения рекомендаций по конкретному проекту:
 
 ```
 .pi/agent/skills/my-project-skill/
   SKILL.md
 ```
 
-## Skill Lifecycle Management
+## Управление жизненным циклом навыков
 
-GSD tracks skill performance across auto-mode sessions and surfaces health data to help you maintain skill quality.
+GSD отслеживает эффективность навыков во время сеансов в автоматическом режиме и отображает данные о состоянии, чтобы помочь вам поддерживать качество навыков.
 
-### Skill Telemetry
+### Навык Телеметрия
 
-Every auto-mode unit records which skills were available and actively loaded. This data is stored in `metrics.json` alongside existing token and cost tracking.
+Каждый юнит в автоматическом режиме фиксирует, какие навыки были доступны и активно загружены. Эти данные хранятся в `metrics.json` вместе с существующими токенами и отслеживанием затрат.
 
-### Skill Health Dashboard
+### Панель состояния навыков
 
-View skill performance with `/gsd skill-health`:
+Просмотрите эффективность навыков с помощью `/gsd skill-health`:
 
 ```
 /gsd skill-health              # overview table: name, uses, success%, tokens, trend, last used
@@ -105,14 +105,14 @@ View skill performance with `/gsd skill-health`:
 /gsd skill-health --declining  # skills with falling success rates
 ```
 
-The dashboard flags skills that may need attention:
-- **Success rate below 70%** over the last 10 uses
-- **Token usage rising 20%+** compared to the previous window
-- **Stale skills** unused beyond the configured threshold
+На информационной панели отмечены навыки, которые могут потребовать внимания:
+- **Уровень успеха ниже 70 %** за последние 10 использований.
+- **Использование токенов выросло на 20%+** по сравнению с предыдущим окном.
+- **Устаревшие навыки** не используются сверх установленного порога.
 
-### Staleness Detection
+### Обнаружение устаревания
 
-Skills unused for a configurable number of days are flagged as stale and can be automatically deprioritized:
+Навыки, не используемые в течение настраиваемого количества дней, помечаются как устаревшие и могут быть автоматически лишены приоритета:
 
 ```yaml
 ---
@@ -120,10 +120,10 @@ skill_staleness_days: 60   # default: 60, set to 0 to disable
 ---
 ```
 
-Stale skills are excluded from automatic matching but remain invokable explicitly via `read`.
+Устаревшие навыки исключаются из автоматического сопоставления, но остаются доступными для явного вызова через `read`.
 
-### Heal-Skill (Post-Unit Analysis)
+### Навык исцеления (анализ после юнитов)
 
-When configured as a post-unit hook, GSD can analyze whether the agent deviated from a skill's instructions during execution. If significant drift is detected (outdated API patterns, incorrect guidance), it writes proposed fixes to `.gsd/skill-review-queue.md` for human review.
+При настройке в качестве перехватчика после модуля GSD может анализировать, отклонялся ли агент от инструкций по навыку во время выполнения. Если обнаружено значительное отклонение (устаревшие шаблоны API, неправильные указания), он записывает предлагаемые исправления в `.gsd/skill-review-queue.md` для проверки человеком.
 
-Key design principle: skills are **never auto-modified**. Research shows curated skills outperform auto-generated ones significantly, so the human review step is critical.
+Ключевой принцип разработки: навыки **никогда не изменяются автоматически**. Исследования показывают, что тщательно подобранные навыки значительно превосходят автоматически созданные, поэтому этап проверки человеком имеет решающее значение.

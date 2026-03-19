@@ -1,14 +1,14 @@
-# Mode Behavior
+# Поведение режима
 
 
-| Mode | UI Methods | Notes |
+| Режим | UI Методы | Заметки |
 |------|-----------|-------|
-| **Interactive** (default) | Full TUI | Normal operation |
-| **RPC** (`--mode rpc`) | JSON protocol | Host handles UI, dialogs work via sub-protocol |
-| **JSON** (`--mode json`) | No-op | Event stream to stdout |
-| **Print** (`-p`) | No-op | Extensions run but can't prompt users |
+| **Интерактивный** (по умолчанию) | Полная TUI | Нормальная работа |
+| **RPC** (`--mode rpc`) | JSON протокол | Хост обрабатывает UI, диалоги работают через подпротокол |
+| **JSON** (`--mode json`) | Нет операции | Поток событий на стандартный вывод |
+| **Печать** (`-p`) | Нет операции | Расширения запускаются, но не могут предлагать пользователям |
 
-**Always check `ctx.hasUI`** before calling dialog methods in extensions that might run in non-interactive modes:
+**Всегда проверяйте `ctx.hasUI`** перед вызовом методов диалога в расширениях, которые могут работать в неинтерактивных режимах:
 
 ```typescript
 if (ctx.hasUI) {

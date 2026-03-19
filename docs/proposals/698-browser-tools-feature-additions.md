@@ -1,312 +1,312 @@
-# Browser-Tools Feature Additions — Implementation Requirements
+# Дополнения к инструментам браузера — требования к реализации
 
-> Ref: [#698](https://github.com/gsd-build/gsd-2/issues/698)
-> Status: **Shipped** — all 10 features implemented and merged to main
+> Ссылка: [#698](https://github.com/gsd-build/gsd-2/issues/698)
+> Статус: **Доставлен** — все 10 функций реализованы и объединены в основную версию.
 
-## Current State
+## Текущее состояние
 
-Browser-tools shipped **47 tools** across 10 modules (~8,300 lines) at the time this proposal was written. After implementation of these 10 features, the tool count expanded with 13 additional tools (some features map to multiple tools).
+На момент написания этого предложения браузерные инструменты поставляли **47 инструментов** в 10 модулях (около 8300 строк). После реализации этих 10 функций количество инструментов расширилось за счет 13 дополнительных инструментов (некоторые функции соответствуют нескольким инструментам).
 
-Key existing capabilities at proposal time: `browser_navigate`, `browser_click`, `browser_evaluate`, `browser_assert`, `browser_diff`, `browser_batch`, `browser_find_best`, `browser_act`, `browser_trace_start/stop`, `browser_export_har`, `browser_set_viewport`, `browser_screenshot`, `browser_snapshot_refs`.
+Ключевые существующие возможности на момент предложения: `browser_navigate`, `browser_click`, `browser_evaluate`, `browser_assert`, `browser_diff`, `browser_batch`, `browser_find_best`, `browser_act`, `browser_trace_start/stop`, `browser_export_har`, `browser_set_viewport`, `browser_screenshot`, `browser_snapshot_refs`.
 
-**Implemented tools** (shipped in main): `browser_save_pdf`, `browser_save_state`, `browser_restore_state`, `browser_mock_route`, `browser_block_urls`, `browser_clear_routes`, `browser_emulate_device`, `browser_extract`, `browser_visual_diff`, `browser_zoom_region`, `browser_generate_test`, `browser_check_injection`, `browser_action_cache`.
+**Внедренные инструменты** (поставляются в комплекте): `browser_save_pdf`, `browser_save_state`, `browser_restore_state`, `browser_mock_route`, `browser_block_urls`, `browser_clear_routes`, `browser_emulate_device`, `browser_extract`, `browser_visual_diff`, `browser_zoom_region`, `browser_generate_test`, `browser_check_injection`, `browser_action_cache`.
 
 ---
 
-## Feature 1: Structured Data Extraction with Schema Validation
+## Функция 1: извлечение структурированных данных с проверкой схемы
 
-**Tool:** `browser_extract`
+**Инструмент:** `browser_extract`
 
-### What it does
-Accept a JSON Schema (or simplified shape description), extract matching structured data from the current page, validate against the schema, return typed JSON.
+### Что он делает
+Примите схему JSON (или упрощенное описание формы), извлеките соответствующие структурированные данные с текущей страницы, проверьте соответствие схеме, введите ответ JSON.
 
-### Implementation requirements
+### Требования к реализации
 
-| Item | Details |
+| Товар | Подробности |
 |---|---|
-| **New file** | `tools/extract.ts` |
-| **Playwright API** | `page.evaluate()` — runs extraction logic in-page |
-| **Schema validation** | Use `@sinclair/typebox` (already a dependency) for schema definition; `ajv` or inline validation for runtime checking |
-| **Extraction strategy** | 1. Convert page to accessibility tree or clean text via existing `browser_get_accessibility_tree` / `browser_get_page_source` infrastructure. 2. Use `page.evaluate()` to run CSS selector-based extraction. 3. For complex extraction, pass schema + page content to the LLM via tool result and let the agent extract (Stagehand approach) |
-| **Tool signature** | `browser_extract({ schema: JSONSchema, selector?: string, multiple?: boolean })` → `{ data: T, validationErrors?: string[] }` |
-| **Dependencies** | None new — Typebox already available, `page.evaluate` is Playwright core |
-| **Estimated effort** | **16–24 hours** |
-| **Risk** | Medium — extraction quality depends heavily on page structure; may need multiple strategies (DOM-based, a11y-tree-based, LLM-assisted) |
+| **Новый файл** | `tools/extract.ts` |
+| **Драматург API** | `page.evaluate()` — запускает логику извлечения на странице |
+| **Проверка схемы** | Используйте `@sinclair/typebox` (уже зависимость) для определения схемы; `ajv` или встроенная проверка для проверки во время выполнения |
+| **Стратегия добычи** | 1. Преобразуйте страницу в дерево доступности или очистите текст с помощью существующей инфраструктуры `browser_get_accessibility_tree`/`browser_get_page_source`. 2. Используйте `page.evaluate()` для запуска извлечения на основе селектора CSS. 3. Для сложного извлечения передайте схему + содержимое страницы в LLM с помощью результата инструмента и позвольте агенту извлечь (подход Stagehand) |
+| **Подпись инструмента** | `browser_extract({ schema: JSONSchema, selector?: string, multiple?: boolean })` → `{ data: T, validationErrors?: string[] }` |
+| **Зависимости** | Ничего нового — Typebox уже доступен, `page.evaluate` — ядро ​​драматурга |
+| **Оценочные усилия** | **16–24 часа** |
+| **Риск** | Средний — качество извлечения сильно зависит от структуры страницы; может потребоваться несколько стратегий (на основе DOM, на основе дерева a11y, с помощью LLM) |
 
-### Acceptance criteria
-- [ ] Extracts data matching a provided JSON schema from a page
-- [ ] Returns validation errors when extracted data doesn't match schema
-- [ ] Supports scoping extraction to a CSS selector
-- [ ] Supports extracting arrays of items (`multiple: true`)
-- [ ] Handles pages with dynamic content (waits for network idle before extraction)
+### Критерии приемки
+- [ ] Извлекает со страницы данные, соответствующие предоставленной схеме JSON.
+- [] Возвращает ошибки проверки, если извлеченные данные не соответствуют схеме.
+- [ ] Поддерживает извлечение области действия в селектор CSS.
+- [ ] Поддерживает извлечение массивов элементов (`multiple: true`).
+- [ ] Обрабатывает страницы с динамическим содержимым (перед извлечением ожидает простоя сети)
 
 ---
 
-## Feature 2: Session State Persistence & Restoration
+## Функция 2: сохранение и восстановление состояния сеанса
 
-**Tools:** `browser_save_state`, `browser_restore_state`
+**Инструменты:** `browser_save_state`, `browser_restore_state`
 
-### What it does
-Save cookies, localStorage, sessionStorage, and auth tokens to disk. Restore them on a subsequent browser session to resume authenticated state without re-logging in.
+### Что он делает
+Сохраните файлы cookie, localStorage, sessionStorage и токены аутентификации на диск. Восстановите их при следующем сеансе браузера, чтобы возобновить состояние аутентификации без повторного входа в систему.
 
-### Implementation requirements
+### Требования к реализации
 
-| Item | Details |
+| Товар | Подробности |
 |---|---|
-| **New tools in** | `tools/session.ts` (extend existing file) |
-| **Playwright API** | `context.storageState()` for cookies + localStorage; `page.evaluate()` for sessionStorage (not included in Playwright's storageState) |
-| **Storage location** | Session artifacts directory: `.gsd/browser-state/<name>.json` |
-| **Tool signatures** | `browser_save_state({ name?: string })` → `{ path, cookieCount, localStorageOrigins }` / `browser_restore_state({ name?: string })` → `{ restored, cookieCount }` |
-| **Restore mechanism** | `browser.newContext({ storageState: path })` for new sessions; `context.addCookies()` + `page.evaluate()` for mid-session restore |
-| **Security** | State files may contain auth tokens — add to `.gitignore` pattern, warn in tool output |
-| **Dependencies** | None new — all Playwright core APIs |
-| **Estimated effort** | **8–12 hours** |
-| **Risk** | Low — Playwright's `storageState()` is well-tested; sessionStorage requires extra handling |
+| **Новые инструменты** | `tools/session.ts` (расширить существующий файл) |
+| **Драматург API** | `context.storageState()` за печенье + localStorage; `page.evaluate()` для sessionStorage (не входит в storageState драматурга) |
+| **Место хранения** | Каталог артефактов сеанса: `.gsd/browser-state/<name>.json` |
+| **Подписи инструментов** | `browser_save_state({ name?: string })` → `{ path, cookieCount, localStorageOrigins }` / `browser_restore_state({ name?: string })` → `{ restored, cookieCount }` |
+| **Механизм восстановления** | `browser.newContext({ storageState: path })` за новые сеансы; `context.addCookies()` + `page.evaluate()` для восстановления в середине сеанса |
+| **Безопасность** | Файлы состояния могут содержать токены аутентификации — добавьте в шаблон `.gitignore`, предупреждение в выходных данных инструмента |
+| **Зависимости** | Ничего нового — все ядро ​​драматурга APIs |
+| **Оценочные усилия** | **8–12 часов** |
+| **Риск** | Низкий — №69 драматурга хорошо проверен; sessionStorage требует дополнительного обращения |
 
-### Acceptance criteria
-- [ ] Saves cookies + localStorage via `context.storageState()`
-- [ ] Saves sessionStorage via `page.evaluate()` (per-origin)
-- [ ] Restores state on new browser context launch
-- [ ] Restores state mid-session (cookies + evaluate injection)
-- [ ] State files written to `.gsd/browser-state/` and gitignored
-- [ ] Tool output shows count of restored items, never displays secret values
+### Критерии приемки
+- [ ] Сохраняет файлы cookie + localStorage через `context.storageState()`
+- [ ] Сохраняет sessionStorage через `page.evaluate()` (для каждого источника)
+- [ ] Восстанавливает состояние при запуске нового контекста браузера.
+- [] Восстанавливает состояние в середине сеанса (файлы cookie + оценка внедрения)
+- [ ] Файлы состояния, записанные в `.gsd/browser-state/` и gitignored
+- [ ] Вывод инструмента показывает количество восстановленных элементов, но никогда не отображает секретные значения.
 
 ---
 
-## Feature 3: Test Code Generation from Session
+## Функция 3: Генерация тестового кода из сеанса
 
-**Tool:** `browser_generate_test`
+**Инструмент:** `browser_generate_test`
 
-### What it does
-Record agent interactions during a browser session and emit a Playwright test script. Turns AI-driven exploration into deterministic, reproducible tests.
+### Что он делает
+Запишите взаимодействие агента во время сеанса браузера и создайте тестовый сценарий драматурга. Превращает исследования, основанные на AI, в детерминированные, воспроизводимые тесты.
 
-### Implementation requirements
+### Требования к реализации
 
-| Item | Details |
+| Товар | Подробности |
 |---|---|
-| **New file** | `tools/codegen.ts` |
-| **Data source** | Action timeline (already tracked in `state.ts`) + trace data from `browser_trace_start/stop` |
-| **Code generation** | Transform timeline entries (navigate, click, type, assert) into Playwright test syntax: `await page.goto(...)`, `await page.click(...)`, `await expect(page.locator(...)).toBeVisible()` |
-| **Tool signature** | `browser_generate_test({ name?: string, includeAssertions?: boolean })` → `{ path, actionCount, testCode }` |
-| **Output format** | Standard Playwright test file (`*.spec.ts`) written to project's test directory or session artifacts |
-| **Selector strategy** | Prefer stable selectors: `getByRole` > `getByText` > CSS selector (use ref metadata for best selectors) |
-| **Dependencies** | None new — reads from existing timeline/trace infrastructure |
-| **Estimated effort** | **20–30 hours** |
-| **Risk** | High — generated selectors may be brittle; action timeline may not capture all nuances (hover timing, scroll position, wait conditions); output quality varies significantly by page complexity |
+| **Новый файл** | `tools/codegen.ts` |
+| **Источник данных** | Временная шкала действий (уже отслеживаемая в `state.ts`) + данные трассировки из `browser_trace_start/stop` |
+| **Генерация кода** | Преобразуйте записи временной шкалы (навигация, щелчок, ввод, подтверждение) в синтаксис теста драматурга: `await page.goto(...)`, `await page.click(...)`, `await expect(page.locator(...)).toBeVisible()` |
+| **Подпись инструмента** | `browser_generate_test({ name?: string, includeAssertions?: boolean })` → `{ path, actionCount, testCode }` |
+| **Формат вывода** | Стандартный тестовый файл драматурга (`*.spec.ts`), записанный в тестовый каталог проекта или артефакты сеанса |
+| **Стратегия выбора** | Предпочитайте стабильные селекторы: `getByRole` > `getByText` > CSS селектор (для лучших селекторов используйте метаданные ссылки) |
+| **Зависимости** | Ничего нового — чтение из существующей инфраструктуры временной шкалы/трассировки |
+| **Оценочные усилия** | **20–30 часов** |
+| **Риск** | High — сгенерированные селекторы могут быть хрупкими; Временная шкала действий может не отражать все нюансы (время наведения, положение прокрутки, условия ожидания); качество вывода существенно зависит от сложности страницы |
 
-### Acceptance criteria
-- [ ] Generates a runnable Playwright test from a recorded session
-- [ ] Includes navigation, click, type, and assertion actions
-- [ ] Uses stable selectors (role-based preferred over CSS)
-- [ ] Generated test passes when run against the same page state
-- [ ] Writes test file to configurable output path
+### Критерии приемки
+- [ ] Создает работоспособный тест драматурга из записанного сеанса.
+- [ ] Включает действия навигации, щелчка, ввода и утверждения.
+- [ ] Использует стабильные селекторы (предпочтительнее на основе ролей, чем CSS)
+- [ ] Сгенерированные тесты пройдены при запуске с тем же состоянием страницы.
+- [ ] Записывает тестовый файл в настраиваемый выходной путь.
 
 ---
 
-## Feature 4: Network Request Interception & Mocking
+## Функция 4: Перехват сетевых запросов и насмешка
 
-**Tools:** `browser_mock_route`, `browser_block_urls`, `browser_clear_routes`
+**Инструменты:** `browser_mock_route`, `browser_block_urls`, `browser_clear_routes`
 
-### What it does
-Intercept network requests to mock API responses, block URLs (analytics, ads), simulate error conditions (500s, timeouts, slow responses).
+### Что он делает
+Перехватывайте сетевые запросы, чтобы имитировать ответы API, блокировать URLs (аналитика, реклама), моделировать ошибочные состояния (500 секунд, тайм-ауты, медленные ответы).
 
-### Implementation requirements
+### Требования к реализации
 
-| Item | Details |
+| Товар | Подробности |
 |---|---|
-| **New file** | `tools/network-mock.ts` |
-| **Playwright API** | `page.route(urlPattern, handler)` for interception; `route.fulfill()` for mock responses; `route.abort()` for blocking |
-| **Tool signatures** | `browser_mock_route({ url: string, status?: number, body?: string, headers?: Record })` / `browser_block_urls({ patterns: string[] })` / `browser_clear_routes()` |
-| **State tracking** | Track active routes in module state for cleanup and listing |
-| **Dependencies** | None new — Playwright core API |
-| **Estimated effort** | **12–16 hours** |
-| **Risk** | Low — Playwright's route API is mature and well-documented |
+| **Новый файл** | `tools/network-mock.ts` |
+| **Драматург API** | `page.route(urlPattern, handler)` за перехват; `route.fulfill()` за шуточные ответы; `route.abort()` за блокировку |
+| **Подписи инструментов** | `browser_mock_route({ url: string, status?: number, body?: string, headers?: Record })` / `browser_block_urls({ patterns: string[] })` / `browser_clear_routes()` |
+| **Отслеживание состояния** | Отслеживание активных маршрутов в состоянии модуля для очистки и внесения в список |
+| **Зависимости** | Ничего нового — Драматургическое ядро ​​API |
+| **Оценочные усилия** | **12–16 часов** |
+| **Риск** | Низкий — Маршрут драматурга API является зрелым и хорошо документированным |
 
-### Acceptance criteria
-- [ ] Mock API responses with custom status, body, and headers
-- [ ] Block requests matching URL patterns (glob or regex)
-- [ ] Simulate slow responses with configurable delay
-- [ ] Clear all active routes
-- [ ] List active routes for debugging
-- [ ] Routes survive page navigation within the same context
+### Критерии приемки
+- [ ] Имитация ответов API с настраиваемым статусом, телом и заголовками.
+- [ ] Блокировать запросы, соответствующие шаблонам URL (глобальные или регулярные выражения).
+- [] Имитация медленных ответов с настраиваемой задержкой
+- [ ] Очистить все активные маршруты
+- [ ] Список активных маршрутов для отладки
+- [ ] Маршруты сохраняются при навигации по страницам в том же контексте.
 
 ---
 
-## Feature 5: Device Emulation Presets
+## Функция 5: предустановки эмуляции устройства
 
-**Tool:** `browser_emulate_device`
+**Инструмент:** `browser_emulate_device`
 
-### What it does
-One-call device simulation: viewport + user agent + touch + device scale factor. Wraps Playwright's device descriptors.
+### Что он делает
+Моделирование устройства одним вызовом: область просмотра + пользовательский агент + сенсорный экран + коэффициент масштабирования устройства. Обертывает дескрипторы устройств Playwright.
 
-### Implementation requirements
+### Требования к реализации
 
-| Item | Details |
+| Товар | Подробности |
 |---|---|
-| **Extend** | `tools/interaction.ts` (alongside `browser_set_viewport`) or new `tools/device.ts` |
-| **Playwright API** | `playwright.devices['iPhone 15']` → `{ viewport, userAgent, deviceScaleFactor, isMobile, hasTouch }` applied via context recreation or page emulation |
-| **Tool signature** | `browser_emulate_device({ device: string })` → `{ device, viewport, userAgent, isMobile }` |
-| **Device list** | Expose Playwright's built-in device descriptors (~100 devices); accept fuzzy matching on device name |
-| **Limitation** | Some properties (userAgent, isMobile) can only be set at context creation — may require context restart |
-| **Dependencies** | None new — Playwright ships device descriptors |
-| **Estimated effort** | **6–10 hours** |
-| **Risk** | Low-Medium — context restart for full emulation changes the page state; partial emulation (viewport only) is simpler but less accurate |
+| **Продлить** | `tools/interaction.ts` (рядом с `browser_set_viewport`) или новый `tools/device.ts` |
+| **Драматург API** | `playwright.devices['iPhone 15']` → `{ viewport, userAgent, deviceScaleFactor, isMobile, hasTouch }` применяется посредством воссоздания контекста или эмуляции страницы |
+| **Подпись инструмента** | `browser_emulate_device({ device: string })` → `{ device, viewport, userAgent, isMobile }` |
+| **Список устройств** | Открыть встроенные дескрипторы устройств Playwright (около 100 устройств); принять нечеткое совпадение имени устройства |
+| **Ограничение** | Некоторые свойства (userAgent, isMobile) можно установить только при создании контекста — может потребоваться перезапуск контекста |
+| **Зависимости** | Ничего нового — Playwright выпускает дескрипторы устройств |
+| **Оценочные усилия** | **6–10 часов** |
+| **Риск** | Low-Medium — перезапуск контекста для полной эмуляции изменения состояния страницы; частичная эмуляция (только область просмотра) проще, но менее точна |
 
-### Acceptance criteria
-- [ ] Accept device name (e.g., "iPhone 15", "Pixel 7") and configure full emulation
-- [ ] Support fuzzy matching on device name with suggestions on no match
-- [ ] Set viewport, user agent, device scale factor, touch, and mobile flag
-- [ ] Warn when context restart is required and confirm with user
+### Критерии приемки
+- [ ] Примите имя устройства (например, «iPhone 15», «Пиксель 7») и настройте полную эмуляцию.
+- [ ] Поддержка нечеткого соответствия имени устройства с предложениями при отсутствии совпадений.
+- [ ] Установите область просмотра, пользовательский агент, коэффициент масштабирования устройства, сенсорный экран и флаг мобильного устройства.
+- [ ] Предупреждать, когда требуется перезапуск контекста, и подтверждать это пользователем.
 
 ---
 
-## Feature 6: Visual Diffing (Screenshot Comparison)
+## Функция 6: визуальное различие (сравнение снимков экрана)
 
-**Tool:** `browser_visual_diff`
+**Инструмент:** `browser_visual_diff`
 
-### What it does
-Compare two screenshots pixel-by-pixel, return a diff image and similarity score.
+### Что он делает
+Сравните два скриншота попиксельно, получите различное изображение и оценку сходства.
 
-### Implementation requirements
+### Требования к реализации
 
-| Item | Details |
+| Товар | Подробности |
 |---|---|
-| **New file** | `tools/visual-diff.ts` |
-| **Comparison library** | `pixelmatch` (lightweight, ~200 lines, MIT) or Playwright's built-in `expect(page).toHaveScreenshot()` comparison |
-| **Tool signature** | `browser_visual_diff({ baseline?: string, current?: string, threshold?: number })` → `{ match: boolean, similarity: number, diffPixels: number, diffImagePath?: string }` |
-| **Baseline management** | Save baselines to `.gsd/browser-baselines/`; auto-name by URL + viewport |
-| **Dependencies** | `pixelmatch` + `pngjs` (new deps, ~50KB total) or use Playwright's built-in comparator |
-| **Estimated effort** | **10–14 hours** |
-| **Risk** | Medium — anti-aliasing and dynamic content (timestamps, ads) cause false positives; threshold tuning needed |
+| **Новый файл** | `tools/visual-diff.ts` |
+| **Библиотека сравнения** | `pixelmatch` (облегченный, ~200 строк, MIT) или встроенное сравнение `expect(page).toHaveScreenshot()` от Playwright |
+| **Подпись инструмента** | `browser_visual_diff({ baseline?: string, current?: string, threshold?: number })` → `{ match: boolean, similarity: number, diffPixels: number, diffImagePath?: string }` |
+| **Базовое управление** | Сохраните базовые линии в `.gsd/browser-baselines/`; автоматическое название по URL + область просмотра |
+| **Зависимости** | `pixelmatch` + `pngjs` (новые версии, всего ~50 КБ) или используйте встроенный компаратор Playwright |
+| **Оценочные усилия** | **10–14 часов** |
+| **Риск** | Средний — сглаживание и динамический контент (метки времени, реклама) вызывают ложные срабатывания; необходима настройка порога |
 
-### Acceptance criteria
-- [ ] Compare current page screenshot against a stored baseline
-- [ ] Return similarity score (0–1) and diff pixel count
-- [ ] Generate diff image highlighting changed regions
-- [ ] Configurable threshold for pass/fail
-- [ ] Support element-scoped comparison (crop to selector)
+### Критерии приемки
+- [ ] Сравнить скриншот текущей страницы с сохраненным базовым состоянием.
+- [ ] Возвращает оценку сходства (0–1) и количество пикселей разницы.
+- [ ] Создать изображение различий, выделяя измененные регионы
+- [ ] Настраиваемый порог соответствия/несоответствия
+- [] Поддержка сравнения на уровне элемента (обрезка до селектора)
 
 ---
 
-## Feature 7: PDF Generation
+## Функция 7: Генерация PDF
 
-**Tool:** `browser_save_pdf`
+**Инструмент:** `browser_save_pdf`
 
-### What it does
-Render current page as PDF artifact.
+### Что он делает
+Отобразить текущую страницу как артефакт PDF.
 
-### Implementation requirements
+### Требования к реализации
 
-| Item | Details |
+| Товар | Подробности |
 |---|---|
-| **Extend** | `tools/screenshot.ts` or new `tools/pdf.ts` |
-| **Playwright API** | `page.pdf({ path, format, printBackground })` — Chromium only (already our engine) |
-| **Tool signature** | `browser_save_pdf({ filename?: string, format?: string, printBackground?: boolean })` → `{ path, pageCount, sizeBytes }` |
-| **Output location** | Session artifacts directory |
-| **Dependencies** | None — Playwright core API |
-| **Estimated effort** | **3–5 hours** |
-| **Risk** | Low — straightforward Playwright wrapper |
+| **Продлить** | `tools/screenshot.ts` или новый `tools/pdf.ts` |
+| **Драматург API** | `page.pdf({ path, format, printBackground })` — Только хром (уже наш движок) |
+| **Подпись инструмента** | `browser_save_pdf({ filename?: string, format?: string, printBackground?: boolean })` → `{ path, pageCount, sizeBytes }` |
+| **Место вывода** | Каталог артефактов сеанса |
+| **Зависимости** | Нет — Драматургическое ядро ​​API |
+| **Оценочные усилия** | **3–5 часов** |
+| **Риск** | Низкая — прямолинейная драматургическая обертка |
 
-### Acceptance criteria
-- [ ] Generate PDF from current page
-- [ ] Support A4/Letter/custom page formats
-- [ ] Include background graphics option
-- [ ] Write to session artifacts with configurable filename
-- [ ] Return file path and size
+### Критерии приемки
+- [ ] Создать PDF с текущей страницы
+- [ ] Поддержка форматов страниц A4/Letter/пользовательских.
+- [ ] Включить опцию фоновой графики
+- [ ] Запись в артефакты сеанса с настраиваемым именем файла.
+- [ ] Возвращает путь и размер файла.
 
 ---
 
-## Feature 8: Region Zoom / Targeted High-Res Capture
+## Функция 8: масштабирование области / целенаправленная съемка в высоком разрешении
 
-**Tool:** `browser_zoom_region`
+**Инструмент:** `browser_zoom_region`
 
-### What it does
-Capture and upscale a specific rectangular region for detailed inspection of dense UIs.
+### Что он делает
+Захватите и масштабируйте определенную прямоугольную область для детального изучения плотного UIs.
 
-### Implementation requirements
+### Требования к реализации
 
-| Item | Details |
+| Товар | Подробности |
 |---|---|
-| **Extend** | `tools/screenshot.ts` |
-| **Playwright API** | `page.screenshot({ clip: { x, y, width, height } })` for region capture; upscale via `sharp` or return at native device pixel ratio |
-| **Tool signature** | `browser_zoom_region({ x, y, width, height, scale?: number })` → screenshot image |
-| **Dependencies** | Optional `sharp` for upscaling, or rely on Playwright's deviceScaleFactor |
-| **Estimated effort** | **4–6 hours** |
-| **Risk** | Low |
+| **Продлить** | `tools/screenshot.ts` |
+| **Драматург API** | `page.screenshot({ clip: { x, y, width, height } })` за захват региона; масштабирование с помощью `sharp` или возврат к исходному соотношению пикселей устройства |
+| **Подпись инструмента** | `browser_zoom_region({ x, y, width, height, scale?: number })` → скриншот |
+| **Зависимости** | Дополнительный `sharp` для масштабирования или используйте deviceScaleFactor от Playwright |
+| **Оценочные усилия** | **4–6 часов** |
+| **Риск** | Низкий |
 
-### Acceptance criteria
-- [ ] Capture arbitrary rectangular region by coordinates
-- [ ] Support scale factor for upscaling (2x, 3x)
-- [ ] Return as inline image (same as `browser_screenshot`)
+### Критерии приемки
+- [ ] Захват произвольной прямоугольной области по координатам
+- [ ] Поддержка масштабного коэффициента для масштабирования (2x, 3x)
+- [ ] Вернуться как встроенное изображение (то же, что и `browser_screenshot`)
 
 ---
 
-## Feature 9: Action Caching / Replay (Lower Priority)
+## Функция 9: Кэширование/воспроизведение действий (более низкий приоритет)
 
-**Tool:** Internal optimization, not a user-facing tool
+**Инструмент.** Внутренняя оптимизация, а не инструмент, ориентированный на пользователя.
 
-### Implementation requirements
+### Требования к реализации
 
-| Item | Details |
+| Товар | Подробности |
 |---|---|
-| **Cache key** | URL + DOM structure hash → selector mapping |
-| **Storage** | In-memory LRU cache with optional disk persistence |
-| **Integration point** | `browser_find_best` / `browser_act` — check cache before LLM resolution |
-| **Estimated effort** | **12–18 hours** |
-| **Risk** | Medium — cache invalidation when page structure changes; stale selectors cause silent failures |
+| **Ключ кэша** | URL + DOM хеш структуры → сопоставление селектора |
+| **Хранение** | Кэш LRU в памяти с возможностью сохранения на диске |
+| **Точка интеграции** | `browser_find_best` / `browser_act` — проверка кеша до разрешения LLM |
+| **Оценочные усилия** | **12–18 часов** |
+| **Риск** | Medium — аннулирование кеша при изменении структуры страницы; устаревшие селекторы вызывают сбои |
 
 ---
 
-## Feature 10: Prompt Injection Detection (Lower Priority)
+## Функция 10: Быстрое обнаружение инъекции (более низкий приоритет)
 
-**Tool:** `browser_check_injection`
+**Инструмент:** `browser_check_injection`
 
-### Implementation requirements
+### Требования к реализации
 
-| Item | Details |
+| Товар | Подробности |
 |---|---|
-| **Detection strategy** | Regex/keyword scan on screenshot OCR text or page text content for known injection patterns ("ignore previous", "system prompt", "you are now") |
-| **Integration point** | Optional auto-check after `browser_screenshot` or `browser_navigate` |
-| **Estimated effort** | **8–12 hours** |
-| **Risk** | Medium — false positives on legitimate content; OCR adds latency; determined adversaries can evade keyword detection |
+| **Стратегия обнаружения** | Сканирование регулярных выражений/ключевых слов на скриншоте OCR текста или текстового содержимого страницы для известных шаблонов внедрения («игнорировать предыдущее», «системное приглашение», «вы сейчас») |
+| **Точка интеграции** | Дополнительная автоматическая проверка после `browser_screenshot` или `browser_navigate` |
+| **Оценочные усилия** | **8–12 часов** |
+| **Риск** | Средний — ложные срабатывания легитимного контента; OCR увеличивает задержку; решительные злоумышленники могут уклониться от обнаружения ключевых слов |
 
 ---
 
-## Summary — Effort & Priority Matrix
+## Резюме — Матрица усилий и приоритетов
 
-| # | Feature | Priority | Effort | New Deps | Risk |
+| # | Особенность | Приоритет | Усилия | Новые отделы | Риск |
 |---|---|---|---|---|---|
-| 1 | Structured data extraction | High | 16–24h | None | Medium |
-| 2 | Session state persistence | High | 8–12h | None | Low |
-| 3 | Test code generation | High | 20–30h | None | High |
-| 4 | Network interception/mocking | High | 12–16h | None | Low |
-| 5 | Device emulation presets | Medium | 6–10h | None | Low-Med |
-| 6 | Visual diffing | Medium | 10–14h | pixelmatch (~50KB) | Medium |
-| 7 | PDF generation | Medium | 3–5h | None | Low |
-| 8 | Region zoom capture | Medium | 4–6h | Optional sharp | Low |
-| 9 | Action caching | Lower | 12–18h | None | Medium |
-| 10 | Prompt injection detection | Lower | 8–12h | None | Medium |
-| | **Total** | | **~100–150h** | | |
+| 1 | Извлечение структурированных данных | Высокий | 16–24 часа | Нет | Средний |
+| 2 | Сохранение состояния сеанса | Высокий | 8–12 часов | Нет | Низкий |
+| 3 | Генерация тестового кода | Высокий | 20–30 часов | Нет | Высокий |
+| 4 | Сетевой перехват/издевательство | Высокий | 12–16 ч | Нет | Низкий |
+| 5 | Предварительные настройки эмуляции устройства | Средний | 6–10 часов | Нет | Лоу-Мед |
+| 6 | Визуальное различие | Средний | 10–14 ч | пиксельное совпадение (~50 КБ) | Средний |
+| 7 | поколение PDF | Средний | 3–5 часов | Нет | Низкий |
+| 8 | Захват масштаба региона | Средний | 4–6 часов | Дополнительный острый | Низкий |
+| 9 | Кэширование действий | Нижний | 12–18 часов | Нет | Средний |
+| 10 | Оперативное обнаружение инъекций | Нижний | 8–12 часов | Нет | Средний |
+| | **Всего** | | **~100–150 ч** | | |
 
-## Recommended Implementation Order
+## Рекомендуемый порядок реализации
 
-1. **PDF generation** (Feature 7) — smallest, zero deps, immediate utility, good warmup
-2. **Session state persistence** (Feature 2) — high value, low risk, moderate effort
-3. **Network interception** (Feature 4) — high value, low risk, Playwright API is mature
-4. **Region zoom** (Feature 8) — small effort, extends existing screenshot tool
-5. **Device emulation** (Feature 5) — moderate effort, extends existing viewport tool
-6. **Structured extraction** (Feature 1) — high value but needs design iteration on extraction strategy
-7. **Visual diffing** (Feature 6) — useful for UAT, needs threshold tuning
-8. **Test code generation** (Feature 3) — high value but high risk, best tackled after timeline infrastructure is battle-tested
-9. **Action caching** (Feature 9) — optimization, defer until intent resolution is a proven bottleneck
-10. **Prompt injection** (Feature 10) — defensive, defer until production use cases mature
+1. **PDF поколение** (Функция 7) — самый маленький, нулевая глубина, немедленная полезность, хорошая разминка
+2. **Сохраняемость состояния сеанса** (Характеристика 2) — высокая ценность, низкий риск, умеренные усилия.
+3. **Сетевой перехват** (Функция 4) — высокая ценность, низкий риск, драматург API зрелый.
+4. **Увеличение области** (функция 8) — небольшие усилия, расширяет существующий инструмент создания снимков экрана.
+5. **Эмуляция устройства** (функция 5) — умеренные усилия, расширяет существующий инструмент просмотра.
+6. **Структурированное извлечение** (Функция 1) — высокая ценность, но требует повторения разработки стратегии извлечения.
+7. **Визуальное различие** (функция 6) — полезно для UAT, требует настройки порога
+8. **Генерация тестового кода** (Функция 3) — высокая ценность, но высокий риск, лучше всего решать после того, как инфраструктура временной шкалы будет проверена в боевых условиях.
+9. **Кэширование действий** (функция 9) — оптимизация, отсрочка до тех пор, пока разрешение намерений не станет узким местом.
+10. **Быстрое внедрение** (функция 10) — защитная мера, отложить до тех пор, пока не созреют варианты промышленного использования.
 
-## Notes for Contributors
+## Примечания для участников
 
-- All features wrap existing Playwright APIs — no custom browser extensions or CDP hacking needed
-- Features 2, 4, 5, 7, 8 are straightforward Playwright wrappers with low implementation risk
-- Features 1 and 3 involve more design work — open sub-issues for design discussion before implementation
-- Each feature should be a separate PR with its own tests
-- Follow the existing tool registration pattern in `index.ts` → `tools/*.ts`
-- Use `Type` from `@sinclair/typebox` for tool parameter schemas (existing convention)
-- Session artifacts go in the artifacts directory managed by `session.ts`
+- Все функции включают в себя существующую версию Playwright APIs — никаких пользовательских расширений браузера или взлома CDP не требуется.
+- Функции 2, 4, 5, 7, 8 представляют собой простые оболочки драматурга с низким риском реализации.
+- Функции 1 и 3 требуют дополнительной работы по проектированию — открывайте подзадачи для обсуждения дизайна перед реализацией.
+- Каждая функция должна быть отдельным PR со своими тестами.
+- Следуйте существующей схеме регистрации инструмента в `index.ts` → `tools/*.ts`.
+- Используйте `Type` из `@sinclair/typebox` для схем параметров инструмента (существующее соглашение).
+- Артефакты сеанса хранятся в каталоге артефактов, управляемом `session.ts`.

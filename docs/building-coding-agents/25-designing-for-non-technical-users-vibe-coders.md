@@ -1,32 +1,32 @@
-# Designing for Non-Technical Users ("Vibe Coders")
+# Проектирование для нетехнических пользователей («Vibe Coders»)
 
-**The question that matters most** — because everything else is worthless if only engineers can use it.
+**Самый важный вопрос** — потому что все остальное бесполезно, если его могут использовать только инженеры.
 
-### The Fundamental Principle (All 4 Models Converge)
+### Фундаментальный принцип (все 4 модели сходятся)
 
-> The human should **never have to think in code.** Not in input, not in output, not in error messages, not in verification, not in debugging. The entire technical layer should be absorbed by the system. The human operates purely in **intent, vision, preference, and judgment.**
+> Человеку **никогда не следует думать в коде.** Ни при вводе, ни при выводе, ни при сообщениях об ошибках, ни при проверке, ни при отладке. Весь технический уровень должен быть поглощен системой. Человек действует исключительно на основании **намерения, видения, предпочтений и суждений.**
 
-### The Core Philosophy
+### Основная философия
 
-| Human Provides | System Provides |
+| Человек обеспечивает | Система обеспечивает |
 |---------------|-----------------|
-| Vision & imagination | Engineering intelligence |
-| Taste & aesthetic judgment | Technical translation |
-| Direction & priorities | Architecture & implementation |
-| "This feels off — calmer, like Linear" | Concrete CSS/animation/spacing changes |
+| Видение и воображение | Инженерная разведка |
+| Вкус и эстетическое суждение | Технический перевод |
+| Направление и приоритеты | Архитектура и реализация |
+| «Это непривычно — спокойнее, как Linear» | Бетон CSS/анимация/изменения интервалов |
 
-### The 10 Pillars of a Magical Non-Technical Experience
+### 10 столпов волшебного нетехнического опыта
 
-#### 1. Intent-Based Input, Not Specification
-Users speak naturally: *"I want an app where people can upload recipes and find them by ingredient."* The system runs a **discovery conversation** that feels like talking to a brilliant product partner — not filling out a requirements form. Behind the scenes, answers compile into structured specs, acceptance criteria, and interface contracts the human never sees.
+#### 1. Ввод на основе намерения, а не спецификации
+Пользователи говорят естественно: * «Мне нужно приложение, в которое люди смогут загружать рецепты и находить их по ингредиентам». * Система запускает **информационную беседу**, которая напоминает разговор с блестящим партнером по продукту, а не заполнение формы требований. За кулисами ответы компилируются в структурированные спецификации, критерии приемки и контракты интерфейса, которые человек никогда не видит.
 
-> **Critical:** Questions should be about the *experience*, not the *implementation.* Never "relational or document store?" Always "should search find exact matches only, or also substitutable ingredients?"
+> **Важно:** вопросы должны касаться *опыта*, а не *реализации*. Никогда не «реляционное хранилище или хранилище документов?» Всегда ли «должен ли поиск находить только точные совпадения или также заменяемые ингредиенты?»
 
-#### 2. Show the Thing, Not the Process
-After each milestone: a **working preview**, not a task list. The human interacts with the real thing at every checkpoint — clicks around, feels it, reacts. Progress is communicated as capability, not code: *"Your app can now save workouts and retrieve them later"* — not *"implemented REST endpoint."*
+#### 2. Показывайте вещь, а не процесс
+После каждого этапа: **рабочий предварительный просмотр**, а не список задач. Человек взаимодействует с реальным объектом на каждой контрольной точке — щелкает, чувствует, реагирует. Прогресс сообщается как возможность, а не код: * «Теперь ваше приложение может сохранять тренировки и извлекать их позже» *, а не * «реализована конечная точка REST».*
 
-#### 3. Collaborative Builder, Not Command Executor
-The agent should feel like a senior co-founder:
+#### 3. Совместный строитель, а не исполнитель команд
+Агент должен чувствовать себя старшим сооснователем:
 ```
 User: I want something like Notion but for recipes.
 
@@ -37,44 +37,44 @@ Agent: Here's how I'd approach that:
 
 Would you like to prioritize simplicity or advanced features?
 ```
-This implicitly educates the user while avoiding wrong builds from vague specs.
+Это неявно обучает пользователя, избегая при этом неправильных сборок из-за расплывчатых спецификаций.
 
-#### 4. Problems, Not Errors
-The human should **never see a stack trace**. Technical failures are either resolved silently or translated to domain-level questions:
+#### 4. Проблемы, а не ошибки
+Человек **никогда не должен видеть трассировку стека**. Технические сбои либо решаются молча, либо переводятся в вопросы доменного уровня:
 
-| ❌ Never Show | ✅ Show Instead |
+| ❌ Никогда не показывать | ✅ Вместо этого показать |
 |--------------|----------------|
-| `TypeError: Cannot read property 'map' of undefined` | "The recipe list isn't displaying correctly. I'm fixing it now — should be ready in a few minutes." |
-| `ECONNREFUSED localhost:5432` | "I'm having trouble connecting to the database. Working on it." |
-| Ambiguous technical decision | "When someone searches 'chicken,' should results include recipes where chicken is optional?" |
+| `TypeError: Cannot read property 'map' of undefined` | «Список рецептов отображается неправильно. Сейчас исправлю — должно быть готово через несколько минут». |
+| `ECONNREFUSED localhost:5432` | «У меня проблемы с подключением к базе данных. Работаю над этим». |
+| Неоднозначное техническое решение | «Когда кто-то ищет «курицу», должны ли результаты включать рецепты, в которых курица не является обязательной?» |
 
-#### 5. Reactions, Not Reviews
-Design for **reactions** to the running app, not code reviews. Like working with an interior designer: *"I love the color but the couch feels too big."* Visual, spatial, experiential feedback. **A/B comparison** is the most powerful pattern: show two versions, human picks which "feels better" in seconds.
+#### 5. Реакции, а не отзывы
+Проектируйте с учетом **реакций** на работающее приложение, а не проверок кода. Это похоже на работу с дизайнером интерьера: * «Мне нравится цвет, но диван кажется слишком большим». * Визуальная, пространственная, основанная на опыте обратная связь. **Сравнение A/B** — самый эффективный шаблон: покажите две версии, выбранные людьми, которые «чувствуют себя лучше» за считанные секунды.
 
-#### 6. Engineering Tradeoffs as Simple Choices
-Instead of *"Which auth provider?"* → ask *"Which matters more: A) Simplicity B) Maximum customization C) Enterprise security"* — the system maps answers to technical decisions automatically.
+#### 6. Инженерные компромиссы как простой выбор
+Вместо *"Какой провайдер аутентификации?"* → спросите *"Что важнее: A) Простота B) Максимальная настройка C) Безопасность предприятия"* — система автоматически отображает ответы на технические решения.
 
-#### 7. Safety Blanket
-- Auto-backups every slice + "undo entire feature" button
-- **"Vibe Checkpoints"** — before every major change, a save point. "Go back to how it was ten minutes ago."
-- Deployment previews before anything goes live
-- No irreversible actions without plain-English confirmation
+#### 7. Защитное одеяло
+- Автоматическое резервное копирование каждого фрагмента + кнопка «отменить всю функцию»
+- **"Vibe Checkpoints"** — точка сохранения перед каждым серьезным изменением. «Вернитесь к тому, что было десять минут назад».
+- Предварительный просмотр развертывания, прежде чем что-либо будет запущено в эксплуатацию.
+- Никаких необратимых действий без подтверждения на простом английском языке.
 
-#### 8. Progressive Disclosure
-Start ultra-simple. Offer "Advanced mode" toggle only if the user ever asks. The system should **progressively reveal engineering** — at first pure vision → later architecture tweaking → eventually deep collaboration. Many users will never leave the simple mode, and that's fine.
+#### 8. Прогрессивное раскрытие информации
+Начните с очень простого. Предлагайте переключение «Расширенного режима» только в том случае, если пользователь когда-либо спросит. Система должна **постепенно раскрывать проектирование** — сначала чистое видение → затем настройка архитектуры → в конечном итоге глубокое сотрудничество. Многие пользователи никогда не выйдут из простого режима, и это нормально.
 
-#### 9. Implicit Teaching
-When the user asks *"why is that taking longer?"*:
-> "The recipe search needs to look through all recipes every time. I'm adding an index — think of it like a table of contents — so it can find things faster."
+#### 9. Неявное обучение
+Когда пользователь спрашивает *"почему это занимает больше времени?"*:
+> «При поиске рецептов необходимо каждый раз просматривать все рецепты. Я добавляю индекс — думайте о нем как о содержании — чтобы он мог быстрее находить нужные вещи».
 
-Optional, triggered by curiosity, expressed in analogy. Over time, users develop useful mental models of software **without it ever being mandatory.**
+Необязательно, вызвано любопытством, выраженным в аналогии. Со временем пользователи разрабатывают полезные мысленные модели программного обеспечения **но это никогда не является обязательным**.
 
-#### 10. Invisible Deployment & Operations
-"I want to share this with people" → receive a URL. Behind the scenes: hosting, domain, database, SSL, CI/CD. Ongoing maintenance equally invisible. Simple dashboard: *"Your recipe app had 340 visitors this week. Everything is running smoothly."*
+#### 10. Невидимое развертывание и операции
+«Я хочу поделиться этим с людьми» → получите URL. За кулисами: хостинг, домен, база данных, SSL, CI/CD. Текущее техническое обслуживание одинаково незаметно. Простая информационная панель: *"На этой неделе ваше приложение с рецептами посетило 340 человек. Все работает гладко."*
 
-### The Translation Layer (The Magic Glue)
+### Слой перевода (Волшебный клей)
 
-A deterministic "Human Translator" node at the front of every orchestrator cycle:
+Детерминированный узел «Человеческий переводчик» в начале каждого цикла оркестратора:
 
 ```
 Raw user message + references
@@ -86,31 +86,31 @@ Precise assumptions, invariants, success criteria
   [Rest of the god-tier orchestrator pipeline]
 ```
 
-The rest of the graph never sees "vibe language" — only clean spec. This preserves all technical quality while shielding the user.
+Остальная часть графика никогда не видит «языка вибрации» — только чистая спецификация. Это сохраняет все технические качества и одновременно защищает пользователя.
 
-### The Scope Protection Layer
+### Уровень защиты области
 
-Non-technical users often don't realize how complex their requests are. The system must be honest — gently:
+Нетехнические пользователи часто не осознают, насколько сложны их запросы. Система должна быть честной — мягко:
 
-> *"That's a great idea. Adding social features is significant — it involves user profiles, a follow system, a feed algorithm, and notifications. It'll take as long as everything we've built so far. Want me to go ahead, or finish core recipe features first?"*
+> *"Это отличная идея. Добавление социальных функций имеет важное значение — оно включает в себя профили пользователей, систему подписки, алгоритм ленты и уведомления. Это займет столько же времени, сколько и все, что мы создали до сих пор. Хотите, чтобы я продолжил или сначала закончил основные функции рецепта?"*
 
-This respects agency while providing the information needed for good decisions.
+Это уважает свободу действий и одновременно предоставляет информацию, необходимую для принятия правильных решений.
 
-### The Meta-Principle
+### Метапринцип
 
-> The system is a **creative tool**, not a development tool. It should feel like Photoshop or Ableton — a powerful instrument that lets a person with vision manifest that vision without understanding the underlying mechanics. A music producer doesn't need to understand digital signal processing. A filmmaker doesn't need to understand codec compression. **A person with a great app idea shouldn't need to understand React component lifecycle.**
+> Система является **инструментом творчества**, а не инструментом разработки. Это должно быть похоже на Photoshop или Ableton — мощный инструмент, который позволяет человеку со зрением реализовать это видение, не понимая основной механики. Музыкальному продюсеру не обязательно разбираться в цифровой обработке сигналов. Режиссеру не обязательно разбираться в сжатии кодеков. **Человеку с отличной идеей приложения не обязательно понимать жизненный цикл компонента React.**
 
-### What Makes It Feel Magical
+### Что делает это ощущение волшебным
 
-The most powerful systems feel magical when they:
-- Understand vague ideas
-- Ask smart clarifying questions
-- Translate intent into architecture
-- Show visible progress quickly
-- Make experimentation safe
-- Explain decisions clearly
-- Hide complexity without blocking power
+Самые мощные системы кажутся волшебными, когда они:
+- Понимать смутные идеи
+- Задавайте умные уточняющие вопросы
+- Воплотить намерение в архитектуру
+- Быстро показывать видимый прогресс
+- Сделайте эксперименты безопасными.
+- Чётко объяснять решения
+- Скрыть сложность, не блокируя мощность
 
-> When these align, the user experiences: **"I can build anything I imagine."** That feeling is the real product.
+> Когда они совпадают, пользователь испытывает: ** «Я могу создать все, что воображаю». ** Это чувство и есть настоящий продукт.
 
 ---

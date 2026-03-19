@@ -1,28 +1,28 @@
-# Error Taxonomy & Routing
+# Таксономия и маршрутизация ошибок
 
-**The key insight:** Different errors have fundamentally different causes and optimal resolution strategies. Treating them uniformly is one of the biggest sources of wasted iterations.
+**Ключевая мысль:** Различные ошибки имеют принципиально разные причины и оптимальные стратегии устранения. Единообразное отношение к ним — один из крупнейших источников напрасных итераций.
 
-### The Optimal Taxonomy
+### Оптимальная таксономия
 
-| Error Class | Context Needed | Optimal Handler | Escalation |
+| Класс ошибки | Необходимый контекст | Оптимальный обработчик | Эскалация |
 |-------------|---------------|-----------------|------------|
-| **Syntax/Type** | Error message + offending file + types | Deterministic fast path (no LLM needed) | Only if fast path fails |
-| **Logic** | Failing test (expected vs actual) + implementation + spec | LLM with medium, focused context | After 3 attempts |
-| **Design** | Original spec + architecture + interface contracts + implementation | LLM with broad context | Often needs human input |
-| **Performance** | Profiling data + benchmarks + code | Specialist optimization agent | If regression >2x |
-| **Security** | Static analysis results + secure pattern reference | Conservative fix prompt | Always flag for review |
-| **Environment** | Environment config + recent dep changes + error output | Specialized env context | If not auto-resolved |
-| **Flaky Tests** | Run test multiple times to confirm flakiness | Quarantine, don't fix | Infrastructure agent |
+| **Синтаксис/Тип** | Сообщение об ошибке + файл-нарушитель + типы | Детерминированный быстрый путь (без LLM) | Только в случае сбоя быстрого пути |
+| **Логика** | Неудачный тест (ожидаемый или фактический) + реализация + спецификация | LLM со средним, сфокусированным контекстом | После 3 попыток |
+| **Дизайн** | Оригинальная спецификация + архитектура + контракты на интерфейс + реализация | LLM с широким контекстом | Часто требуется человеческий вклад |
+| **Производительность** | Данные профилирования + тесты + код | Специалист по оптимизации | Если регрессия >2x |
+| **Безопасность** | Результаты статического анализа + безопасная ссылка на образец | Консервативная подсказка по исправлению | Всегда отмечать для рассмотрения |
+| **Окружающая среда** | Конфигурация среды + недавние изменения + вывод ошибок | Специализированный контекст окружения | Если не решено автоматически |
+| **Ненадежные тесты** | Запустите тест несколько раз, чтобы подтвердить нестабильность | Карантин, не исправляй | Инфраструктурный агент |
 
-### Critical Routing Rules
+### Критические правила маршрутизации
 
-- **Flaky tests:** Detect by running failing tests multiple times. If inconsistent, **quarantine** — never trigger a fix cycle.
-- **Environment errors:** Classify as potentially environmental when they appear in build/startup rather than tests.
-- **Security:** Caught by static analysis in the deterministic layer, not by the LLM. Run security linting after every task.
-- **Syntax/Type:** Hit a deterministic fast path first. Missing import? Search codebase for the export. Only escalate to LLM if mechanical fix fails.
+- **Ненадежные тесты**. Обнаружение путем многократного запуска неудачных тестов. В случае несогласованности **поместить в карантин** — никогда не запускать цикл исправлений.
+– **Ошибки среды.** Классифицируйте их как потенциально опасные для окружающей среды, если они появляются при сборке или запуске, а не при тестировании.
+- **Безопасность:** фиксируется статическим анализом на детерминированном уровне, а не LLM. Запускайте проверку безопасности после каждой задачи.
+- **Синтаксис/Тип:** Сначала выберите детерминированный быстрый путь. Отсутствует импорт? Найдите кодовую базу для экспорта. Передавайте вопрос на LLM только в том случае, если механическое исправление не удалось.
 
-### The Architecture
+### Архитектура
 
-The orchestrator classifies every error → selects the appropriate context assembly strategy → optionally selects a different prompt framing. The agent experiences this as *"I got exactly the information I need"* rather than *"I got a dump of everything."*
+Оркестратор классифицирует каждую ошибку → выбирает соответствующую стратегию сборки контекста → при необходимости выбирает другой кадр подсказки. Агент воспринимает это как «Я получил именно ту информацию, которая мне нужна»*, а не «Я получил кучу всего».*
 
 ---

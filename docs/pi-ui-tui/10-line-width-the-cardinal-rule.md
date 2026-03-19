@@ -1,8 +1,8 @@
-# Line Width — The Cardinal Rule
+# Ширина линии — главное правило
 
-**Every line from `render()` MUST NOT exceed the `width` parameter in visible characters.** This is the single most common source of rendering bugs.
+**Каждая строка из `render()` MUST NOT превышает параметр `width` по количеству видимых символов.** Это самый распространенный источник ошибок рендеринга.
 
-### Utilities
+### Утилиты
 
 ```typescript
 import { visibleWidth, truncateToWidth, wrapTextWithAnsi } from "@mariozechner/pi-tui";
@@ -20,7 +20,7 @@ wrapTextWithAnsi("\x1b[32mThis is a long green text\x1b[0m", 15);
 // Returns ["This is a long", "green text"] with ANSI codes preserved per line
 ```
 
-### The Pattern
+### Узор
 
 ```typescript
 render(width: number): string[] {
@@ -39,8 +39,8 @@ render(width: number): string[] {
 }
 ```
 
-### Why This Matters
+### Почему это важно
 
-If a line exceeds `width`, the terminal wraps it, causing visual corruption — lines overlap, the cursor mispositions, and the entire TUI can become garbled. The TUI framework **cannot fix this for you** because it doesn't know how you want lines truncated.
+Если длина строки превышает `width`, терминал переносит ее, вызывая визуальное искажение — строки перекрываются, курсор неправильно позиционируется, и весь TUI может быть искажен. Платформа TUI **не может исправить это за вас**, поскольку она не знает, как вы хотите обрезать строки.
 
 ---

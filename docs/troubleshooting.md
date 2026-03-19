@@ -1,66 +1,66 @@
-# Troubleshooting
+# Устранение неполадок
 
 ## `/gsd doctor`
 
-The built-in diagnostic tool validates `.gsd/` integrity:
+Встроенный диагностический инструмент проверяет целостность `.gsd/`:
 
 ```
 /gsd doctor
 ```
 
-It checks:
-- File structure and naming conventions
-- Roadmap ↔ slice ↔ task referential integrity
-- Completion state consistency
-- Git worktree health (worktree and branch modes only — skipped in none mode)
-- Stale lock files and orphaned runtime records
+Он проверяет:
+- Структура файла и соглашения об именах.
+- Дорожная карта ↔ срез ↔ ссылочная целостность задачи
+- Согласованность состояния завершения
+— Состояние рабочего дерева Git (только в режимах рабочего дерева и ветвей — в режиме «Нет» пропускается)
+- Устаревшие файлы блокировки и потерянные записи времени выполнения.
 
-## Common Issues
+## Распространенные проблемы
 
-### Auto mode loops on the same unit
+### Автоматический режим зацикливается на одном устройстве
 
-**Symptoms:** The same unit (e.g., `research-slice` or `plan-slice`) dispatches repeatedly until hitting the dispatch limit.
+**Симптомы:** Один и тот же объект (например, `research-slice` или `plan-slice`) отправляется повторно, пока не будет достигнут предел отправки.
 
-**Causes:**
-- Stale cache after a crash — the in-memory file listing doesn't reflect new artifacts
-- The LLM didn't produce the expected artifact file
+**Причины:**
+- Устаревший кеш после сбоя — список файлов в памяти не отражает новые артефакты.
+- LLM не создал ожидаемый файл артефакта.
 
-**Fix:** Run `/gsd doctor` to repair state, then resume with `/gsd auto`. If the issue persists, check that the expected artifact file exists on disk.
+**Исправление:** Нажмите `/gsd doctor`, чтобы восстановить состояние, затем продолжите, нажав `/gsd auto`. Если проблема не устранена, убедитесь, что ожидаемый файл артефакта существует на диске.
 
-### Auto mode stops with "Loop detected"
+### Автоматический режим останавливается с сообщением «Обнаружена петля»
 
-**Cause:** A unit failed to produce its expected artifact twice in a row.
+**Причина:** Отряд не смог произвести ожидаемый артефакт дважды подряд.
 
-**Fix:** Check the task plan for clarity. If the plan is ambiguous, refine it manually, then `/gsd auto` to resume.
+**Исправление.** Проверьте план задач на ясность. Если план неоднозначен, уточните его вручную, а затем нажмите `/gsd auto`, чтобы возобновить.
 
-### Wrong files in worktree
+### Неправильные файлы в рабочем дереве
 
-**Symptoms:** Planning artifacts or code appear in the wrong directory.
+**Признаки.** Артефакты планирования или код появляются не в том каталоге.
 
-**Cause:** The LLM wrote to the main repo instead of the worktree.
+**Причина:** LLM записывал данные в основной репозиторий, а не в рабочее дерево.
 
-**Fix:** This was fixed in v2.14+. If you're on an older version, update. The dispatch prompt now includes explicit working directory instructions.
+**Исправление:** Это было исправлено в версии 2.14+. Если у вас более старая версия, обновите ее. Приглашение к отправке теперь включает явные инструкции по рабочему каталогу.
 
-### `npm install -g gsd-pi` fails
+### `npm install -g gsd-pi` не работает
 
-**Common causes:**
-- Missing workspace packages — fixed in v2.10.4+
-- `postinstall` hangs on Linux (Playwright `--with-deps` triggering sudo) — fixed in v2.3.6+
-- Node.js version too old — requires ≥ 20.6.0
+**Распространенные причины:**
+- Отсутствующие пакеты рабочей области — исправлено в версии 2.10.4+.
+- `postinstall` зависает в Linux (Драматург `--with-deps` запускает sudo) — исправлено в версии 2.3.6+
+- Версия Node.js слишком старая — требуется ≥ 20.6.0
 
-### Provider errors during auto mode
+### Ошибки провайдера в автоматическом режиме
 
-**Symptoms:** Auto mode pauses with a provider error (rate limit, server error, auth failure).
+**Признаки:** Автоматический режим приостанавливается из-за ошибки провайдера (ограничение скорости, ошибка сервера, ошибка аутентификации).
 
-**How GSD handles it (v2.26):**
+**Как с этим справляется GSD (v2.26):**
 
-| Error type | Auto-resume? | Delay |
+| Тип ошибки | Автовозобновление? | Задержка |
 |-----------|-------------|-------|
-| Rate limit (429, "too many requests") | ✅ Yes | retry-after header or 60s |
-| Server error (500, 502, 503, "overloaded") | ✅ Yes | 30s |
-| Auth/billing ("unauthorized", "invalid key") | ❌ No | Manual resume |
+| Ограничение скорости (429, «слишком много запросов») | ✅ Да | повторите попытку после заголовка или 60 с |
+| Ошибка сервера (500, 502, 503, «перегружен») | ✅ Да | 30-е годы |
+| Аутентификация/биллинг («неавторизованный», «неверный ключ») | ❌ Нет | Ручное резюме |
 
-For transient errors, GSD pauses briefly and resumes automatically. For permanent errors, configure fallback models:
+В случае временных ошибок GSD приостанавливается на короткое время и автоматически возобновляется. Для постоянных ошибок настройте резервные модели:
 
 ```yaml
 models:
@@ -70,123 +70,123 @@ models:
       - openrouter/minimax/minimax-m2.5
 ```
 
-**Headless mode:** `gsd headless auto` auto-restarts the entire process on crash (default 3 attempts with exponential backoff). Combined with provider error auto-resume, this enables true overnight unattended execution.
+**Безголовый режим:** `gsd headless auto` автоматически перезапускает весь процесс при сбое (по умолчанию 3 попытки с экспоненциальной задержкой). В сочетании с автоматическим возобновлением ошибок поставщика это обеспечивает автоматическое автоматическое выполнение в ночное время.
 
-### Budget ceiling reached
+### Достигнут потолок бюджета
 
-**Symptoms:** Auto mode pauses with "Budget ceiling reached."
+**Признаки:** Автоматический режим приостанавливается с сообщением «Достигнут потолок бюджета».
 
-**Fix:** Increase `budget_ceiling` in preferences, or switch to `budget` token profile to reduce per-unit cost, then resume with `/gsd auto`.
+**Исправление:** Увеличьте `budget_ceiling` в настройках или переключитесь на профиль токенов `budget`, чтобы снизить стоимость на единицу, а затем возобновите работу через `/gsd auto`.
 
-### Stale lock file
+### Устаревший файл блокировки
 
-**Symptoms:** Auto mode won't start, says another session is running.
+**Симптомы:** Автоматический режим не запускается, сообщает, что запущен другой сеанс.
 
-**Fix:** GSD automatically detects stale locks — if the owning PID is dead, the lock is cleaned up and re-acquired on the next `/gsd auto`. This includes stranded `.gsd.lock/` directories left by `proper-lockfile` after crashes. If automatic recovery fails, delete `.gsd/auto.lock` and the `.gsd.lock/` directory manually:
+**Исправление:** GSD автоматически обнаруживает устаревшие блокировки — если владелец PID не работает, блокировка очищается и повторно приобретается на следующем `/gsd auto`. Сюда входят неисправные каталоги `.gsd.lock/`, оставшиеся от `proper-lockfile` после сбоев. Если автоматическое восстановление не удалось, удалите каталог `.gsd/auto.lock` и каталог `.gsd.lock/` вручную:
 
 ```bash
 rm -f .gsd/auto.lock
 rm -rf "$(dirname .gsd)/.gsd.lock"
 ```
 
-### Git merge conflicts
+### Конфликты слияния Git
 
-**Symptoms:** Worktree merge fails on `.gsd/` files.
+**Признаки:** Не удается объединить рабочие деревья для файлов `.gsd/`.
 
-**Fix:** GSD auto-resolves conflicts on `.gsd/` runtime files. For content conflicts in code files, the LLM is given an opportunity to resolve them via a fix-merge session. If that fails, manual resolution is needed.
+**Исправление:** GSD автоматически разрешает конфликты в файлах среды выполнения `.gsd/`. В случае конфликтов содержимого в файлах кода LLM предоставляется возможность разрешить их с помощью сеанса исправления-слияния. Если это не помогло, необходимо разрешение вручную.
 
-## Recovery Procedures
+## Процедуры восстановления
 
-### Reset auto mode state
+### Сброс состояния автоматического режима
 
 ```bash
 rm .gsd/auto.lock
 rm .gsd/completed-units.json
 ```
 
-Then `/gsd auto` to restart from current disk state.
+Затем `/gsd auto` для перезапуска с текущего состояния диска.
 
-### Reset routing history
+### Сбросить историю маршрутизации
 
-If adaptive model routing is producing bad results, clear the routing history:
+Если маршрутизация адаптивной модели дает плохие результаты, очистите историю маршрутизации:
 
 ```bash
 rm .gsd/routing-history.json
 ```
 
-### Full state rebuild
+### Полное восстановление состояния
 
 ```
 /gsd doctor
 ```
 
-Doctor rebuilds `STATE.md` from plan and roadmap files on disk and fixes detected inconsistencies.
+Doctor восстанавливает `STATE.md` из файлов плана и дорожной карты на диске и исправляет обнаруженные несоответствия.
 
-## Getting Help
+## Получение помощи
 
-- **GitHub Issues:** [github.com/gsd-build/GSD-2/issues](https://github.com/gsd-build/GSD-2/issues)
-- **Dashboard:** `Ctrl+Alt+G` or `/gsd status` for real-time diagnostics
-- **Forensics:** `/gsd forensics` for structured post-mortem analysis of auto-mode failures
-- **Session logs:** `.gsd/activity/` contains JSONL session dumps for crash forensics
+- **Проблемы с GitHub:** [github.com/gsd-build/GSD-2/issues](https://github.com/gsd-build/GSD-2/issues)
+- **Панель управления:** `Ctrl+Alt+G` или `/gsd status` для диагностики в реальном времени.
+- **Криминалистическая экспертиза:** `/gsd forensics` для структурированного посмертного анализа сбоев в автоматическом режиме.
+- **Журналы сеансов**: `.gsd/activity/` содержит дампы сеансов JSONL для анализа сбоев.
 
-## Windows-Specific Issues
+## Проблемы, специфичные для Windows
 
-### LSP returns ENOENT on Windows (MSYS2/Git Bash)
+### LSP возвращает ENOENT в Windows (MSYS2/Git Bash)
 
-**Symptoms:** LSP initialization fails with `ENOENT` or resolves POSIX-style paths like `/c/Users/...` instead of `C:\Users\...`.
+**Признаки:** Инициализация LSP завершается неудачно с `ENOENT` или разрешает пути в стиле POSIX, такие как `/c/Users/...`, вместо `C:\Users\...`.
 
-**Cause:** The `which` command in MSYS2/Git Bash returns POSIX paths that Node.js `spawn()` can't resolve.
+**Причина:** Команда `which` в MSYS2/Git Bash возвращает пути POSIX, которые Node.js `spawn()` не могут разрешить.
 
-**Fix:** Updated in v2.29+ to use `where.exe` on Windows. Upgrade to the latest version.
+**Исправление:** Обновлено в версии 2.29+ для использования `where.exe` в Windows. Обновите до последней версии.
 
-### EBUSY errors during WXT/extension builds
+### Ошибки EBUSY во время сборки WXT/расширения
 
-**Symptoms:** `EBUSY: resource busy or locked, rmdir .output/chrome-mv3` when building browser extensions.
+**Симптомы:** `EBUSY: resource busy or locked, rmdir .output/chrome-mv3` при создании расширений браузера.
 
-**Cause:** A Chromium browser has the extension loaded from the build output directory, preventing deletion.
+**Причина.** В браузере Chromium расширение загружается из выходного каталога сборки, что предотвращает его удаление.
 
-**Fix:** Close the browser extension, or set a different `outDirTemplate` in your WXT config to avoid the locked directory.
+**Исправление.** Закройте расширение браузера или установите другой `outDirTemplate` в конфигурации WXT, чтобы избежать блокировки каталога.
 
-## Database Issues
+## Проблемы с базой данных
 
-### "GSD database is not available"
+### "База данных GSD недоступна"
 
-**Symptoms:** `gsd_save_decision`, `gsd_update_requirement`, or `gsd_save_summary` fail with this error.
+**Признаки:** `gsd_save_decision`, `gsd_update_requirement` или `gsd_save_summary` не работают с этой ошибкой.
 
-**Cause:** The SQLite database wasn't initialized. This happens in manual `/gsd` sessions (non-auto mode) on versions before v2.29.
+**Причина:** База данных SQLite не была инициализирована. Это происходит в сеансах `/gsd` вручную (неавтоматический режим) в версиях до версии 2.29.
 
-**Fix:** Updated in v2.29+ to auto-initialize the database on first tool call. Upgrade to the latest version.
+**Исправление:** Обновлено в версии 2.29+: автоматическая инициализация базы данных при первом вызове инструмента. Обновите до последней версии.
 
-## Verification Issues
+## Проблемы с проверкой
 
-### Verification gate fails with shell syntax error
+### Шлюз проверки завершается сбоем из-за синтаксической ошибки оболочки
 
-**Symptoms:** `stderr: /bin/sh: 1: Syntax error: "(" unexpected` during verification checks.
+**Симптомы:** `stderr: /bin/sh: 1: Syntax error: "(" unexpected` во время проверочных проверок.
 
-**Cause:** A description-like string (e.g., `All 10 checks pass (build, lint)`) was treated as a shell command. This can happen when task plans have `verify:` fields with prose instead of actual commands.
+**Причина:** Строка, подобная описанию (например, `All 10 checks pass (build, lint)`), рассматривалась как команда оболочки. Это может произойти, если в планах задач есть поля `verify:` с текстом вместо реальных команд.
 
-**Fix:** Updated in v2.29+ to filter preference commands through `isLikelyCommand()`. Ensure `verification_commands` in preferences contains only valid shell commands, not descriptions.
+**Исправление.** В версии 2.29+ добавлена фильтрация команд предпочтений по номеру `isLikelyCommand()`. Убедитесь, что `verification_commands` в настройках содержит только допустимые команды оболочки, а не описания.
 
-## LSP (Language Server Protocol)
+## LSP (Протокол языкового сервера)
 
-### "LSP isn't available in this workspace"
+### "LSP недоступен в этой рабочей области"
 
-GSD auto-detects language servers based on project files (e.g. `package.json` → TypeScript, `Cargo.toml` → Rust, `go.mod` → Go). If no servers are detected, the agent skips LSP features.
+GSD автоматически определяет языковые серверы на основе файлов проекта (например, `package.json` → TypeScript, `Cargo.toml` → Rust, `go.mod` → Go). Если серверы не обнаружены, агент пропускает функции LSP.
 
-**Check status:**
+**Проверить статус:**
 ```
 lsp status
 ```
 
-This shows which servers are active and, if none are found, diagnoses why — including which project markers were detected but which server commands are missing.
+Это показывает, какие серверы активны, и, если ни один из них не найден, диагностирует причину, в том числе, какие маркеры проекта были обнаружены, но какие команды сервера отсутствуют.
 
-**Common fixes:**
+**Общие исправления:**
 
-| Project type | Install command |
+| Тип проекта | Команда установки |
 |-------------|-----------------|
 | TypeScript/JavaScript | `npm install -g typescript-language-server typescript` |
-| Python | `pip install pyright` or `pip install python-lsp-server` |
-| Rust | `rustup component add rust-analyzer` |
-| Go | `go install golang.org/x/tools/gopls@latest` |
+| Питон | `pip install pyright` или `pip install python-lsp-server` |
+| Ржавчина | `rustup component add rust-analyzer` |
+| Перейти | `go install golang.org/x/tools/gopls@latest` |
 
-After installing, run `lsp reload` to restart detection without restarting GSD.
+После установки запустите `lsp reload`, чтобы перезапустить обнаружение без перезапуска GSD.

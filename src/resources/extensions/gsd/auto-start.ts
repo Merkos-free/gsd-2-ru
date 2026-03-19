@@ -97,7 +97,7 @@ export async function bootstrapAutoSession(
   const lockResult = acquireSessionLock(base);
   if (!lockResult.acquired) {
     ctx.ui.notify(
-      `${lockResult.reason}\nStop it with \`kill ${lockResult.existingPid ?? "the other process"}\` before starting a new session.`,
+      `${lockResult.reason}\nОстановите его через \`kill ${lockResult.existingPid ?? "the other process"}\`, прежде чем запускать новую сессию.`,
       "error",
     );
     return false;
@@ -119,7 +119,7 @@ export async function bootstrapAutoSession(
   recoverFailedMigration(base);
   const migration = migrateToExternalState(base);
   if (migration.error) {
-    ctx.ui.notify(`External state migration warning: ${migration.error}`, "warning");
+    ctx.ui.notify(`Предупреждение миграции внешнего состояния: ${migration.error}`, "warning");
   }
   // Ensure symlink exists (handles fresh projects and post-migration)
   ensureGsdSymlink(base);
@@ -147,7 +147,7 @@ export async function bootstrapAutoSession(
 
     if (milestoneAlreadyComplete) {
       ctx.ui.notify(
-        `Crash recovery: discarding stale context for ${crashLock.unitId} — milestone ${recoveredMid} is already complete.`,
+        `Восстановление после сбоя: устаревший контекст для ${crashLock.unitId} отброшен — milestone ${recoveredMid} уже завершён.`,
         "info",
       );
     } else {
@@ -159,12 +159,12 @@ export async function bootstrapAutoSession(
       if (recovery && recovery.trace.toolCallCount > 0) {
         s.pendingCrashRecovery = recovery.prompt;
         ctx.ui.notify(
-          `${formatCrashInfo(crashLock)}\nRecovered ${recovery.trace.toolCallCount} tool calls from crashed session. Resuming with full context.`,
+          `${formatCrashInfo(crashLock)}\nВосстановлено ${recovery.trace.toolCallCount} вызовов инструментов из аварийно завершённой сессии. Продолжаю с полным контекстом.`,
           "warning",
         );
       } else {
         ctx.ui.notify(
-          `${formatCrashInfo(crashLock)}\nNo session data recovered. Resuming from disk state.`,
+          `${formatCrashInfo(crashLock)}\nДанные сессии восстановить не удалось. Продолжаю по состоянию на диске.`,
           "warning",
         );
       }
@@ -187,7 +187,7 @@ export async function bootstrapAutoSession(
       nativeParser: isNativeParserAvailable(),
       cwd: base,
     });
-    ctx.ui.notify(`Debug logging enabled → ${getDebugLogPath()}`, "info");
+    ctx.ui.notify(`Отладочное логирование включено → ${getDebugLogPath()}`, "info");
   }
 
   // Invalidate caches before initial state derivation
@@ -225,7 +225,7 @@ export async function bootstrapAutoSession(
     hasSurvivorBranch = nativeBranchExists(base, milestoneBranch);
     if (hasSurvivorBranch) {
       ctx.ui.notify(
-        `Found prior session branch ${milestoneBranch}. Resuming.`,
+        `Найдена ветка предыдущей сессии ${milestoneBranch}. Продолжаю.`,
         "info",
       );
     }
@@ -248,7 +248,7 @@ export async function bootstrapAutoSession(
           state = postState;
         } else {
           ctx.ui.notify(
-            "Discussion completed but no milestone context was written. Run /gsd to try the discussion again, or /gsd auto after creating the milestone manually.",
+            "Обсуждение завершено, но контекст milestone не был записан. Выполните /gsd, чтобы повторить обсуждение, или /gsd auto после ручного создания milestone.",
             "warning",
           );
           return false;
@@ -273,7 +273,7 @@ export async function bootstrapAutoSession(
           state = postState;
         } else {
           ctx.ui.notify(
-            "Discussion completed but milestone context is still missing. Run /gsd to try again.",
+            "Обсуждение завершено, но контекст milestone по-прежнему отсутствует. Выполните /gsd, чтобы попробовать снова.",
             "warning",
           );
           return false;
@@ -335,17 +335,17 @@ export async function bootstrapAutoSession(
         const wtPath = enterAutoWorktree(base, s.currentMilestoneId);
         s.basePath = wtPath;
         s.gitService = createGitService(s.basePath);
-        ctx.ui.notify(`Entered auto-worktree at ${wtPath}`, "info");
+        ctx.ui.notify(`Выполнен вход в auto-worktree: ${wtPath}`, "info");
       } else {
         const wtPath = createAutoWorktree(base, s.currentMilestoneId);
         s.basePath = wtPath;
         s.gitService = createGitService(s.basePath);
-        ctx.ui.notify(`Created auto-worktree at ${wtPath}`, "info");
+        ctx.ui.notify(`Создан auto-worktree: ${wtPath}`, "info");
       }
       registerSigtermHandler(s.originalBasePath);
     } catch (err) {
       ctx.ui.notify(
-        `Auto-worktree setup failed: ${getErrorMessage(err)}. Continuing in project root.`,
+        `Не удалось настроить auto-worktree: ${getErrorMessage(err)}. Продолжаю в корне проекта.`,
         "warning",
       );
     }
@@ -400,9 +400,9 @@ export async function bootstrapAutoSession(
   const modeLabel = s.stepMode ? "Step-mode" : "Auto-mode";
   const pendingCount = (state.registry ?? []).filter(m => m.status !== 'complete' && m.status !== 'parked').length;
   const scopeMsg = pendingCount > 1
-    ? `Will loop through ${pendingCount} milestones.`
-    : "Will loop until milestone complete.";
-  ctx.ui.notify(`${modeLabel} started. ${scopeMsg}`, "info");
+    ? `Будет выполнен проход по ${pendingCount} milestones.`
+    : "Будет выполняться цикл до завершения milestone.";
+  ctx.ui.notify(`${modeLabel} запущен. ${scopeMsg}`, "info");
 
   // Update lock file with milestone info (OS lock already acquired at bootstrap start)
   updateSessionLock(lockBase(), "starting", s.currentMilestoneId ?? "unknown", 0);
@@ -418,26 +418,26 @@ export async function bootstrapAutoSession(
       s.paused = true;
       s.pausedForSecrets = true;
       ctx.ui.notify(
-        `Auto-mode paused: ${pendingKeys.length} env variable${pendingKeys.length > 1 ? "s" : ""} needed for ${mid}.\n${keyList}\n\nCollect them with /gsd secrets, then resume with /gsd auto.`,
+        `Auto-mode приостановлен: для ${mid} требуется ${pendingKeys.length} env variable${pendingKeys.length > 1 ? "s" : ""}.\n${keyList}\n\nСоберите их через /gsd secrets, затем продолжите через /gsd auto.`,
         "warning",
       );
       ctx.ui.setStatus("gsd-auto", "paused");
       sendDesktopNotification(
         "GSD — Secrets Required",
-        `${pendingKeys.length} env variable(s) needed for ${mid}. Run /gsd secrets to provide them.`,
+        `Для ${mid} требуется ${pendingKeys.length} env variable(s). Выполните /gsd secrets, чтобы указать их.`,
         "warning",
         "attention",
       );
       // Notify remote channel if configured (one-way — never collect secrets via remote)
       sendRemoteNotification(
         "GSD — Secrets Required",
-        `Auto-mode paused: ${pendingKeys.length} env variable(s) needed for ${mid}.\n${keyList}\n\nReturn to the terminal and run /gsd secrets to provide them securely.`,
+        `Auto-mode приостановлен: для ${mid} требуется ${pendingKeys.length} env variable(s).\n${keyList}\n\nВернитесь в терминал и выполните /gsd secrets, чтобы безопасно их указать.`,
       ).catch(() => {}); // fire-and-forget
       return false;
     }
   } catch (err) {
     ctx.ui.notify(
-      `Secrets check error: ${getErrorMessage(err)}. Continuing without secrets.`,
+      `Ошибка проверки secrets: ${getErrorMessage(err)}. Продолжаю без secrets.`,
       "warning",
     );
   }
@@ -452,7 +452,7 @@ export async function bootstrapAutoSession(
       const lockAge = Date.now() - statSync(gitLockFile).mtimeMs;
       if (lockAge > 60_000) {
         unlinkSync(gitLockFile);
-        ctx.ui.notify("Removed stale .git/index.lock from prior crash.", "info");
+        ctx.ui.notify("Удалён устаревший .git/index.lock после предыдущего сбоя.", "info");
       }
     }
   } catch (e) { debugLog("git-lock-cleanup-failed", { error: getErrorMessage(e) }); }
@@ -468,12 +468,12 @@ export async function bootstrapAutoSession(
         const issues: string[] = [];
         for (const id of milestoneIds) {
           const draft = resolveMilestoneFile(base, id, "CONTEXT-DRAFT");
-          if (draft) issues.push(`${id}: has CONTEXT-DRAFT.md (will pause for discussion)`);
+          if (draft) issues.push(`${id}: есть CONTEXT-DRAFT.md (будет пауза для обсуждения)`);
         }
         if (issues.length > 0) {
-          ctx.ui.notify(`Pre-flight: ${milestoneIds.length} milestones queued.\n${issues.map(i => `  ⚠ ${i}`).join("\n")}`, "warning");
+          ctx.ui.notify(`Pre-flight: в очереди ${milestoneIds.length} milestones.\n${issues.map(i => `  ⚠ ${i}`).join("\n")}`, "warning");
         } else {
-          ctx.ui.notify(`Pre-flight: ${milestoneIds.length} milestones queued. All have full context.`, "info");
+          ctx.ui.notify(`Pre-flight: в очереди ${milestoneIds.length} milestones. У всех есть полный контекст.`, "info");
         }
       }
     }

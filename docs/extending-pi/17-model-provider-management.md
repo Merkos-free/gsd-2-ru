@@ -1,7 +1,7 @@
-# Model & Provider Management
+# Управление моделями и поставщиками
 
 
-### Switching Models
+### Переключение моделей
 
 ```typescript
 const model = ctx.modelRegistry.find("anthropic", "claude-sonnet-4-5");
@@ -11,7 +11,7 @@ if (model) {
 }
 ```
 
-### Registering Custom Providers
+### Регистрация пользовательских поставщиков
 
 ```typescript
 pi.registerProvider("my-proxy", {
@@ -47,7 +47,7 @@ pi.registerProvider("anthropic", {
 pi.unregisterProvider("my-proxy");
 ```
 
-### Reacting to Model Changes
+### Реакция на изменения модели
 
 ```typescript
 pi.on("model_select", async (event, ctx) => {

@@ -1,18 +1,18 @@
-# What Are Extensions?
+# Что такое расширения?
 
 
-Extensions are TypeScript modules that hook into pi's runtime to extend its behavior. They can:
+Расширения — это модули TypeScript, которые подключаются к среде выполнения pi, чтобы расширить его поведение. Они могут:
 
-- **Register custom tools** the LLM can call (via `pi.registerTool()`)
-- **Intercept and modify events** — block dangerous tool calls, transform user input, inject context
-- **Register slash commands** (`/mycommand`) for the user
-- **Render custom UI** — dialogs, selectors, games, overlays, custom editors
-- **Persist state** across session restarts
-- **Control how tool calls and messages appear** in the TUI
-- **Modify the system prompt** dynamically per-turn
-- **Manage models and providers** — register custom providers, switch models
-- **Override built-in tools** — wrap `read`, `bash`, `edit`, `write` with custom logic
+- **Регистрация пользовательских инструментов**, которые LLM могут вызывать (через `pi.registerTool()`).
+- **Перехватывать и изменять события** — блокировать опасные вызовы инструментов, преобразовывать вводимые пользователем данные, внедрять контекст.
+- **Зарегистрировать косую черту** (`/mycommand`) для пользователя.
+- **Рендеринг UI** — диалоги, селекторы, игры, наложения, пользовательские редакторы.
+- **Сохранение состояния** при перезапуске сеанса.
+- **Управляйте отображением вызовов инструментов и сообщений** в TUI.
+- **Изменить системное приглашение** динамически за ход.
+- **Управление моделями и поставщиками** — регистрируйте собственных поставщиков, переключайте модели.
+- **Переопределить встроенные инструменты** — обернуть `read`, `bash`, `edit`, `write` пользовательской логикой.
 
-**Why this matters:** Extensions are the primary mechanism for customizing pi. They turn pi from a generic coding agent into *your* coding agent — with your guardrails, your tools, your workflow.
+**Почему это важно:** Расширения – это основной механизм настройки pi. Они превращают pi из обычного агента кодирования в *вашего* агента кодирования — с вашими ограждениями, вашими инструментами и вашим рабочим процессом.
 
 ---

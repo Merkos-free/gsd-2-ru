@@ -1,4 +1,4 @@
-# Architecture & Mental Model
+# Архитектура и ментальная модель
 
 
 ```
@@ -23,12 +23,12 @@
 └─────────────────────────────────────────────────────┘
 ```
 
-**Key concepts:**
+**Основные понятия:**
 
-- **Extensions are loaded once** when pi starts (or on `/reload`). Your default export function runs, and you subscribe to events and register tools/commands during that function call.
-- **Events are the communication mechanism.** Pi emits events at every stage of its lifecycle. Your extension listens and reacts.
-- **Tools are the LLM's interface to your extension.** The LLM sees tool descriptions in its system prompt and calls them when appropriate.
-- **Commands are the user's interface.** Users type `/mycommand` to invoke your extension directly.
-- **State lives in tool result `details`** for proper branching/forking support, or in `pi.appendEntry()` for extension-private state.
+- **Расширения загружаются один раз** при запуске pi (или при `/reload`). Ваша функция экспорта по умолчанию запускается, и вы подписываетесь на события и регистрируете инструменты/команды во время вызова этой функции.
+- **События — это механизм связи.** Pi генерирует события на каждом этапе своего жизненного цикла. Ваше расширение слушает и реагирует.
+- **Инструменты — это интерфейс LLM к вашему внутреннему номеру.** LLM видит описания инструментов в системной подсказке и вызывает их при необходимости.
+- **Команды — это пользовательский интерфейс.** Пользователи набирают `/mycommand`, чтобы напрямую вызвать ваше расширение.
+- **Состояние находится в результате инструмента `details`** для правильной поддержки ветвления/разветвления или в `pi.appendEntry()` для частного состояния расширения.
 
 ---

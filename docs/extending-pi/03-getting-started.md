@@ -1,9 +1,9 @@
-# Getting Started
+# Начало работы
 
 
-### Minimal Extension
+### Минимальное расширение
 
-Create `~/.gsd/agent/extensions/my-extension.ts`:
+Создайте `~/.gsd/agent/extensions/my-extension.ts`:
 
 ```typescript
 import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
@@ -15,7 +15,7 @@ export default function (pi: ExtensionAPI) {
 }
 ```
 
-### Testing
+### Тестирование
 
 ```bash
 # Quick test (doesn't need to be in extensions dir)
@@ -25,9 +25,9 @@ pi -e ./my-extension.ts
 pi
 ```
 
-### Hot Reload
+### Горячая перезагрузка
 
-Extensions in auto-discovered locations (`~/.gsd/agent/extensions/` or `.gsd/extensions/`) can be hot-reloaded:
+Расширения в автоматически обнаруженных местоположениях (`~/.gsd/agent/extensions/` или `.gsd/extensions/`) можно перезагрузить в горячем режиме:
 
 ```
 /reload

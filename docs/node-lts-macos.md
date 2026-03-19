@@ -1,20 +1,20 @@
-# Pinning Node.js LTS on macOS with Homebrew
+# Закрепление Node.js LTS на macOS с помощью Homebrew
 
-If you installed Node.js via Homebrew (`brew install node`), you're tracking the **latest current release** — which can include odd-numbered development versions (e.g. 23.x, 25.x). These aren't LTS and may have breaking changes or instability.
+Если вы установили Node.js через Homebrew (`brew install node`), вы отслеживаете **последнюю текущую версию**, которая может включать версии разработки с нечетными номерами (например, 23.x, 25.x). Это не LTS и могут иметь критические изменения или нестабильность.
 
-GSD requires Node.js **v22 or later** and works best on an **LTS (even-numbered) release**. This guide shows how to pin Node 24 LTS using Homebrew.
+Для версии GSD требуется версия Node.js **v22 или новее** и лучше всего работает с версией **LTS (четной)**. В этом руководстве показано, как закрепить узел 24 LTS с помощью Homebrew.
 
-## Check your current version
+## Проверьте вашу текущую версию
 
 ```bash
 node --version
 ```
 
-If this shows an odd number (e.g. `v23.x`, `v25.x`), you're on a development release.
+Если здесь отображается нечетное число (например, `v23.x`, `v25.x`), вы используете разрабатываемую версию.
 
-## Install Node 24 LTS
+## Установка узла 24 LTS
 
-Homebrew provides versioned formulas for LTS releases:
+Homebrew предоставляет версионные формулы для выпусков LTS:
 
 ```bash
 # Unlink the current (possibly non-LTS) version
@@ -27,46 +27,46 @@ brew install node@24
 brew link --overwrite node@24
 ```
 
-Verify:
+Проверьте:
 
 ```bash
 node --version
 # Should show v24.x.x
 ```
 
-## Why pin to LTS?
+## Зачем прикреплять к LTS?
 
-- **Stability** — LTS releases receive bug fixes and security patches for 30 months
-- **Compatibility** — npm packages (including GSD) test against LTS versions
-- **No surprises** — `brew upgrade` won't jump you to an unstable development release
+- **Стабильность** — выпуски LTS получают исправления ошибок и исправления безопасности в течение 30 месяцев.
+- **Совместимость** — пакеты npm (включая GSD) тестируются на соответствие версиям LTS.
+- **Никаких сюрпризов** — `brew upgrade` не приведет вас к нестабильной версии для разработки.
 
-## Prevent accidental upgrades
+## Предотвращение случайных обновлений
 
-By default, `brew upgrade` will upgrade all packages, which could move you off the pinned version. Pin the formula:
+По умолчанию `brew upgrade` обновит все пакеты, что может привести к отказу от закрепленной версии. Закрепите формулу:
 
 ```bash
 brew pin node@24
 ```
 
-To unpin later:
+Чтобы открепить позже:
 
 ```bash
 brew unpin node@24
 ```
 
-## Switching between versions
+## Переключение между версиями
 
-If you need multiple Node versions (e.g. 22 and 24), consider using a version manager instead:
+Если вам нужно несколько версий Node (например, 22 и 24), рассмотрите возможность использования вместо этого менеджера версий:
 
-- **[nvm](https://github.com/nvm-sh/nvm)** — `nvm install 24 && nvm use 24`
-- **[fnm](https://github.com/Schniz/fnm)** — `fnm install 24 && fnm use 24` (faster, Rust-based)
-- **[mise](https://mise.jdx.dev/)** — `mise use node@24` (polyglot version manager)
+- **[нвм](https://github.com/nvm-sh/nvm)** — `nvm install 24 && nvm use 24`
+- **[fnm](https://github.com/Schniz/fnm)** — `fnm install 24 && fnm use 24` (быстрее, на основе Rust)
+- **[mise](https://mise.jdx.dev/)** — `mise use node@24` (менеджер полиглотских версий)
 
-These let you set per-project Node versions via `.node-version` or `.nvmrc` files.
+Они позволяют устанавливать версии Node для каждого проекта с помощью файлов `.node-version` или `.nvmrc`.
 
-## Verify GSD works
+## Убедитесь, что GSD работает
 
-After pinning:
+После закрепления:
 
 ```bash
 node --version   # v24.x.x

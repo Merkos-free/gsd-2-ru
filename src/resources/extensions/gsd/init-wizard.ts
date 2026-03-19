@@ -67,19 +67,19 @@ export async function showProjectInit(
   // ── Step 1: Show what we detected ──────────────────────────────────────────
   const detectionSummary = buildDetectionSummary(signals);
   if (detectionSummary.length > 0) {
-    ctx.ui.notify(`Project detected:\n${detectionSummary.join("\n")}`, "info");
+    ctx.ui.notify(`Обнаружен проект:\n${detectionSummary.join("\n")}`, "info");
   }
 
   // ── Step 2: Git setup ──────────────────────────────────────────────────────
   if (!signals.isGitRepo) {
     const gitChoice = await showNextAction(ctx, {
       title: "GSD — Project Setup",
-      summary: ["This folder is not a git repository. GSD uses git for version control and isolation."],
+      summary: ["Эта папка не является git-репозиторием. GSD использует git для контроля версий и изоляции."],
       actions: [
-        { id: "init_git", label: "Initialize git", description: "Create a git repo in this folder", recommended: true },
-        { id: "skip_git", label: "Skip", description: "Continue without git (limited functionality)" },
+        { id: "init_git", label: "Инициализировать git", description: "Создать git-репозиторий в этой папке", recommended: true },
+        { id: "skip_git", label: "Пропустить", description: "Продолжить без git (ограниченная функциональность)" },
       ],
-      notYetMessage: "Run /gsd init when ready.",
+      notYetMessage: "Запустите /gsd init, когда будете готовы.",
     });
 
     if (gitChoice === "not_yet") return { completed: false, bootstrapped: false };
@@ -96,21 +96,21 @@ export async function showProjectInit(
   // ── Step 3: Mode selection ─────────────────────────────────────────────────
   const modeChoice = await showNextAction(ctx, {
     title: "GSD — Workflow Mode",
-    summary: ["How are you working on this project?"],
+    summary: ["Как вы работаете над этим проектом?"],
     actions: [
       {
         id: "solo",
-        label: "Solo",
-        description: "Just me — auto-push, squash merge, worktree isolation",
+        label: "Самостоятельно",
+        description: "Только я — auto-push, squash merge, изоляция через worktree",
         recommended: true,
       },
       {
         id: "team",
-        label: "Team",
-        description: "Multiple contributors — branch-based, PR-friendly workflow",
+        label: "Команда",
+        description: "Несколько участников — workflow на ветках, удобный для PR",
       },
     ],
-    notYetMessage: "Run /gsd init when ready.",
+    notYetMessage: "Запустите /gsd init, когда будете готовы.",
   });
 
   if (modeChoice === "not_yet") return { completed: false, bootstrapped: false };
@@ -129,16 +129,16 @@ export async function showProjectInit(
     const verifyChoice = await showNextAction(ctx, {
       title: "GSD — Verification Commands",
       summary: [
-        "Auto-detected verification commands:",
+        "Автоматически обнаружены команды проверки:",
         ...verifyLines,
         "",
-        "GSD runs these after each code change to verify nothing is broken.",
+        "GSD запускает их после каждого изменения кода, чтобы убедиться, что ничего не сломано.",
       ],
       actions: [
-        { id: "accept", label: "Use these commands", description: "Accept auto-detected commands", recommended: true },
-        { id: "skip", label: "Skip verification", description: "Don't verify after changes" },
+        { id: "accept", label: "Использовать эти команды", description: "Принять автоматически найденные команды", recommended: true },
+        { id: "skip", label: "Пропустить проверку", description: "Не запускать проверку после изменений" },
       ],
-      notYetMessage: "Run /gsd init when ready.",
+      notYetMessage: "Запустите /gsd init, когда будете готовы.",
     });
 
     if (verifyChoice === "not_yet") return { completed: false, bootstrapped: false };
@@ -152,12 +152,12 @@ export async function showProjectInit(
 
   const gitChoice = await showNextAction(ctx, {
     title: "GSD — Git Settings",
-    summary: ["Default git settings for this project:", ...gitSummary],
+    summary: ["Настройки git по умолчанию для этого проекта:", ...gitSummary],
     actions: [
-      { id: "accept", label: "Accept defaults", description: "Use standard git settings", recommended: true },
-      { id: "customize", label: "Customize", description: "Change git settings" },
+      { id: "accept", label: "Принять значения по умолчанию", description: "Использовать стандартные настройки git", recommended: true },
+      { id: "customize", label: "Настроить", description: "Изменить настройки git" },
     ],
-    notYetMessage: "Run /gsd init when ready.",
+    notYetMessage: "Запустите /gsd init, когда будете готовы.",
   });
 
   if (gitChoice === "not_yet") return { completed: false, bootstrapped: false };
@@ -170,28 +170,28 @@ export async function showProjectInit(
   const instructionChoice = await showNextAction(ctx, {
     title: "GSD — Project Instructions",
     summary: [
-      "Any rules GSD should follow for this project?",
+      "Есть ли правила, которым GSD должен следовать в этом проекте?",
       "",
-      "Examples:",
+      "Примеры:",
       '  - "Use TypeScript strict mode"',
       '  - "Always write tests for new code"',
       '  - "This is a monorepo, only touch packages/api"',
       "",
-      "You can always add more later via /gsd prefs project.",
+      "Позже вы всегда сможете добавить больше через /gsd prefs project.",
     ],
     actions: [
-      { id: "skip", label: "Skip for now", description: "No special instructions", recommended: true },
-      { id: "add", label: "Add instructions", description: "Enter project-specific rules" },
+      { id: "skip", label: "Пока пропустить", description: "Без специальных инструкций", recommended: true },
+      { id: "add", label: "Добавить инструкции", description: "Ввести правила проекта" },
     ],
-    notYetMessage: "Run /gsd init when ready.",
+    notYetMessage: "Запустите /gsd init, когда будете готовы.",
   });
 
   if (instructionChoice === "not_yet") return { completed: false, bootstrapped: false };
 
   if (instructionChoice === "add") {
     const input = await ctx.ui.input(
-      "Enter instructions (one per line, or comma-separated):",
-      "e.g., Use Tailwind CSS, Always write tests",
+      "Введите инструкции (по одной на строку или через запятую):",
+      "например, Use Tailwind CSS, Always write tests",
     );
     if (input && input.trim()) {
       // Split on newlines or commas
@@ -207,14 +207,14 @@ export async function showProjectInit(
     title: "GSD — Advanced Settings",
     summary: [
       `Token profile: ${prefs.tokenProfile}`,
-      `Skip research phase: ${prefs.skipResearch ? "yes" : "no"}`,
-      `Auto-push on merge: ${prefs.autoPush ? "yes" : "no"}`,
+      `Пропустить фазу исследования: ${prefs.skipResearch ? "да" : "нет"}`,
+      `Auto-push при merge: ${prefs.autoPush ? "да" : "нет"}`,
     ],
     actions: [
-      { id: "accept", label: "Accept defaults", description: "Use standard settings", recommended: true },
-      { id: "customize", label: "Customize", description: "Change advanced settings" },
+      { id: "accept", label: "Принять значения по умолчанию", description: "Использовать стандартные настройки", recommended: true },
+      { id: "customize", label: "Настроить", description: "Изменить дополнительные параметры" },
     ],
-    notYetMessage: "Run /gsd init when ready.",
+    notYetMessage: "Запустите /gsd init, когда будете готовы.",
   });
 
   if (advancedChoice === "not_yet") return { completed: false, bootstrapped: false };
@@ -230,7 +230,7 @@ export async function showProjectInit(
   ensureGitignore(basePath);
   untrackRuntimeFiles(basePath);
 
-  ctx.ui.notify("GSD initialized. Starting your first milestone...", "info");
+  ctx.ui.notify("GSD инициализирован. Запускается первый milestone...", "info");
 
   return { completed: true, bootstrapped: true };
 }
@@ -246,32 +246,32 @@ export async function offerMigration(
   v1: NonNullable<ProjectDetection["v1"]>,
 ): Promise<"migrate" | "fresh" | "cancel"> {
   const summary = [
-    "Found .planning/ directory (GSD v1 format)",
+    "Найдена директория .planning/ (формат GSD v1)",
   ];
   if (v1.phaseCount > 0) {
-    summary.push(`${v1.phaseCount} phase${v1.phaseCount > 1 ? "s" : ""} detected`);
+    summary.push(`Обнаружено ${v1.phaseCount} phase${v1.phaseCount > 1 ? "s" : ""}`);
   }
   if (v1.hasRoadmap) {
-    summary.push("Has ROADMAP.md");
+    summary.push("Есть ROADMAP.md");
   }
 
   const choice = await showNextAction(ctx, {
-    title: "GSD — Legacy Project Detected",
+    title: "GSD — Обнаружен legacy-проект",
     summary,
     actions: [
       {
         id: "migrate",
-        label: "Migrate to GSD v2",
-        description: "Convert .planning/ to .gsd/ format",
+        label: "Мигрировать на GSD v2",
+        description: "Преобразовать .planning/ в формат .gsd/",
         recommended: true,
       },
       {
         id: "fresh",
-        label: "Start fresh",
-        description: "Ignore .planning/ and create new .gsd/",
+        label: "Начать с нуля",
+        description: "Игнорировать .planning/ и создать новый .gsd/",
       },
     ],
-    notYetMessage: "Run /gsd init when ready.",
+    notYetMessage: "Запустите /gsd init, когда будете готовы.",
   });
 
   if (choice === "not_yet") return "cancel";
@@ -288,33 +288,33 @@ export async function handleReinit(
   ctx: ExtensionCommandContext,
   detection: ProjectDetection,
 ): Promise<void> {
-  const summary = ["GSD is already initialized in this project."];
+  const summary = ["GSD уже инициализирован в этом проекте."];
   if (detection.v2) {
-    summary.push(`${detection.v2.milestoneCount} milestone(s) found`);
-    summary.push(`Preferences: ${detection.v2.hasPreferences ? "configured" : "not set"}`);
+    summary.push(`Найдено milestone: ${detection.v2.milestoneCount}`);
+    summary.push(`Настройки: ${detection.v2.hasPreferences ? "заданы" : "не заданы"}`);
   }
 
   const choice = await showNextAction(ctx, {
-    title: "GSD — Already Initialized",
+    title: "GSD — Уже инициализирован",
     summary,
     actions: [
       {
         id: "prefs",
-        label: "Re-configure preferences",
-        description: "Update project preferences without affecting milestones",
+        label: "Перенастроить preferences",
+        description: "Обновить настройки проекта без изменения milestones",
         recommended: true,
       },
       {
         id: "cancel",
-        label: "Cancel",
-        description: "Keep everything as-is",
+        label: "Отмена",
+        description: "Оставить всё как есть",
       },
     ],
-    notYetMessage: "Run /gsd init when ready.",
+    notYetMessage: "Запустите /gsd init, когда будете готовы.",
   });
 
   if (choice === "prefs") {
-    ctx.ui.notify("Use /gsd prefs project to update project preferences.", "info");
+    ctx.ui.notify("Используйте /gsd prefs project, чтобы обновить настройки проекта.", "info");
   }
 }
 
@@ -328,17 +328,17 @@ async function customizeGitPrefs(
   // Isolation strategy
   const hasSubmodules = existsSync(join(process.cwd(), ".gitmodules"));
   const isolationActions = [
-    { id: "worktree", label: "Worktree", description: "Isolated git worktree per milestone (recommended)", recommended: !hasSubmodules },
-    { id: "branch", label: "Branch", description: "Work on branches in project root (better for submodules)", recommended: hasSubmodules },
-    { id: "none", label: "None", description: "No isolation — commits on current branch" },
+    { id: "worktree", label: "Worktree", description: "Изолированный git worktree для каждого milestone (рекомендуется)", recommended: !hasSubmodules },
+    { id: "branch", label: "Ветка", description: "Работа в ветках из корня проекта (лучше для submodules)", recommended: hasSubmodules },
+    { id: "none", label: "Без изоляции", description: "Без изоляции — коммиты в текущую ветку" },
   ];
 
   const isolationSummary = hasSubmodules
-    ? ["Submodules detected — branch mode recommended over worktree."]
-    : ["Worktree isolation creates a separate copy for each milestone."];
+    ? ["Обнаружены submodules — режим branch предпочтительнее worktree."]
+    : ["Изоляция через worktree создаёт отдельную копию для каждого milestone."];
 
   const isolationChoice = await showNextAction(ctx, {
-    title: "Git isolation strategy",
+    title: "Стратегия git-изоляции",
     summary: isolationSummary,
     actions: isolationActions,
   });
@@ -355,15 +355,15 @@ async function customizeAdvancedPrefs(
 ): Promise<void> {
   // Token profile
   const profileChoice = await showNextAction(ctx, {
-    title: "Token usage profile",
+    title: "Профиль использования токенов",
     summary: [
-      "Controls how much context GSD uses per task.",
-      "Budget: cheaper, faster. Quality: thorough, more expensive.",
+      "Определяет, сколько контекста GSD использует на задачу.",
+      "Экономный режим: дешевле и быстрее. Качественный: тщательнее, но дороже.",
     ],
     actions: [
-      { id: "balanced", label: "Balanced", description: "Good trade-off (default)", recommended: true },
-      { id: "budget", label: "Budget", description: "Minimize token usage" },
-      { id: "quality", label: "Quality", description: "Maximize thoroughness" },
+      { id: "balanced", label: "Сбалансированный", description: "Хороший компромисс (по умолчанию)", recommended: true },
+      { id: "budget", label: "Экономный", description: "Минимизировать использование токенов" },
+      { id: "quality", label: "Качественный", description: "Максимальная тщательность" },
     ],
   });
   if (profileChoice !== "not_yet") {
@@ -372,30 +372,30 @@ async function customizeAdvancedPrefs(
 
   // Skip research
   const researchChoice = await showNextAction(ctx, {
-    title: "Research phase",
+    title: "Фаза исследования",
     summary: [
-      "GSD can research the codebase before planning each milestone.",
-      "Small projects may not need this step.",
+      "GSD может исследовать кодовую базу перед планированием каждого milestone.",
+      "Небольшим проектам этот шаг может не понадобиться.",
     ],
     actions: [
-      { id: "keep", label: "Keep research", description: "Explore codebase before planning", recommended: true },
-      { id: "skip", label: "Skip research", description: "Go straight to planning" },
+      { id: "keep", label: "Оставить исследование", description: "Изучать кодовую базу перед планированием", recommended: true },
+      { id: "skip", label: "Пропустить исследование", description: "Сразу перейти к планированию" },
     ],
   });
   prefs.skipResearch = researchChoice === "skip";
 
   // Auto-push
   const pushChoice = await showNextAction(ctx, {
-    title: "Auto-push after merge",
+    title: "Auto-push после merge",
     summary: [
-      "After merging a milestone branch, auto-push to remote?",
+      "Выполнять auto-push в remote после merge ветки milestone?",
       prefs.mode === "team"
-        ? "Team mode: usually disabled so changes go through PR review."
-        : "Solo mode: usually enabled for convenience.",
+        ? "Режим team: обычно отключено, чтобы изменения проходили через PR review."
+        : "Режим solo: обычно включено для удобства.",
     ],
     actions: [
-      { id: "yes", label: "Yes", description: "Push automatically", recommended: prefs.mode === "solo" },
-      { id: "no", label: "No", description: "Manual push only", recommended: prefs.mode === "team" },
+      { id: "yes", label: "Да", description: "Отправлять автоматически", recommended: prefs.mode === "solo" },
+      { id: "no", label: "Нет", description: "Только ручной push", recommended: prefs.mode === "team" },
     ],
   });
   prefs.autoPush = pushChoice !== "no";
@@ -473,9 +473,9 @@ function buildPreferencesFile(prefs: ProjectPreferences): string {
   lines.push("");
   lines.push("# GSD Project Preferences");
   lines.push("");
-  lines.push("Generated by `/gsd init`. Edit directly or use `/gsd prefs project` to modify.");
+  lines.push("Сгенерировано командой `/gsd init`. Можно редактировать напрямую или менять через `/gsd prefs project`.");
   lines.push("");
-  lines.push("See `~/.gsd/agent/extensions/gsd/docs/preferences-reference.md` for full field documentation.");
+  lines.push("Полная документация по полям: `~/.gsd/agent/extensions/gsd/docs/preferences-reference.md`.");
   lines.push("");
 
   return lines.join("\n");
@@ -490,7 +490,7 @@ function buildContextSeed(signals: ProjectSignals): string | null {
 
   lines.push("# Project Context");
   lines.push("");
-  lines.push("Auto-detected by GSD init wizard. Edit or expand as needed.");
+  lines.push("Автоматически определено мастером инициализации GSD. При необходимости отредактируйте или расширьте.");
   lines.push("");
 
   if (signals.primaryLanguage) {
@@ -515,17 +515,17 @@ function buildContextSeed(signals: ProjectSignals): string | null {
   if (signals.hasCI) {
     lines.push("## CI/CD");
     lines.push("");
-    lines.push("CI configuration detected.");
+    lines.push("Обнаружена конфигурация CI.");
     lines.push("");
   }
 
   if (signals.hasTests) {
     lines.push("## Testing");
     lines.push("");
-    lines.push("Test infrastructure detected.");
+    lines.push("Обнаружена тестовая инфраструктура.");
     if (signals.verificationCommands.length > 0) {
       lines.push("");
-      lines.push("Verification commands:");
+      lines.push("Команды проверки:");
       for (const cmd of signals.verificationCommands) {
         lines.push(`- \`${cmd}\``);
       }
@@ -547,18 +547,18 @@ function buildDetectionSummary(signals: ProjectSignals): string[] {
   }
 
   if (signals.detectedFiles.length > 0) {
-    lines.push(`  Project files: ${signals.detectedFiles.join(", ")}`);
+    lines.push(`  Файлы проекта: ${signals.detectedFiles.join(", ")}`);
   }
 
   if (signals.packageManager) {
-    lines.push(`  Package manager: ${signals.packageManager}`);
+    lines.push(`  Менеджер пакетов: ${signals.packageManager}`);
   }
 
-  if (signals.hasCI) lines.push("  CI/CD: detected");
-  if (signals.hasTests) lines.push("  Tests: detected");
+  if (signals.hasCI) lines.push("  CI/CD: обнаружено");
+  if (signals.hasTests) lines.push("  Tests: обнаружены");
 
   if (signals.verificationCommands.length > 0) {
-    lines.push(`  Verification: ${signals.verificationCommands.join(", ")}`);
+    lines.push(`  Проверка: ${signals.verificationCommands.join(", ")}`);
   }
 
   return lines;

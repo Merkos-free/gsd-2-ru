@@ -1,60 +1,60 @@
-# ADR-001: Branchless Worktree Architecture
+# ADR-001: Архитектура рабочего дерева без ветвей
 
-**Status:** Proposed
-**Date:** 2026-03-15
-**Deciders:** Lex Christopherson
-**Advisors:** Claude Opus 4.6, Gemini 2.5 Pro, GPT-5.4 (Codex)
+**Статус:** Предлагается
+**Дата:** 15 марта 2026 г.
+**Решающие:** Лекс Кристоферсон
+**Советники:** Claude Opus 4.6, Gemini 2.5 Pro, GPT-5.4 (Кодекс)
 
-## Context
+## Контекст
 
-GSD uses git for isolation during autonomous coding sessions. The current architecture (shipped in M003, v2.13.0) creates a **worktree per milestone** with **slice branches inside each worktree**. Each slice (`S01`, `S02`, ...) gets its own branch (`gsd/M001/S01`) within the worktree, which merges back to the milestone branch (`milestone/M001`) via `--no-ff` when the slice completes. The milestone branch squash-merges to `main` when the milestone completes.
+GSD использует git для изоляции во время автономных сеансов кодирования. Текущая архитектура (поставленная в M003, версия 2.13.0) создает **рабочее дерево для каждой вехи** с **срезами внутри каждого рабочего дерева**. Каждый фрагмент (`S01`, `S02`, ...) получает свою собственную ветвь (`gsd/M001/S01`) в рабочем дереве, которая объединяется обратно с вехой ветки (`milestone/M001`) через `--no-ff`, когда срез завершается. Когда веха завершается, ветвь вехи сливается с `main`.
 
-This architecture replaced a previous "branch-per-slice" model that had severe `.gsd/` merge conflicts. M003 solved the merge conflicts but retained slice branches inside worktrees, inheriting complexity that has produced persistent, user-facing failures.
+Эта архитектура заменила предыдущую модель «ветвь на срез», которая имела серьезные конфликты слияния `.gsd/`. M003 разрешил конфликты слияния, но сохранил ветки срезов внутри рабочих деревьев, унаследовав сложность, которая приводила к постоянным сбоям, с которыми сталкиваются пользователи.
 
-### Problems
+### Проблемы
 
-**1. Planning artifact invisibility (loop detection failures)**
+**1. Планирование невидимости артефактов (ошибок обнаружения шлейфа)**
 
-When `research-slice` or `plan-slice` dispatches, the agent writes artifacts (e.g., `S02-RESEARCH.md`) on a slice branch. After the agent completes, `handleAgentEnd` switches back to the milestone branch for the next dispatch. The artifact is on the slice branch, not the milestone branch. `verifyExpectedArtifact()` checks the milestone branch, can't find the file, increments the loop counter, retries, same result. After 3 retries → hard stop. After 6 lifetime dispatches → permanent stop. This burns budget and blocks progress.
+При отправке `research-slice` или `plan-slice` агент записывает артефакты (например, `S02-RESEARCH.md`) в ветку среза. После завершения работы агента `handleAgentEnd` переключается обратно на ветку этапов для следующей отправки. Артефакт находится в ветке среза, а не в ветке вехи. `verifyExpectedArtifact()` проверяет ветвь вехи, не может найти файл, увеличивает счетчик цикла, повторяет попытки, тот же результат. После 3-х повторов → жёсткая остановка. После 6 пожизненных отправок → постоянная остановка. Это сжигает бюджет и блокирует прогресс.
 
-Documented in the auto-stop architecture doc as "The Branch-Switching Problem."
+Задокументировано в документе по архитектуре автоматической остановки как «Проблема переключения ветвей».
 
-**2. `.gsd/` state clobbering across branches**
+**2. `.gsd/` государственное разгром в филиалах**
 
-`.gsd/` is gitignored (line 52 of `.gitignore`: `.gsd/`). Planning artifacts (roadmaps, plans, summaries, decisions, requirements) live in `.gsd/milestones/` but are invisible to git. When multiple branches or worktrees operate from the same repo, they share a single `.gsd/` directory on disk. Branch A's M001 roadmap overwrites Branch B's M001 roadmap. GSD reads corrupted state, shows wrong milestone as complete, or enters infinite dispatch loops.
+`.gsd/` игнорируется (строка 52 из `.gitignore`: `.gsd/`). Артефакты планирования (дорожные карты, планы, сводки, решения, требования) находятся в `.gsd/milestones/`, но невидимы для git. Когда несколько ветвей или рабочих деревьев работают с одним и тем же репозиторием, они используют один каталог `.gsd/` на диске. Дорожная карта M001 филиала A перезаписывает дорожную карту M001 филиала B. GSD считывает поврежденное состояние, отображает неправильную веху как завершенную или входит в бесконечные циклы диспетчеризации.
 
-The codebase has a contradictory workaround: `smartStage()` (git-service.ts:304-352) force-adds `GSD_DURABLE_PATHS` (milestones/, DECISIONS.md, PROJECT.md, REQUIREMENTS.md, QUEUE.md) despite the `.gitignore`. This means `.gsd/milestones/` IS partially tracked on some branches but the gitignore claims otherwise. The code fights the configuration.
+В кодовой базе есть противоречивый обходной путь: `smartStage()` (git-service.ts:304-352) принудительно добавляет `GSD_DURABLE_PATHS` (вехи/, DECISIONS.md, PROJECT.md, REQUIREMENTS.md, QUEUE.md), несмотря на `.gitignore`. Это означает, что `.gsd/milestones/` IS частично отслеживается в некоторых ветках, но gitignore утверждает обратное. Код борется с конфигурацией.
 
-**3. Merge/conflict code complexity**
+**3. Сложность кода слияния/конфликта**
 
-The current slice branch model requires:
-- `mergeSliceToMilestone()` — 98 lines, `--no-ff` merge with `withMergeHeal` wrapper
-- `mergeSliceToMain()` — 189 lines, squash-merge with conflict detection/categorization/auto-resolution
-- `git-self-heal.ts` — 198 lines, 3 recovery functions for merge failures
-- `fix-merge` dispatch unit — dedicated LLM session to resolve conflicts the auto-resolver can't handle
-- `smartStage()` — 49 lines of runtime exclusion during staging
-- Conflict categorization — 80 lines classifying `.gsd/` vs runtime vs code conflicts
+Текущая модель ветвей среза требует:
+- `mergeSliceToMilestone()` — 98 строк, `--no-ff` объединяется с оберткой `withMergeHeal`
+- `mergeSliceToMain()` — 189 строк, сквош-слияние с обнаружением/категоризацией/автоматическим разрешением конфликтов.
+- `git-self-heal.ts` — 198 строк, 3 функции восстановления при сбоях слияния.
+- Диспетчерский блок `fix-merge` — выделенный сеанс LLM для разрешения конфликтов, с которыми не может справиться авторазрешитель.
+- `smartStage()` — 49 строк исключения времени выполнения во время промежуточной подготовки.
+- Категоризация конфликтов — 80 строк, классифицирующих `.gsd/`, конфликты во время выполнения и конфликты кода.
 
-Total: **~582 lines** of merge/branch/conflict code across 3 files, plus the `fix-merge` prompt template and dispatch logic. This code exists solely because of slice branches.
+Итого: **~582** строки кода слияния/ветвления/конфликта в 3 файлах, а также шаблон приглашения `fix-merge` и логика отправки. Этот код существует исключительно из-за ветвей срезов.
 
-**4. Dual isolation modes**
+**4. Двойные режимы изоляции**
 
-Branch-mode (`git-service.ts:mergeSliceToMain`) and worktree-mode (`auto-worktree.ts:mergeSliceToMilestone`) have parallel implementations with different merge strategies, different conflict handling, and different branch naming. Both paths must be maintained and tested. 11 test files exercise merge/branch/worktree logic.
+Режим ветвления (`git-service.ts:mergeSliceToMain`) и режим рабочего дерева (`auto-worktree.ts:mergeSliceToMilestone`) имеют параллельные реализации с разными стратегиями слияния, разной обработкой конфликтов и разными именами ветвей. Оба пути необходимо поддерживать и тестировать. 11 тестовых файлов реализуют логику слияния/ветвления/рабочего дерева.
 
-**5. Bug history**
+**5. История ошибок**
 
-- v2.11.1: URGENT fix for parse cache staleness causing repeated unit dispatch (directly caused by branch switching invalidation timing)
-- v2.13.1: Windows hotfix for multi-line commit messages in `mergeSliceToMilestone`
-- 15+ separate bug fixes for `.gsd/` merge conflicts in the pre-M003 era
-- Persistent user complaints about loop detection failures and state corruption
+- v2.11.1: URGENT исправление устаревшего кэша синтаксического анализа, вызывающее повторную отправку модулей (непосредственно вызванное временем аннулирования переключения ветвей)
+- v2.13.1: исправление Windows для многострочных сообщений фиксации в `mergeSliceToMilestone`.
+- Более 15 отдельных исправлений ошибок для конфликтов слияния `.gsd/` в эпоху до M003.
+- Постоянные жалобы пользователей на сбои обнаружения петель и повреждение состояния.
 
-## Decision
+## Решение
 
-**Eliminate slice branches entirely.** All work within a milestone worktree commits sequentially on a single branch (`milestone/<MID>`). No branch creation, no branch switching, no slice merges, no conflict resolution within a worktree.
+**Полное исключение ветвей срезов.** Вся работа в рамках рабочего дерева контрольной точки фиксируется последовательно в одной ветке (`milestone/<MID>`). Никакого создания ветвей, никакого переключения ветвей, никакого слияния фрагментов, никакого разрешения конфликтов внутри рабочего дерева.
 
-Track `.gsd/` planning artifacts in git. Gitignore only runtime/ephemeral state.
+Отслеживайте артефакты планирования `.gsd/` в git. Gitignore только время выполнения/эфемерное состояние.
 
-### The Architecture
+### Архитектура
 
 ```
 main ──────────────────────────────────────────── main
@@ -74,27 +74,27 @@ main ─────────────────────────
        └──────────── squash merge ──────────────────┘
 ```
 
-### Git Primitives Used
+### Используемые примитивы Git
 
-| Primitive | Purpose |
+| Примитивный | Цель |
 |-----------|---------|
-| **Worktrees** | One per active milestone. Filesystem isolation. |
-| **Commits** | Granular sequential history of every action. |
-| **Squash merge** | Clean single commit on `main` per milestone. |
-| **Branches** | Only `main` and `milestone/<MID>`. Nothing else. |
+| **Рабочие деревья** | По одному на каждую активную веху. Изоляция файловой системы. |
+| **Обязательства** | Подробная последовательная история каждого действия. |
+| **Слияние сквоша** | Чистая единая фиксация по цене `main` за этап. |
+| **Филиалы** | Только `main` и `milestone/<MID>`. Ничего больше. |
 
-### Git Primitives NOT Used
+### Примитивы Git NOT Использованы
 
-| Primitive | Why Not |
+| Примитивный | Почему бы и нет |
 |-----------|---------|
-| Slice branches | Slices are sequential. Branches add complexity with no rollback benefit. |
-| `--no-ff` merges | No branches to merge within a worktree. |
-| Branch switching | Never happens. All work on one branch. |
-| Conflict resolution | No merges within a worktree means no conflicts within a worktree. |
+| Срез ветвей | Срезы последовательные. Ветви усложняют работу без возможности отката. |
+| `--no-ff` слияния | Нет ветвей для объединения в рабочем дереве. |
+| Переключение филиалов | Никогда не бывает. Все работают в одной ветке. |
+| Разрешение конфликтов | Отсутствие слияний внутри рабочего дерева означает отсутствие конфликтов внутри рабочего дерева. |
 
-### `.gsd/` Tracking Model
+### `.gsd/` Модель отслеживания
 
-**Tracked in git (travels with the branch):**
+**Отслеживается в git (перемещается вместе с веткой):**
 ```
 .gsd/milestones/         — roadmaps, plans, summaries, research, contexts, task plans/summaries
 .gsd/PROJECT.md          — project overview
@@ -103,7 +103,7 @@ main ─────────────────────────
 .gsd/QUEUE.md            — work queue
 ```
 
-**Gitignored (ephemeral, runtime, infrastructure):**
+**Gitigned (эфемерный, среда выполнения, инфраструктура):**
 ```
 .gsd/runtime/            — dispatch records, timeout tracking
 .gsd/activity/           — JSONL session dumps
@@ -118,9 +118,9 @@ main ─────────────────────────
 .gsd/milestones/**/continue.md   — legacy continue markers
 ```
 
-### `.gitignore` Update
+### `.gitignore` Обновление
 
-Replace the current blanket `.gsd/` ignore with explicit runtime-only ignores:
+Замените текущее полное игнорирование `.gsd/` явным игнорированием только во время выполнения:
 
 ```gitignore
 # ── GSD: Runtime / Ephemeral ─────────────────────────────────
@@ -137,143 +137,143 @@ Replace the current blanket `.gsd/` ignore with explicit runtime-only ignores:
 .gsd/milestones/**/continue.md
 ```
 
-Planning artifacts (milestones/, PROJECT.md, DECISIONS.md, REQUIREMENTS.md, QUEUE.md) are NOT in `.gitignore` and are tracked normally.
+Артефакты планирования (вехи/, PROJECT.md, DECISIONS.md, REQUIREMENTS.md, QUEUE.md) имеют размер NOT в `.gitignore` и отслеживаются обычным образом.
 
-## Consequences
+## Последствия
 
-### Code Deletion
+### Удаление кода
 
-| File | Lines Deleted | What's Removed |
+| Файл | Линии удалены | Что удалено |
 |------|--------------|----------------|
-| `auto-worktree.ts` | ~246 | `mergeSliceToMilestone()`, `shouldUseWorktreeIsolation()`, `getMergeToMainMode()`, slice merge guards |
-| `git-service.ts` | ~250 | `mergeSliceToMain()`, conflict resolution, runtime stripping post-merge, `ensureSliceBranch()`, `switchToMain()` |
-| `git-self-heal.ts` | ~86 | `abortAndReset()`, `withMergeHeal()` (merge-specific recovery) |
-| `auto.ts` | ~150 | Merge dispatch guards, `fix-merge` dispatch path, branch-mode routing |
-| `worktree.ts` | ~40 | `getSliceBranchName()`, `ensureSliceBranch()`, `mergeSliceToMain()` delegates |
-| **Test files** | ~11 files | `auto-worktree-merge.test.ts`, `auto-worktree-milestone-merge.test.ts`, merge-related test cases |
-| **Total** | **~770+ lines** | |
+| `auto-worktree.ts` | ~246 | `mergeSliceToMilestone()`, `shouldUseWorktreeIsolation()`, `getMergeToMainMode()`, защита слияния фрагментов |
+| `git-service.ts` | ~250 | `mergeSliceToMain()`, разрешение конфликтов, удаление среды выполнения после слияния, `ensureSliceBranch()`, `switchToMain()` |
+| `git-self-heal.ts` | ~86 | `abortAndReset()`, `withMergeHeal()` (восстановление при слиянии) |
+| `auto.ts` | ~150 | Объединение средств диспетчеризации, путь отправки `fix-merge`, маршрутизация в режиме ветвления |
+| `worktree.ts` | ~40 | Делегаты `getSliceBranchName()`, `ensureSliceBranch()`, `mergeSliceToMain()` |
+| **Тестовые файлы** | ~11 файлов | `auto-worktree-merge.test.ts`, `auto-worktree-milestone-merge.test.ts`, тестовые примеры, связанные со слиянием |
+| **Всего** | **~770+ строк** | |
 
-### What `mergeMilestoneToMain()` Becomes
+### Чем становится `mergeMilestoneToMain()`
 
-The function simplifies dramatically:
-1. Auto-commit any dirty state in worktree
-2. `chdir` back to main repo root
+Функция значительно упрощается:
+1. Автоматическое сохранение любого грязного состояния в рабочем дереве.
+2. `chdir` вернуться в корень основного репозитория.
 3. `git checkout main`
 4. `git merge --squash milestone/<MID>`
-5. `git commit` with milestone summary
-6. Remove worktree + delete branch
+5. `git commit` со сводкой этапов
+6. Удалить рабочее дерево + удалить ветку.
 
-No conflict categorization. No runtime file stripping. No `.gsd/` special handling. Planning artifacts merge cleanly because they're in `.gsd/milestones/M001/` which doesn't exist on `main` until this merge.
+Никакой категоризации конфликтов. Никакого удаления файлов во время выполнения. Никакого особого обращения с `.gsd/`. Артефакты планирования сливаются без проблем, поскольку они находятся в `.gsd/milestones/M001/`, которого не существует в `main` до этого слияния.
 
-### What `smartStage()` Becomes
+### Чем становится `smartStage()`
 
-The force-add of `GSD_DURABLE_PATHS` is no longer needed — planning artifacts are not gitignored, so `git add -A` picks them up naturally. The function reduces to:
+Принудительное добавление `GSD_DURABLE_PATHS` больше не требуется — артефакты планирования не игнорируются git, поэтому `git add -A` подхватывает их естественным образом. Функция сводится к:
 
 1. `git add -A`
-2. `git reset HEAD -- <runtime paths>` (unstage runtime files)
+2. `git reset HEAD -- <runtime paths>` (отключить файлы времени выполнения)
 
-The `_runtimeFilesCleanedUp` one-time migration logic can also be removed.
+Логику однократной миграции `_runtimeFilesCleanedUp` также можно удалить.
 
-### What Happens to `handleAgentEnd()`
+### Что происходит с `handleAgentEnd()`
 
-After any unit completes:
-1. Invalidate caches
-2. `autoCommitCurrentBranch()` — commits on the one and only branch
-3. `verifyExpectedArtifact()` — file is always on the current branch (no branch switching)
-4. Persist completion key
+После завершения любого модуля:
+1. Недействительные кеши
+2. `autoCommitCurrentBranch()` — коммит на единственной ветке
+3. `verifyExpectedArtifact()` — файл всегда находится в текущей ветке (без переключения веток)
+4. Сохранение ключа завершения
 
-The "Path A fix" (lines 937-953) becomes the only path. No branch mismatch possible.
+«Путь А» (строки 937–953) становится единственным путем. Несовпадение ветвей невозможно.
 
-### What Happens to `fix-merge`
+### Что происходит с `fix-merge`
 
-The `fix-merge` dispatch unit type is eliminated. Within a worktree, there are no merges that can conflict. The only merge is milestone→main (squash), and if that conflicts (rare, parallel milestone edge case), it's handled as a one-time resolution at milestone completion — not a dispatch loop.
+Тип диспетчерской единицы `fix-merge` исключен. В рабочем дереве нет слияний, которые могут конфликтовать. Единственное слияние — это веха→основная (сквош), и если оно конфликтует (редкий случай параллельной вехи), оно обрабатывается как однократное разрешение при завершении вехи, а не как цикл диспетчеризации.
 
-### Backwards Compatibility
+### Обратная совместимость
 
-The `shouldUseWorktreeIsolation()` three-tier preference resolution is replaced by a single behavior: worktree isolation is always used. The `git.isolation: "branch"` preference is deprecated.
+Трехуровневое разрешение предпочтений `shouldUseWorktreeIsolation()` заменяется единственным поведением: всегда используется изоляция рабочего дерева. Предпочтение `git.isolation: "branch"` устарело.
 
-Projects with existing `gsd/M001/S01` slice branches can still be read by state derivation, but new work never creates slice branches.
+Проекты с существующими ветвями срезов `gsd/M001/S01` по-прежнему можно читать с помощью деривации состояния, но новая работа никогда не создает ветки срезов.
 
-### Risks
+### Риски
 
-**1. Parallel milestone code conflicts at squash-merge time**
+**1. Конфликты кода параллельной контрольной точки во время слияния**
 
-If two milestones modify the same source file, the second squash-merge to `main` will conflict. Mitigation: `git fetch origin main && git rebase main` before squash-merge. This is standard practice and rare in single-user workflows.
+Если две вехи изменяют один и тот же исходный файл, второе слияние с `main` будет конфликтовать. Смягчение: `git fetch origin main && git rebase main` перед сквош-слиянием. Это стандартная практика, редко встречающаяся в однопользовательских рабочих процессах.
 
-**2. Loss of per-slice git history after squash**
+**2. Потеря истории git для каждого среза после сквош**
 
-Squash merge collapses all commits into one on `main`. Mitigations:
-- Commit messages tag slices (`feat(M001/S01/T01):`) — filterable with `git log --grep`
-- The milestone branch can be preserved (not deleted) if history is needed
-- Alternative: `merge --no-ff` instead of `--squash` to keep history on `main`
+Сквош-слияние сворачивает все коммиты в один на `main`. Смягчения:
+- Фрагменты тегов сообщений о фиксации (`feat(M001/S01/T01):`) — фильтруются с помощью `git log --grep`
+- Ветку вехи можно сохранить (не удалить), если нужна история
+- Альтернатива: `merge --no-ff` вместо `--squash`, чтобы сохранить историю на `main`.
 
-**3. SQLite DB desync after `git reset`**
+**3. SQLite DB рассинхронизация после `git reset`**
 
-If tracked markdown rolls back via `git reset --hard`, the gitignored `gsd.db` doesn't. Mitigation: the importer layer (M001/S02) rebuilds the DB from markdown on startup. The DB is a cache, markdown is truth.
+Если отслеживаемая уценка откатывается через `git reset --hard`, gitignored `gsd.db` этого не делает. Смягчение: уровень импортера (M001/S02) восстанавливает DB из уценки при запуске. DB — это кэш, уценка — это правда.
 
-**4. Disk space with multiple worktrees**
+**4. Дисковое пространство с несколькими рабочими деревьями**
 
-Each worktree duplicates the working directory (including `node_modules`). Mitigation: single active milestone at a time (single-user workflow), immediate cleanup after completion.
+Каждое рабочее дерево дублирует рабочий каталог (включая `node_modules`). Смягчение: по одной активной вехе за раз (однопользовательский рабочий процесс), немедленная очистка после завершения.
 
-## Alternatives Considered
+## Рассмотренные альтернативы
 
-### A. Keep slice branches, fix visibility with immediate mini-merges
+### A. Сохраняйте ветки срезов, исправляйте видимость с помощью немедленных мини-слияний.
 
-After `research-slice` or `plan-slice`, immediately merge the slice branch back to the milestone branch. This fixes the loop detection bug but retains all merge complexity.
+После `research-slice` или `plan-slice` немедленно объедините ветку среза обратно с веткой вехи. Это исправляет ошибку обнаружения цикла, но сохраняет всю сложность слияния.
 
-**Rejected:** Adds another merge path instead of removing the root cause. Still requires conflict resolution, self-healing, branch switching.
+**Отклонено:** Добавляется другой путь слияния вместо удаления основной причины. По-прежнему требуется разрешение конфликтов, самовосстановление, переключение ветвей.
 
-### B. Keep `.gsd/` gitignored, bootstrap from git history for manual worktrees
+### B. Оставить `.gsd/` gitignored, загрузку из истории git для деревьев ручной работы
 
-When GSD detects an empty `.gsd/` in a worktree, reconstruct state from the branch's git history using `git show <commit>:.gsd/...`.
+Когда GSD обнаруживает пустой `.gsd/` в рабочем дереве, восстановите состояние из истории git ветки, используя `git show <commit>:.gsd/...`.
 
-**Rejected:** Recovery logic, not architecture. Doesn't fix the fundamental problem of branch-agnostic state. Fails when git history has been rewritten.
+**Отклонено:** Логика восстановления, а не архитектура. Не решает фундаментальную проблему независимого от ветвей состояния. Сбой, когда история git была переписана.
 
-### C. Branch-scoped `.gsd/` directories (`.gsd/branches/<branch-name>/milestones/...`)
+### C. Каталоги `.gsd/` на уровне филиала (`.gsd/branches/<branch-name>/milestones/...`)
 
-Each branch writes to a namespaced subdirectory within `.gsd/`.
+Каждая ветвь записывает в подкаталог пространства имен внутри `.gsd/`.
 
-**Rejected:** Adds complexity instead of removing it. Requires renaming/moving on branch creation, doesn't work with standard git tools (`git checkout` doesn't rename directories).
+**Отклонено:** Добавляет сложность, а не убирает ее. Требует переименования/перемещения при создании ветки, не работает со стандартными инструментами git (`git checkout` не переименовывает каталоги).
 
-## Validation
+## Проверка
 
-This architecture was stress-tested by three independent models:
+Эта архитектура была подвергнута стресс-тестированию тремя независимыми моделями:
 
-**Gemini 2.5 Pro** identified 6 attack vectors. None broke the core model. Recommendations: pre-flight rebase before squash-merge (adopted), heartbeat locks (already exists), DB rebuild on startup (adopted via M001/S02 importers).
+**Gemini 2.5 Pro** выявил 6 векторов атак. Ни один из них не сломал базовую модель. Рекомендации: предполетная перебазировка перед сквош-слиянием (принято), контрольные блокировки (уже существует), перестроение DB при запуске (принято через импортеры M001/S02).
 
-**GPT-5.4 (Codex)** read the full codebase and confirmed the model is sound. Identified that `smartStage()` already force-adds durable paths (validating the tracked-artifact approach) and that `resolveMainWorktreeRoot` in PR #487 is architecturally wrong (adopted — PR to be closed).
+**GPT-5.4 (Кодекс)** прочитал полную кодовую базу и подтвердил, что модель верна. Выявлено, что `smartStage()` уже принудительно добавляет устойчивые пути (подтверждает подход с отслеживанием артефактов) и что `resolveMainWorktreeRoot` в PR #487 архитектурно неверен (принято - PR будет закрыто).
 
-**Codebase analysis** confirmed `.gsd/milestones/` is already partially tracked on `main` despite the `.gitignore`, that `GSD_DURABLE_PATHS` exists as a code-level acknowledgment that planning artifacts should be tracked, and that the README already documents the correct runtime-only gitignore pattern.
+**Анализ кодовой базы** подтвердил, что `.gsd/milestones/` уже частично отслеживается в `main`, несмотря на `.gitignore`, что `GSD_DURABLE_PATHS` существует как подтверждение на уровне кода того, что артефакты планирования следует отслеживать, и что README уже документирует правильный шаблон gitignore только во время выполнения.
 
-### Codex (GPT-5.4) Dissent — "No Slice Branches Is a Redesign"
+### Кодекс (GPT-5.4) Несогласие — «Отсутствие ветвей срезов — это перепроектирование»
 
-Codex read the full codebase and raised 4 concerns. Each is addressed:
+Кодекс прочитал всю кодовую базу и высказал 4 замечания. Каждый адресован:
 
-**Concern 1: "Crash after slice done but before integration — today the runtime detects orphaned slice branches and merges them."**
+**Проблема 1: «Сбой после завершения среза, но до интеграции — сегодня среда выполнения обнаруживает потерянные ветки среза и объединяет их».**
 
-Rebuttal: In the branchless model, there is no integration step to crash between. Slice work is committed directly on the milestone branch. On restart, `deriveState()` reads the branch state as-is. The orphaned-branch recovery path exists solely because of slice branches — removing branches removes the failure mode it recovers from.
+Опровержение: в безфилиальной модели нет этапа интеграции, между которым может возникнуть сбой. Работа среза фиксируется непосредственно на ветке вехи. При перезапуске `deriveState()` считывает состояние ветки как есть. Путь восстановления с потерянными ветвями существует исключительно благодаря ветвям среза — удаление ветвей удаляет режим сбоя, из которого он восстанавливается.
 
-**Concern 2: "Concurrent edits to shared root docs (PROJECT.md, DECISIONS.md) from two terminals."**
+**Проблема 2: «Одновременное редактирование общих корневых документов (PROJECT.md, DECISIONS.md) с двух терминалов».**
 
-Rebuttal: Valid edge case. If `/gsd queue` edits `DECISIONS.md` on `main` while auto-mode edits it in a worktree, there's a content conflict at squash-merge time. This is a standard git content conflict — no different from two developers editing the same file. Handled by normal merge resolution. Not caused by or solved by slice branches.
+Опровержение: допустимый крайний случай. Если `/gsd queue` редактирует `DECISIONS.md` на `main`, в то время как автоматический режим редактирует его в рабочем дереве, во время слияния возникает конфликт контента. Это стандартный конфликт содержимого git, ничем не отличающийся от того, как два разработчика редактируют один и тот же файл. Обрабатывается обычным разрешением слияния. Не вызвано и не решено ветвями среза.
 
-**Concern 3: "Slice→milestone merges provide continuous integration. Removing them pushes conflict discovery to the end."**
+**Проблема 3: «Слияния фрагментов → этапов обеспечивают непрерывную интеграцию. Их удаление отодвигает обнаружение конфликтов до конца».**
 
-Rebuttal: In a single-user sequential workflow, there is nothing to integrate against within a worktree. Each slice builds on the previous one. The only conflict source is `main` diverging (e.g., another milestone merging first), which slice→milestone merges don't catch anyway — they merge within the worktree, not against `main`. Pre-flight rebase before squash-merge catches this more directly.
+Опровержение: в однопользовательском последовательном рабочем процессе нет ничего, что можно было бы интегрировать в рабочее дерево. Каждый фрагмент основывается на предыдущем. Единственным источником конфликта является расхождение `main` (например, сначала слияние другой вехи), которое слияния срезов → вех все равно не улавливаются — они сливаются внутри рабочего дерева, а не против `main`. Предполетная перебазировка перед сквош-слиянием улавливает это более непосредственно.
 
-**Concern 4: "Replace slice branches with another explicit slice-boundary primitive. Don't just delete them."**
+**Проблема 4: «Замените ветки среза другим явным примитивом границы среза. Не удаляйте их просто так».**
 
-Response: Accepted in spirit. Commits with conventional tags (`feat(M001/S01):`, `feat(M001/S01/T01):`) serve as the slice boundary primitive. `git log --grep="M001/S01"` isolates a slice's history. `git revert` targets specific commits. Git tags (`gsd/M001/S01-complete`) can mark slice completion if needed. The boundary primitive is commit metadata, not branches.
+Ответ: Принято духом. Фиксации с обычными тегами (`feat(M001/S01):`, `feat(M001/S01/T01):`) служат примитивом границы среза. `git log --grep="M001/S01"` изолирует историю среза. `git revert` нацелен на конкретные коммиты. При необходимости теги Git (`gsd/M001/S01-complete`) могут отмечать завершение фрагмента. Граничный примитив — это метаданные фиксации, а не ветки.
 
-## Action Items
+## Действия
 
-1. Close PR #487 (`resolveMainWorktreeRoot`) — contradicts this architecture
-2. Implement as a GSD milestone with phases:
-   - Update `.gitignore` and force-add existing planning artifacts
-   - Remove slice branch creation/switching/merging code
-   - Simplify `mergeMilestoneToMain()` and `smartStage()`
-   - Remove `fix-merge` dispatch unit
-   - Remove branch-mode isolation (`git.isolation: "branch"`)
-   - Update/delete 11 test files
-   - Update README suggested gitignore
-   - Migration path for existing projects with slice branches
+1. Закрыть PR #487 (`resolveMainWorktreeRoot`) — это противоречит данной архитектуре.
+2. Реализуйте как этап GSD с этапами:
+   - Обновление `.gitignore` и принудительное добавление существующих артефактов планирования.
+   - Удален код создания/переключения/слияния ветвей срезов.
+   - Упростите `mergeMilestoneToMain()` и `smartStage()`.
+   - Снять диспетчерский блок `fix-merge`.
+   - Удалить изоляцию режима ветвления (`git.isolation: "branch"`).
+   - Обновление/удаление 11 тестовых файлов
+   - Обновление README предлагает gitignore.
+   - Путь миграции для существующих проектов с ветвями срезов.

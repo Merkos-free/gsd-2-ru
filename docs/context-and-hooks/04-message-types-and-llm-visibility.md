@@ -1,12 +1,12 @@
-# Message Types and LLM Visibility
+# Типы сообщений и видимость LLM
 
-Every message in pi has an `AgentMessage` type. These messages go through `convertToLlm` before the LLM sees them. This document specifies exactly what the LLM receives for each message type and what it never sees.
+Каждое сообщение в pi имеет тип `AgentMessage`. Эти сообщения проходят через `convertToLlm` прежде, чем их увидит LLM. В этом документе точно указано, что LLM получает для каждого типа сообщений, а что он никогда не видит.
 
 ---
 
-## The AgentMessage Type Hierarchy
+## Иерархия типов AgentMessage
 
-Pi uses `AgentMessage` as its internal message type, which is a union of standard LLM messages and custom application messages:
+Pi использует `AgentMessage` в качестве внутреннего типа сообщения, который представляет собой объединение стандартных сообщений LLM и пользовательских сообщений приложений:
 
 ```typescript
 // Standard LLM messages
@@ -26,27 +26,27 @@ type AgentMessage = Message | CustomAgentMessages[keyof CustomAgentMessages];
 
 ---
 
-## Message Type → LLM Conversion Table
+## Тип сообщения → LLM Таблица преобразования
 
-| AgentMessage type | `role` seen by LLM | Content transformation | When excluded |
+| Тип сообщения агента | `role` просмотрено LLM | Преобразование контента | При исключении |
 |---|---|---|---|
-| `user` | `user` | Pass through unchanged | Never |
-| `assistant` | `assistant` | Pass through unchanged | Never |
-| `toolResult` | `toolResult` | Pass through unchanged | Never |
-| `custom` | `user` | `content` preserved as-is (string → `[{type:"text",text}]`) | Never — ALL custom messages reach the LLM |
-| `bashExecution` | `user` | Formatted: `` Ran `cmd`\n```\noutput\n``` `` | When `excludeFromContext: true` (`!!` prefix) |
-| `compactionSummary` | `user` | Wrapped: `The conversation history before this point was compacted into the following summary:\n<summary>\n...\n</summary>` | Never |
-| `branchSummary` | `user` | Wrapped: `The following is a summary of a branch that this conversation came back from:\n<summary>\n...\n</summary>` | Never |
+| `user` | `user` | Пройти без изменений | Никогда |
+| `assistant` | `assistant` | Пройти без изменений | Никогда |
+| `toolResult` | `toolResult` | Пройти без изменений | Никогда |
+| `custom` | `user` | `content` сохранена как есть (строка → `[{type:"text",text}]`) | Никогда — специальные сообщения ALL достигают LLM |
+| `bashExecution` | `user` | Отформатировано: `` Ran `cmd`\n```\noutput\n``` `` | When `excludeFromContext: префикс true` (`!!`) |
+| `compactionSummary` | `user` | В упаковке: `The conversation history before this point was compacted into the following summary:\n<summary>\n...\n</summary>` | Никогда |
+| `branchSummary` | `user` | В упаковке: `The following is a summary of a branch that this conversation came back from:\n<summary>\n...\n</summary>` | Никогда |
 
 ---
 
-## Custom Messages In Detail
+## Подробно о пользовательских сообщениях
 
-Custom messages are created by:
-1. `pi.sendMessage()` — extension-injected messages
-2. `before_agent_start` returning a `message` — per-prompt context injection
+Пользовательские сообщения создаются:
+1. `pi.sendMessage()` — сообщения, внедренные расширением
+2. `before_agent_start` возвращает `message` — внедрение контекста для каждого приглашения
 
-### The `display` Field Misconception
+### Заблуждение о поле `display`
 
 ```typescript
 pi.sendMessage({
@@ -56,17 +56,17 @@ pi.sendMessage({
 });
 ```
 
-**What `display` controls:**
-- `true`: Message appears in the TUI chat log (rendered via `registerMessageRenderer` if one exists, or default rendering)
-- `false`: Message is hidden from the TUI chat log
+**Что контролирует `display`:**
+- `true`: сообщение появляется в журнале чата TUI (отображается через `registerMessageRenderer`, если таковой существует, или рендеринг по умолчанию).
+- `false`: сообщение скрыто из журнала чата TUI.
 
-**What `display` does NOT control:**
-- LLM visibility — the LLM ALWAYS receives the content as a `user` role message
-- Session persistence — the message is ALWAYS persisted to the session file
+**Чем `display` управляет NOT:**
+- Видимость LLM — LLM ALWAYS получает контент как сообщение роли `user`.
+- Сохранение сеанса — сообщение ALWAYS сохраняется в файле сеанса.
 
-### How Custom Messages Become User Messages
+### Как персонализированные сообщения становятся сообщениями пользователей
 
-In `convertToLlm` (messages.ts):
+В `convertToLlm` (messages.ts):
 
 ```typescript
 case "custom": {
@@ -81,15 +81,15 @@ case "custom": {
 }
 ```
 
-The `customType`, `display`, and `details` fields are all stripped. The LLM sees a plain user message with the content.
+Все поля `customType`, `display` и `details` удалены. LLM видит простое пользовательское сообщение с содержимым.
 
 ---
 
-## Bash Execution Messages
+## Сообщения о выполнении Bash
 
-Created when the user runs commands via `!` or `!!` prefix.
+Создается, когда пользователь запускает команды с префиксом `!` или `!!`.
 
-### `!` (included in context)
+### `!` (включено в контекст)
 
 ```typescript
 // User types: !ls -la
@@ -100,29 +100,29 @@ Created when the user runs commands via `!` or `!!` prefix.
 }
 ```
 
-With exit code, cancellation, and truncation info appended as needed:
-- Non-zero exit: `\n\nCommand exited with code N`
-- Cancelled: `\n\n(command cancelled)`
-- Truncated: `\n\n[Output truncated. Full output: /path/to/file]`
+При необходимости добавляется код выхода, информация об отмене и усечении:
+- Ненулевой выход: `\n\nCommand exited with code N`
+- Отменено: `\n\n(command cancelled)`
+- Усечено: `\n\n[Output truncated. Full output: /path/to/file]`
 
-### `!!` (excluded from context)
+### `!!` (исключено из контекста)
 
 ```typescript
 // User types: !!echo secret
 // LLM sees: NOTHING — filtered out by convertToLlm
 ```
 
-The `excludeFromContext` flag on `BashExecutionMessage` causes `convertToLlm` to return `undefined` for this message, effectively removing it.
+Флаг `excludeFromContext` на `BashExecutionMessage` заставляет `convertToLlm` возвращать `undefined` для этого сообщения, фактически удаляя его.
 
 ---
 
-## Compaction and Branch Summary Messages
+## Сообщения о сжатии и сводке ветвей
 
-These are synthetic messages created by pi's session management.
+Это синтетические сообщения, созданные управлением сеансами pi.
 
-### Compaction Summary
+### Сводка по сжатию
 
-When the context is compacted, older messages are replaced with a summary:
+При сжатии контекста старые сообщения заменяются кратким описанием:
 
 ```typescript
 // LLM sees:
@@ -135,9 +135,9 @@ When the context is compacted, older messages are replaced with a summary:
 }
 ```
 
-### Branch Summary
+### Сводка ветвей
 
-When navigating away from a branch and back, the abandoned branch gets summarized:
+При переходе от ветки и обратно заброшенная ветка суммируется:
 
 ```typescript
 // LLM sees:
@@ -152,25 +152,25 @@ When navigating away from a branch and back, the abandoned branch gets summarize
 
 ---
 
-## What the LLM Never Sees
+## Чего LLM никогда не видит
 
-1. **`appendEntry` data** — Extension-private entries (`pi.appendEntry("my-state", data)`) are stored in the session file but NEVER included in the message array. They're not `AgentMessage` types at all — they're `CustomEntry` session entries.
+1. **`appendEntry` данные** — записи, относящиеся к внутреннему номеру (`pi.appendEntry("my-state", data)`), хранятся в файле сеанса, но NEVER включаются в массив сообщений. Это вовсе не типы `AgentMessage` — это записи сеанса `CustomEntry`.
 
-2. **`details` on custom messages** — The `details` field is for rendering and state reconstruction. `convertToLlm` strips it.
+2. **`details` в пользовательских сообщениях** — поле `details` предназначено для рендеринга и реконструкции состояния. `convertToLlm` снимает его.
 
-3. **`details` on tool results** — Tool result `details` are stripped by the LLM message conversion. Only `content` reaches the LLM.
+3. **`details` в результатах инструмента** — результат инструмента `details` удаляется при преобразовании сообщения LLM. Только `content` достигает LLM.
 
-4. **`!!` bash execution output** — Explicitly excluded from context.
+4. **`!!` вывод выполнения bash** — Явно исключен из контекста.
 
-5. **Tool definitions not in the active set** — If a tool is registered but not in `getActiveTools()`, the LLM doesn't know it exists.
+5. **Определения инструментов отсутствуют в активном наборе** — Если инструмент зарегистрирован, но не в `getActiveTools()`, LLM не знает о его существовании.
 
-6. **`promptSnippet` and `promptGuidelines` from inactive tools** — Only active tools contribute to the system prompt.
+6. **`promptSnippet` и `promptGuidelines` из неактивных инструментов** — в системную подсказку добавляются только активные инструменты.
 
 ---
 
-## The Message Array Order
+## Порядок массива сообщений
 
-For a typical conversation, the message array the LLM sees (after `context` event and `convertToLlm`) looks like:
+Для типичного разговора массив сообщений, который видит LLM (после события `context` и `convertToLlm`), выглядит следующим образом:
 
 ```
 1. [compactionSummary → user]  (if compaction happened)
@@ -188,22 +188,22 @@ For a typical conversation, the message array the LLM sees (after `context` even
 
 ---
 
-## Implications for Extension Authors
+## Значение для авторов расширений
 
-### If you want the LLM to see something:
-- Use `before_agent_start` → `message` for per-prompt context
-- Use `context` event to inject into the message array per-turn
-- Use `pi.sendMessage` for standalone messages
-- Use `before_agent_start` → `systemPrompt` for system-level instructions
+### Если вы хотите, чтобы LLM что-то увидел:
+- Используйте `before_agent_start` → `message` для контекста каждой подсказки.
+- Используйте событие `context` для вставки в массив сообщений за ход.
+– Используйте `pi.sendMessage` для отдельных сообщений.
+- Используйте `before_agent_start` → `systemPrompt` для получения инструкций на уровне системы.
 
-### If you want to hide something from the LLM:
-- Use `pi.appendEntry` — never reaches the message array
-- Use tool result `details` — stored in session but stripped before LLM
-- Use the `context` event to filter messages OUT of the array
-- There is NO way to inject UI-only messages that participate in the conversation flow — `display: false` only hides from the TUI, not from the LLM
+### Если вы хотите что-то скрыть от LLM:
+- Используйте `pi.appendEntry` — никогда не достигает массива сообщений.
+- Использовать результат инструмента `details` — сохраняется в сеансе, но удаляется до LLM.
+- Используйте событие `context` для фильтрации сообщений OUT массива.
+- Существует NO способ вставки сообщений, содержащих только UI, которые участвуют в потоке разговора - `display: false` скрывается только от TUI, а не от LLM.
 
-### If you want something to survive compaction:
-- Store it in tool result `details` (survives in the kept entries)
-- Store it in `appendEntry` (survives as session data, not messages)
-- Re-inject it via `before_agent_start` every time (survives because you regenerate it)
-- Messages in the compacted range are replaced by the compaction summary — they're gone from the LLM's perspective
+### Если вы хотите, чтобы что-то выдержало сжатие:
+- Сохраните его в результате инструмента `details` (сохранится в сохраненных записях)
+- Сохраните его в `appendEntry` (сохраняется как данные сеанса, а не сообщения)
+- Каждый раз повторно вводите его через `before_agent_start` (выживает, потому что вы его регенерируете)
+- Сообщения в сжатом диапазоне заменяются сводкой уплотнения — они исчезли с точки зрения LLM.

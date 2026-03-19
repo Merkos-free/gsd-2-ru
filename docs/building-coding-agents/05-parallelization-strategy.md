@@ -1,12 +1,12 @@
-# Parallelization Strategy
+# Стратегия распараллеливания
 
-### Core Principle
+### Основной принцип
 
-> Parallelize across boundaries, serialize within them.
+> Распараллеливайте границы, сериализуйте внутри них.
 
-The quality of parallelization is directly determined by the quality of interface definitions.
+Качество распараллеливания напрямую определяется качеством определения интерфейсов.
 
-### The Diamond Pattern
+### Ромбовидный узор
 
 ```
     Planning (narrow, serial)
@@ -18,45 +18,45 @@ The quality of parallelization is directly determined by the quality of interfac
     Fan Out (next parallel set)
 ```
 
-### Phase-by-Phase Strategy
+### Поэтапная стратегия
 
-#### Planning: Mostly Serial, with Parallel Spikes
-- High-level decomposition must be serial (one coherent act of reasoning)
-- **Parallelize uncertainty resolution:** Multiple spikes investigating different risks simultaneously
-- Output: A dependency graph that explicitly identifies what can be parallelized
+#### Планирование: преимущественно последовательное с параллельными шипами
+- Декомпозиция высокого уровня должна быть последовательной (один последовательный акт рассуждения).
+- **Параллельное разрешение неопределенностей:** Несколько пиков одновременно исследуют различные риски.
+- Результат: граф зависимостей, который явно определяет, что можно распараллелить.
 
-#### Execution: Massive Parallelization with Right Topology
+#### Выполнение: массовое распараллеливание с правильной топологией
 
-| Work Type | Strategy |
+| Тип работы | Стратегия |
 |-----------|----------|
-| **Independent leaf tasks** | Embarrassingly parallel — one agent per module |
-| **Dependent chains** | Serial within chain, but chains run in parallel |
-| **Convergence points** | Strictly serial — integration verification |
+| **Независимые листовые задачи** | Неловкая параллель — по одному агенту на модуль |
+| **Зависимые цепочки** | Последовательно внутри цепочки, но цепочки работают параллельно |
+| **Точки сходимости** | Строго последовательно — проверка интеграции |
 
-**Critical insight:** The frontend doesn't need the real API — it needs the API *contract*. Once contracts exist, both sides build in parallel.
+**Критическая оценка:** Интерфейсу не нужен настоящий API — ему нужен API *контракт*. Как только контракты заключены, обе стороны строят параллельно.
 
-#### Testing: The Most Interesting Story
-- **Unit tests:** Same agent, same context, atomic with code
-- **Cross-task tests:** All parallel by definition
-- **Integration tests:** Parallel across different boundaries
-- **E2E tests:** Serial (exercises whole system)
+####Тестирование: самая интересная история
+- **Модульные тесты:** Тот же агент, тот же контекст, атомарный код.
+– **Кросс-задачные тесты:** Все параллельно по определению.
+– **Интеграционные тесты:** Параллельно в разных границах.
+- **Тесты E2E:** Серийный (проверяется вся система)
 
-#### Verification: Deliberate Redundancy
-- **Adversarial verification:** Separate reviewer agent with fresh context evaluates against spec
-- **Red-team parallelism:** Agent tries to break the implementation
+#### Проверка: намеренное дублирование
+– **Состязательная проверка:** Отдельный агент-рецензент со свежим контекстом оценивает соответствие спецификациям.
+- **Параллелизм красной команды:** Агент пытается сломать реализацию.
 
-### Coordination Rules
+### Правила координации
 
-- Agents communicate through the **filesystem**, never directly
-- Each agent works on a **branch** — merge on success, discard on failure
-- One agent per file at a time (file locking)
-- Optimal concurrency: **3–8 simultaneous agents** for most projects
+- Агенты взаимодействуют через **файловую систему**, а не напрямую.
+- Каждый агент работает на **ветви** – в случае успеха слияние, в случае неудачи отбрасывание.
+- Один агент на файл одновременно (блокировка файлов)
+– Оптимальная параллельная работа: **3–8 агентов одновременно** для большинства проектов.
 
-### Anti-Patterns
+### Антипаттерны
 
-- ❌ Don't parallelize tasks that modify the same files
-- ❌ Don't parallelize interacting decisions
-- ❌ Don't skip convergence/integration verification
-- ❌ Don't over-parallelize (coordination tax eats gains above ~8 agents)
+- ❌ Не распараллеливайте задачи, изменяющие одни и те же файлы.
+- ❌ Не распараллеливайте взаимодействующие решения
+- ❌ Не пропускайте проверку сходимости/интеграции
+- ❌ Не используйте чрезмерную параллелизацию (налог на координацию съедает прибыль, превышающую ~8 агентов)
 
 ---

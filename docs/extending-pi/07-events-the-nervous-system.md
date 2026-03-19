@@ -1,64 +1,64 @@
-# Events — The Nervous System
+# События — Нервная система
 
 
-Events are the core of the extension system. They fall into five categories:
+События — это ядро системы расширений. Они делятся на пять категорий:
 
-### 7.1 Session Events
+### 7.1 События сеанса
 
-| Event | When | Can Return |
+| Событие | Когда | Можно вернуться |
 |-------|------|------------|
-| `session_start` | Session loads | — |
-| `session_before_switch` | Before `/new` or `/resume` | `{ cancel: true }` |
-| `session_switch` | After session switch | — |
-| `session_before_fork` | Before `/fork` | `{ cancel: true }` or `{ skipConversationRestore: true }` |
-| `session_fork` | After fork | — |
-| `session_before_compact` | Before compaction | `{ cancel: true }` or `{ compaction: {...} }` (custom summary) |
-| `session_compact` | After compaction | — |
-| `session_before_tree` | Before `/tree` navigation | `{ cancel: true }` or `{ summary: {...} }` |
-| `session_tree` | After tree navigation | — |
-| `session_shutdown` | On exit (Ctrl+C, Ctrl+D, SIGTERM) | — |
+| `session_start` | Сеансовые нагрузки | — |
+| `session_before_switch` | До `/new` или `/resume` | `{ cancel: true }` |
+| `session_switch` | После переключения сеанса | — |
+| `session_before_fork` | До `/fork` | `{ cancel: true }` или `{ skipConversationRestore: true }` |
+| `session_fork` | После вилки | — |
+| `session_before_compact` | Перед уплотнением | `{ cancel: true }` или `{ compaction: {...} }` (собственное описание) |
+| `session_compact` | После уплотнения | — |
+| `session_before_tree` | До `/tree` навигации | `{ cancel: true }` или `{ summary: {...} }` |
+| `session_tree` | После навигации по дереву | — |
+| `session_shutdown` | При выходе (Ctrl+C, Ctrl+D, SIGTERM) | — |
 
-### 7.2 Agent Events
+### 7.2 События агента
 
-| Event | When | Can Return |
+| Событие | Когда | Можно вернуться |
 |-------|------|------------|
-| `before_agent_start` | After user prompt, before agent loop | `{ message: {...}, systemPrompt: "..." }` |
-| `agent_start` | Agent loop begins | — |
-| `agent_end` | Agent loop ends | — |
-| `turn_start` | Each LLM turn begins | — |
-| `turn_end` | Each LLM turn ends | — |
-| `context` | Before each LLM call | `{ messages: [...] }` (modified copy) |
-| `message_start/update/end` | Message lifecycle | — |
+| `before_agent_start` | После запроса пользователя, перед циклом агента | `{ message: {...}, systemPrompt: "..." }` |
+| `agent_start` | Цикл агента начинается | — |
+| `agent_end` | Цикл агента завершается | — |
+| `turn_start` | Каждый ход LLM начинается | — |
+| `turn_end` | Каждый ход LLM заканчивается | — |
+| `context` | Перед каждым звонком LLM | `{ messages: [...] }` (измененная копия) |
+| `message_start/update/end` | Жизненный цикл сообщения | — |
 
-### 7.3 Tool Events
+### 7.3 События инструмента
 
-| Event | When | Can Return |
+| Событие | Когда | Можно вернуться |
 |-------|------|------------|
-| `tool_call` | Before tool executes | `{ block: true, reason: "..." }` |
-| `tool_execution_start` | Tool begins executing | — |
-| `tool_execution_update` | Tool sends progress | — |
-| `tool_execution_end` | Tool finishes | — |
-| `tool_result` | After tool executes | `{ content: [...], details: {...}, isError: bool }` (modify result) |
+| `tool_call` | Перед выполнением инструмента | `{ block: true, reason: "..." }` |
+| `tool_execution_start` | Инструмент начинает выполнение | — |
+| `tool_execution_update` | Инструмент отправляет прогресс | — |
+| `tool_execution_end` | Отделка инструментов | — |
+| `tool_result` | После выполнения инструмента | `{ content: [...], details: {...}, isError: bool }` (изменить результат) |
 
-### 7.4 Input Events
+### 7.4 Входные события
 
-| Event | When | Can Return |
+| Событие | Когда | Можно вернуться |
 |-------|------|------------|
-| `input` | User input received (before skill/template expansion) | `{ action: "transform", text: "..." }` or `{ action: "handled" }` or `{ action: "continue" }` |
+| `input` | Пользовательский ввод получен (до расширения навыка/шаблона) | `{ action: "transform", text: "..." }` или `{ action: "handled" }` или `{ action: "continue" }` |
 
-### 7.5 Model Events
+### 7.5 События модели
 
-| Event | When | Can Return |
+| Событие | Когда | Можно вернуться |
 |-------|------|------------|
-| `model_select` | Model changes (`/model`, Ctrl+P, restore) | — |
+| `model_select` | Изменения модели (`/model`, Ctrl+P, восстановить) | — |
 
-### 7.6 User Bash Events
+### 7.6 Пользовательские события Bash
 
-| Event | When | Can Return |
+| Событие | Когда | Можно вернуться |
 |-------|------|------------|
-| `user_bash` | User runs `!` or `!!` commands | `{ operations: ... }` or `{ result: {...} }` |
+| `user_bash` | Пользователь запускает команды `!` или `!!` | `{ operations: ... }` или `{ result: {...} }` |
 
-### Event Handler Signature
+### Подпись обработчика событий
 
 ```typescript
 pi.on("event_name", async (event, ctx: ExtensionContext) => {
@@ -69,7 +69,7 @@ pi.on("event_name", async (event, ctx: ExtensionContext) => {
 });
 ```
 
-### Type Narrowing for Tool Events
+### Сужение типа для событий инструмента
 
 ```typescript
 import { isToolCallEventType, isBashToolResult } from "@mariozechner/pi-coding-agent";

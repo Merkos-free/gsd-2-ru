@@ -1,77 +1,77 @@
-# ExtensionAPI — What You Can Do
+# ExtensionAPI — что вы можете сделать
 
 
-The `pi` object (received in your default export function) is your registration interface. It persists for the lifetime of the extension.
+Объект `pi` (полученный функцией экспорта по умолчанию) — это ваш интерфейс регистрации. Он сохраняется на протяжении всего срока действия расширения.
 
-### Core Registration
+### Основная регистрация
 
-| Method | Purpose |
+| Метод | Цель |
 |--------|---------|
-| `pi.on(event, handler)` | Subscribe to events |
-| `pi.registerTool(definition)` | Register a tool the LLM can call |
-| `pi.registerCommand(name, options)` | Register a `/command` |
-| `pi.registerShortcut(key, options)` | Register a keyboard shortcut |
-| `pi.registerFlag(name, options)` | Register a CLI flag |
-| `pi.registerMessageRenderer(customType, renderer)` | Custom message rendering |
-| `pi.registerProvider(name, config)` | Register/override a model provider |
-| `pi.unregisterProvider(name)` | Remove a provider |
+| `pi.on(event, handler)` | Подписаться на события |
+| `pi.registerTool(definition)` | Зарегистрируйте инструмент, который LLM может вызывать |
+| `pi.registerCommand(name, options)` | Зарегистрируйте `/command` |
+| `pi.registerShortcut(key, options)` | Зарегистрируйте сочетание клавиш |
+| `pi.registerFlag(name, options)` | Зарегистрируйте флаг CLI |
+| `pi.registerMessageRenderer(customType, renderer)` | Пользовательский рендеринг сообщений |
+| `pi.registerProvider(name, config)` | Зарегистрировать/переопределить поставщика модели |
+| `pi.unregisterProvider(name)` | Удалить провайдера |
 
-### Messaging
+### Сообщения
 
-| Method | Purpose |
+| Метод | Цель |
 |--------|---------|
-| `pi.sendMessage(message, options?)` | Inject a custom message into the session |
-| `pi.sendUserMessage(content, options?)` | Send a user message (triggers a turn) |
+| `pi.sendMessage(message, options?)` | Внедрить пользовательское сообщение в сеанс |
+| `pi.sendUserMessage(content, options?)` | Отправить сообщение пользователю (запускает ход) |
 
-**`sendMessage` delivery modes:**
-- `"steer"` (default) — Interrupts streaming. Delivered after current tool finishes, remaining tools skipped.
-- `"followUp"` — Waits for agent to finish. Delivered when agent has no more tool calls.
-- `"nextTurn"` — Queued for next user prompt. Does not interrupt.
+**`sendMessage` способы доставки:**
+- `"steer"` (по умолчанию) — прерывает потоковую передачу. Доставляется после завершения работы текущего инструмента, остальные инструменты пропускаются.
+- `"followUp"` — Ждет, пока агент закончит. Доставляется, когда у агента больше нет вызовов инструментов.
+- `"nextTurn"` — В очереди на следующее приглашение пользователя. Не прерывает.
 
-### State & Session
+### Состояние и сеанс
 
-| Method | Purpose |
+| Метод | Цель |
 |--------|---------|
-| `pi.appendEntry(customType, data?)` | Persist extension state (NOT sent to LLM) |
-| `pi.setSessionName(name)` | Set display name for session selector |
-| `pi.getSessionName()` | Get current session name |
-| `pi.setLabel(entryId, label)` | Bookmark an entry for `/tree` navigation |
+| `pi.appendEntry(customType, data?)` | Сохранение состояния расширения (NOT отправлено на LLM) |
+| `pi.setSessionName(name)` | Установить отображаемое имя для селектора сеансов |
+| `pi.getSessionName()` | Получить имя текущего сеанса |
+| `pi.setLabel(entryId, label)` | Добавьте запись в закладки для навигации `/tree` |
 
-### Tool Management
+### Управление инструментами
 
-| Method | Purpose |
+| Метод | Цель |
 |--------|---------|
-| `pi.getActiveTools()` | Get currently active tool names |
-| `pi.getAllTools()` | Get all registered tools (name + description) |
-| `pi.setActiveTools(names)` | Enable/disable tools at runtime |
+| `pi.getActiveTools()` | Получить текущие имена активных инструментов |
+| `pi.getAllTools()` | Получить все зарегистрированные инструменты (название + описание) |
+| `pi.setActiveTools(names)` | Включить/отключить инструменты во время выполнения |
 
-### Model Management
+### Управление моделями
 
-| Method | Purpose |
+| Метод | Цель |
 |--------|---------|
-| `pi.setModel(model)` | Switch model. Returns `false` if no API key. |
-| `pi.getThinkingLevel()` | Get current thinking level |
-| `pi.setThinkingLevel(level)` | Set thinking level (`"off"` through `"xhigh"`) |
+| `pi.setModel(model)` | Модель переключения. Возвращает `false`, если нет клавиши API. |
+| `pi.getThinkingLevel()` | Узнайте текущий уровень мышления |
+| `pi.setThinkingLevel(level)` | Установите уровень мышления (от `"off"` до `"xhigh"`) |
 
-### Utilities
+### Утилиты
 
-| Method | Purpose |
+| Метод | Цель |
 |--------|---------|
-| `pi.exec(command, args, options?)` | Execute a shell command |
-| `pi.events` | Shared event bus for inter-extension communication |
-| `pi.getFlag(name)` | Get value of a registered CLI flag |
-| `pi.getCommands()` | Get all available slash commands |
+| `pi.exec(command, args, options?)` | Выполнить команду оболочки |
+| `pi.events` | Общая шина событий для связи между внутренними номерами |
+| `pi.getFlag(name)` | Получить значение зарегистрированного флага CLI |
+| `pi.getCommands()` | Получить все доступные слэш-команды |
 
-### ExtensionCommandContext (commands only)
+### ExtensionCommandContext (только команды)
 
-Command handlers receive `ExtensionCommandContext`, which adds session control methods not available in regular event handlers (they would deadlock there):
+Обработчики команд получают `ExtensionCommandContext`, что добавляет методы управления сеансом, недоступные в обычных обработчиках событий (там они будут блокироваться):
 
-| Method | Purpose |
+| Метод | Цель |
 |--------|---------|
-| `ctx.waitForIdle()` | Wait for agent to finish streaming |
-| `ctx.newSession(options?)` | Create a new session |
-| `ctx.fork(entryId)` | Fork from an entry |
-| `ctx.navigateTree(targetId, options?)` | Navigate the session tree |
-| `ctx.reload()` | Hot-reload extensions, skills, prompts, themes |
+| `ctx.waitForIdle()` | Подождите, пока агент завершит трансляцию |
+| `ctx.newSession(options?)` | Создать новый сеанс |
+| `ctx.fork(entryId)` | Вилка от записи |
+| `ctx.navigateTree(targetId, options?)` | Навигация по дереву сеансов |
+| `ctx.reload()` | Расширения горячей перезагрузки, навыки, подсказки, темы |
 
 ---

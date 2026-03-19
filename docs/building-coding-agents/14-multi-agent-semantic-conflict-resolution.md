@@ -1,25 +1,25 @@
-# Multi-Agent Semantic Conflict Resolution
+# Многоагентное разрешение семантических конфликтов
 
-**The hard case:** Git-level merge conflicts are easy. The real problem is code that merges cleanly but doesn't work — agents honoring the same typed interface while disagreeing on semantics (e.g., Agent A returns `null` for "not found," Agent B treats `null` as "error").
+**Сложный случай:** Конфликты слияния на уровне Git просты. Настоящая проблема заключается в коде, который корректно объединяется, но не работает: агенты соблюдают один и тот же типизированный интерфейс, но не согласны с семантикой (например, агент A возвращает `null` для «не найден», агент B рассматривает `null` как «ошибку»).
 
-### Three Lines of Defense (Universal Agreement)
+### Три линии защиты (Универсальное соглашение)
 
-#### 1. Semantically Rich Interface Contracts
+#### 1. Семантически богатые контракты интерфейса
 
-Don't just define type signatures — define **behavioral contracts**: What does `null` mean? What are the error semantics? What invariants does the caller rely on? Contracts should be miniature specs, not just type definitions.
+Не просто определяйте сигнатуры типов — определите **поведенческие контракты**: что означает `null`? Какова семантика ошибки? На какие инварианты опирается вызывающий объект? Контракты должны быть миниатюрными спецификациями, а не просто определениями типов.
 
-#### 2. Pre-Written Integration Tests
+#### 2. Предварительно написанные интеграционные тесты
 
-Write integration tests **during planning, before parallel execution begins** — tests that exercise semantic expectations, not just types. These are waiting when parallel branches converge.
+Пишите интеграционные тесты **во время планирования, до начала параллельного выполнения** — тесты, которые проверяют семантические ожидания, а не только типы. Они ждут, когда параллельные ветви сойдутся.
 
-#### 3. Dedicated Integration/Reconciliation Agent
+#### 3. Специальный агент интеграции/согласования
 
-After parallel branches merge, a focused agent gets: interface contracts + both implementations + integration tests. Its job is finding semantic mismatches, not rebuilding.
+После слияния параллельных веток сфокусированный агент получает: контракты интерфейса + обе реализации + интеграционные тесты. Его задача — находить смысловые несоответствия, а не восстанавливать.
 
-### The Highest-Value Technique
+### Самая ценная техника
 
-**Adversarial edge-case generation at integration points.** The integration agent reads both implementations, sees how each handles boundaries, and generates new tests that specifically probe the assumption gaps between them. This catches the subtlest bugs.
+**Генерация состязательных крайних случаев в точках интеграции.** Агент интеграции считывает обе реализации, видит, как каждая из них обрабатывает границы, и генерирует новые тесты, которые специально исследуют пробелы в предположениях между ними. Это выявляет малейшие ошибки.
 
-Gemini adds the concept of a **"Shadow Merge"** agent that runs "Cross-Impact Analysis" before actual merge — looking for "Logical Race Conditions" where Worker A changed a utility that Worker B relied on, even when the git merge is clean.
+Gemini добавляет концепцию агента **"Теневого слияния"**, который запускает "Анализ перекрестного воздействия" перед фактическим слиянием - ищет "Условия логической гонки", когда Worker A изменил утилиту, на которую полагался Worker B, даже если слияние git чистое.
 
 ---

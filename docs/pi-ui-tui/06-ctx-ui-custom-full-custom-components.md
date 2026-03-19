@@ -1,8 +1,8 @@
-# ctx.ui.custom() — Full Custom Components
+# ctx.ui.custom() — Полные пользовательские компоненты
 
-This is the most powerful UI mechanism. It **temporarily replaces the editor** with your component. Returns a value when `done()` is called.
+Это самый мощный механизм UI. Он **временно заменяет редактор** вашим компонентом. Возвращает значение при вызове `done()`.
 
-### Basic Pattern
+### Базовый узор
 
 ```typescript
 const result = await ctx.ui.custom<string | null>((tui, theme, keybindings, done) => {
@@ -32,18 +32,18 @@ if (result === "confirmed") {
 }
 ```
 
-### The Factory Callback
+### Обратный вызов фабрики
 
-The factory function receives four arguments:
+Фабричная функция получает четыре аргумента:
 
-| Argument | Type | Purpose |
+| Аргумент | Тип | Цель |
 |----------|------|---------|
-| `tui` | `TUI` | Screen info and render control. `tui.requestRender()` triggers re-render after state changes. |
-| `theme` | `Theme` | Current theme. Use `theme.fg()`, `theme.bg()`, `theme.bold()`, etc. |
-| `keybindings` | `KeybindingsManager` | App keybinding config. For checking what keys do what. |
-| `done` | `(value: T) => void` | Call this to close the component and return a value to the awaiting code. |
+| `tui` | `TUI` | Информация на экране и управление рендерингом. `tui.requestRender()` запускает повторный рендеринг после изменения состояния. |
+| `theme` | `Theme` | Текущая тема. Используйте `theme.fg()`, `theme.bg()`, `theme.bold()` и т. д. |
+| `keybindings` | `KeybindingsManager` | Конфигурация привязки клавиш приложения. Для проверки того, какие клавиши что делают. |
+| `done` | `(value: T) => void` | Вызовите это, чтобы закрыть компонент и вернуть значение ожидающему коду. |
 
-### Using Existing Components as Children
+### Использование существующих компонентов в качестве дочерних
 
 ```typescript
 const result = await ctx.ui.custom<string | null>((tui, theme, _kb, done) => {
@@ -72,7 +72,7 @@ const result = await ctx.ui.custom<string | null>((tui, theme, _kb, done) => {
 });
 ```
 
-### Using a Class
+### Использование класса
 
 ```typescript
 class MyComponent {
