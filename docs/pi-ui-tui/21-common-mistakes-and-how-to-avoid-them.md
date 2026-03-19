@@ -1,53 +1,53 @@
-# Common Mistakes and How to Avoid Them
+# Распространенные ошибки и как их избежать
 
-### 1. Lines exceed width
+### 1. Линии превышают ширину
 
-**Symptom:** Visual corruption, overlapping lines, garbled display.
-**Fix:** Use `truncateToWidth()` on every line.
+**Симптом:** визуальное искажение, перекрывающиеся линии, искаженное изображение.
+**Исправление.** Используйте `truncateToWidth()` в каждой строке.
 
-### 2. Forgetting `tui.requestRender()`
+### 2. Забыть `tui.requestRender()`
 
-**Symptom:** UI doesn't update after state changes.
-**Fix:** Call `this.invalidate()` then `tui.requestRender()` after any state change in `handleInput`.
+**Признак:** UI не обновляется после изменения состояния.
+**Исправление:** Вызывайте `this.invalidate()`, а затем `tui.requestRender()` после любого изменения состояния в `handleInput`.
 
-### 3. Importing theme directly
+### 3. Импорт темы напрямую
 
-**Symptom:** Wrong colors, crashes, or stale theme after switching.
-**Fix:** Always use `theme` from the callback: `ctx.ui.custom((tui, theme, kb, done) => ...)`.
+**Симптом:** неправильные цвета, сбои или устаревшая тема после переключения.
+**Исправление.** Всегда используйте `theme` в обратном вызове: `ctx.ui.custom((tui, theme, kb, done) => ...)`.
 
-### 4. Not typing DynamicBorder color param
+### 4. Не вводить параметр цвета DynamicBorder
 
-**Symptom:** TypeScript error or runtime crash.
-**Fix:** `new DynamicBorder((s: string) => theme.fg("accent", s))` — always add `s: string`.
+**Признак:** Ошибка TypeScript или сбой во время выполнения.
+**Исправление:** `new DynamicBorder((s: string) => theme.fg("accent", s))` — всегда добавляйте `s: string`.
 
-### 5. Reusing disposed overlay components
+### 5. Повторное использование удаленных компонентов наложения
 
-**Symptom:** Component doesn't render, events don't fire.
-**Fix:** Create fresh instances each time. Never save references to overlay components.
+**Симптом:** Компонент не отображается, события не запускаются.
+**Исправление.** Каждый раз создавайте новые экземпляры. Никогда не сохраняйте ссылки на наложенные компоненты.
 
-### 6. Styles bleeding across lines
+### 6. Стили перемещаются по строкам
 
-**Symptom:** Colors from one line appear on the next.
-**Fix:** The TUI resets styles at end of each line. Reapply styles per line, or use `wrapTextWithAnsi()`.
+**Симптом:** цвета из одной строки появляются в следующей.
+**Исправление.** При нажатии клавиши TUI стили в конце каждой строки сбрасываются. Повторно примените стили для каждой строки или используйте `wrapTextWithAnsi()`.
 
-### 7. Not implementing invalidate()
+### 7. Не реализована инвалидация()
 
-**Symptom:** Theme changes don't take effect, stale rendering.
-**Fix:** Clear all caches in `invalidate()`. If you pre-bake theme colors, rebuild them.
+**Признак:** Изменения темы не вступают в силу, рендеринг устарел.
+**Исправление:** Очистите все тайники в `invalidate()`. Если вы предварительно запекаете цвета темы, перестройте их.
 
-### 8. Forgetting to call `super.invalidate()`
+### 8. Забыл позвонить `super.invalidate()`
 
-**Symptom:** Child components don't update when extending Container/Box.
-**Fix:** `override invalidate() { super.invalidate(); /* your cleanup */ }`
+**Признак:** Дочерние компоненты не обновляются при расширении Container/Box.
+**Исправление:** `override invalidate() { super.invalidate(); /* your cleanup */ }`
 
-### 9. Timer not cleaned up
+### 9. Таймер не очищен
 
-**Symptom:** Errors after component closes, memory leaks, phantom updates.
-**Fix:** Call `clearInterval` in a `dispose()` method before calling `done()`.
+**Признак:** Ошибки после закрытия компонента, утечки памяти, фантомные обновления.
+**Исправление:** Вызовите `clearInterval` в методе `dispose()` перед вызовом `done()`.
 
-### 10. Using `ctx.ui` methods in non-interactive mode
+### 10. Использование методов `ctx.ui` в неинтерактивном режиме
 
-**Symptom:** Hangs (dialogs waiting for input that will never come) or silent failures.
-**Fix:** Check `ctx.hasUI` before calling dialog methods.
+**Симптом:** зависает (диалоговые окна ожидают ввода, который так и не поступает) или сбои без уведомления.
+**Исправление:** Проверьте `ctx.hasUI` перед вызовом методов диалога.
 
 ---

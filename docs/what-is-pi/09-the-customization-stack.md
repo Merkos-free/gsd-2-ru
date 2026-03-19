@@ -1,6 +1,6 @@
-# The Customization Stack
+# Стек настройки
 
-Pi has four layers of customization, each serving a different purpose:
+Pi имеет четыре уровня настройки, каждый из которых служит своей цели:
 
 ```
 ┌─────────────────────────────────────┐
@@ -21,37 +21,37 @@ Pi has four layers of customization, each serving a different purpose:
 └─────────────────────────────────────┘
 ```
 
-### Extensions
+### Расширения
 
-TypeScript modules with full runtime access. They can hook into every event, register tools the LLM can call, add commands, render custom UI, override built-in behavior, and register model providers. Extensions are the most powerful customization mechanism.
+Модули TypeScript с полным доступом во время выполнения. Они могут подключаться к каждому событию, регистрировать инструменты, которые может вызывать LLM, добавлять команды, отображать пользовательские UI, переопределять встроенное поведение и регистрировать поставщиков моделей. Расширения — это самый мощный механизм настройки.
 
-**Placement:**
-- `~/.gsd/agent/extensions/` (global)
-- `.gsd/extensions/` (project-local)
+**Размещение:**
+- `~/.gsd/agent/extensions/` (глобальный)
+- `.gsd/extensions/` (локальный проект)
 
-See the companion doc **Pi-Extensions-Complete-Guide.md** for the full 50KB reference.
+Полный справочник размером 50 КБ см. в сопутствующем документе **Pi-Extensions-Complete-Guide.md**.
 
-### Skills
+### Навыки
 
-On-demand capability packages following the [Agent Skills standard](https://agentskills.io). A skill is a directory with a `SKILL.md` file containing instructions the agent follows. Skills are progressive: only their names and descriptions are in the system prompt. The agent reads the full SKILL.md only when the task matches.
+Пакеты возможностей по требованию, соответствующие [стандарту навыков агента] (https://agentskills.io). Навык — это каталог с файлом `SKILL.md`, содержащим инструкции, которым следует оператор. Навыки прогрессивные: в системной подсказке есть только их названия и описания. Агент считывает SKILL.md полностью только в том случае, если задача соответствует.
 
-**How skills work:**
-1. At startup, pi scans for skills and extracts names + descriptions
-2. Descriptions are listed in the system prompt
-3. When a task matches, the agent uses `read` to load the full SKILL.md
-4. The agent follows the instructions, using relative paths for scripts/assets
+**Как работают навыки:**
+1. При запуске pi сканирует навыки и извлекает имена + описания.
+2. Описания указаны в системной подсказке.
+3. При совпадении задачи агент использует `read` для загрузки полной SKILL.md.
+4. Агент следует инструкциям, используя относительные пути для скриптов/активов.
 
-**Invocation:**
+**Призыв:**
 ```
 /skill:brave-search              # Explicit invocation
 /skill:pdf-tools extract file.pdf  # With arguments
 ```
 
-**Placement:**
-- `~/.gsd/agent/skills/` or `~/.agents/skills/` (global)
-- `.gsd/skills/` or `.agents/skills/` (project, searched up to git root)
+**Размещение:**
+- `~/.gsd/agent/skills/` или `~/.agents/skills/` (глобальный)
+- `.gsd/skills/` или `.agents/skills/` (проект, поиск до корня git)
 
-**Skill structure:**
+**Структура навыков:**
 ```
 my-skill/
 ├── SKILL.md              # Required: frontmatter + instructions
@@ -61,9 +61,9 @@ my-skill/
     └── api-guide.md
 ```
 
-### Prompt Templates
+### Шаблоны подсказок
 
-Markdown files that expand into prompts via `/name`. Simple text expansion with positional argument support (`$1`, `$2`, `$@`).
+Файлы Markdown, которые превращаются в подсказки с помощью `/name`. Простое расширение текста с поддержкой позиционных аргументов (`$1`, `$2`, `$@`).
 
 ```markdown
 <!-- ~/.gsd/agent/prompts/review.md -->
@@ -77,20 +77,20 @@ Review the staged changes (`git diff --cached`). Focus on:
 Focus area: $1
 ```
 
-Usage: `/review "error handling"` → expands with `$1` = "error handling"
+Использование: `/review "error handling"` → расширяется с помощью `$1` = «обработка ошибок».
 
-**Placement:**
-- `~/.gsd/agent/prompts/` (global)
-- `.gsd/prompts/` (project-local)
+**Размещение:**
+- `~/.gsd/agent/prompts/` (глобальный)
+- `.gsd/prompts/` (локальный проект)
 
-### Themes
+### Темы
 
-JSON files defining the color palette for the TUI. Hot-reload: edit the file and pi applies changes immediately.
+Файлы JSON, определяющие цветовую палитру для TUI. Горячая перезагрузка: отредактируйте файл, и pi немедленно применит изменения.
 
-**Built-in:** `dark`, `light`
+**Встроенные:** `dark`, `light`
 
-**Placement:**
-- `~/.gsd/agent/themes/` (global)
-- `.gsd/themes/` (project-local)
+**Размещение:**
+- `~/.gsd/agent/themes/` (глобальный)
+- `.gsd/themes/` (локальный проект)
 
 ---

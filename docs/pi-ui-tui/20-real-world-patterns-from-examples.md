@@ -1,8 +1,8 @@
-# Real-World Patterns from Examples
+# Реальные шаблоны из примеров
 
-### Pattern: Selection Dialog with Borders
+### Шаблон: Диалоговое окно выбора с границами
 
-From `preset.ts` and `tools.ts`:
+Из `preset.ts` и `tools.ts`:
 
 ```typescript
 const result = await ctx.ui.custom<string | null>((tui, theme, _kb, done) => {
@@ -31,9 +31,9 @@ const result = await ctx.ui.custom<string | null>((tui, theme, _kb, done) => {
 });
 ```
 
-### Pattern: Game with Timer Loop
+### Шаблон: игра с циклом таймера
 
-From `snake.ts`:
+Из `snake.ts`:
 
 ```typescript
 class SnakeComponent {
@@ -64,9 +64,9 @@ class SnakeComponent {
 }
 ```
 
-### Pattern: Async Operation with Spinner
+### Шаблон: асинхронная операция с помощью Spinner
 
-From `qna.ts`:
+Из `qna.ts`:
 
 ```typescript
 const result = await ctx.ui.custom<string | null>((tui, theme, _kb, done) => {
@@ -81,9 +81,9 @@ const result = await ctx.ui.custom<string | null>((tui, theme, _kb, done) => {
 });
 ```
 
-### Pattern: Persistent Widget with Live Updates
+### Шаблон: постоянный виджет с постоянными обновлениями
 
-From `plan-mode/index.ts`:
+Из `plan-mode/index.ts`:
 
 ```typescript
 function updateUI(ctx: ExtensionContext): void {
@@ -104,9 +104,9 @@ function updateUI(ctx: ExtensionContext): void {
 }
 ```
 
-### Pattern: Multi-Tab Questionnaire
+### Шаблон: анкета с несколькими вкладками
 
-From `questionnaire.ts`:
+Из `questionnaire.ts`:
 
 ```typescript
 // State: currentTab, optionIndex, inputMode, answers map
@@ -117,9 +117,9 @@ From `questionnaire.ts`:
 // Full renderCall and renderResult for LLM context display
 ```
 
-### Pattern: Custom Footer with Reactive Data
+### Шаблон: пользовательский нижний колонтитул с реактивными данными
 
-From `custom-footer.ts`:
+Из `custom-footer.ts`:
 
 ```typescript
 ctx.ui.setFooter((tui, theme, footerData) => ({

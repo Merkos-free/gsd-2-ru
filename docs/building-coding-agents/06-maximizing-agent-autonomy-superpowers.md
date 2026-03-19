@@ -1,44 +1,44 @@
-# Maximizing Agent Autonomy & Superpowers
+# Максимизация автономии агентов и суперспособностей
 
-### The Foundational Insight
+### Основополагающее понимание
 
-> Autonomy comes from **self-correction**, not from getting it right the first time. The power isn't in the initial generation — it's in iteration speed and feedback signal quality.
+> Автономия возникает в результате **самокоррекции**, а не в результате того, что все сделано правильно с первого раза. Сила не в начальном поколении, а в скорости итерации и качестве сигнала обратной связи.
 
-### The Essential Tool Arsenal
+### Базовый арсенал инструментов
 
-| Category | Tools | Why |
+| Категория | Инструменты | Почему |
 |----------|-------|-----|
-| **Execution Environment** | Terminal, filesystem, git, package manager | Closes the write → run → debug → verify loop |
-| **Verification** | Test runner, linter, type checker, security scanner | Ground truth over self-assessment |
-| **Observation** | Logs, browser/renderer, performance profiler | Sees what users would see |
-| **Exploration** | Code search, documentation lookup, web research | Self-directed learning |
-| **Recovery** | Git revert, branch management, checkpoints | Safety net that enables boldness |
+| **Среда выполнения** | Терминал, файловая система, git, менеджер пакетов | Закрывает цикл записи → запуска → отладки → проверки |
+| **Проверка** | Тест-раннер, линтер, проверка типов, сканер безопасности | Основная истина важнее самооценки |
+| **Наблюдение** | Журналы, браузер/рендеринг, профилировщик производительности | Видит то, что увидят пользователи |
+| **Исследование** | Поиск кода, поиск документации, веб-исследования | Самостоятельное обучение |
+| **Восстановление** | Git revert, управление ветками, контрольные точки | Сеть безопасности, которая дает смелость |
 
-### Self-Verification Architecture
+### Архитектура самопроверки
 
-Every task completion should self-evaluate against a checklist:
-1. Does the code compile?
-2. Do all existing tests still pass?
-3. Do new tests pass?
-4. Does the application actually start?
-5. Can I exercise the feature and see expected behavior?
-6. Does this match acceptance criteria point by point?
+Каждое завершение задачи должно оцениваться по контрольному списку:
+1. Компилируется ли код?
+2. Все ли существующие тесты проходят успешно?
+3. Проходят ли новые тесты?
+4. Приложение вообще запускается?
+5. Могу ли я использовать эту функцию и увидеть ожидаемое поведение?
+6. Соответствует ли это критериям приемки по пунктам?
 
-### Debugging Superpowers
+### Отладка суперспособностей
 
-- **Temporary instrumentation:** Add logging, remove after diagnosis
-- **Bisection:** Walk back through changes to find where regression was introduced
-- **Minimal reproduction:** Strip away everything except exact conditions that trigger failure
-- **Exploratory tests:** Quick throwaway scripts to test hypotheses
+- **Временные инструменты:** Добавить журналирование, удалить после диагностики.
+- **Bisection:** просмотрите изменения и найдите, где была введена регрессия.
+- **Минимальное воспроизведение:** Удалите все, кроме конкретных условий, вызывающих сбой.
+– **Исследовательские тесты**: быстрые одноразовые сценарии для проверки гипотез.
 
-### Meta-Cognitive Layer
+### Метакогнитивный уровень
 
-- **Scratchpad:** External reasoning space to track hypotheses, attempts, and outcomes
-- **Stuck detection:** After N failed attempts, trigger step-back with fresh context and explicitly different approach
-- **Structured escalation:** "Here's what I'm trying, here's what I've tried, here's what I think the issue is, here's what I need from you"
+- **Блокнот:** Внешнее пространство для рассуждений для отслеживания гипотез, попыток и результатов.
+- **Обнаружение зависаний:** после N неудачных попыток активировать шаг назад с новым контекстом и явно другим подходом.
+– **Структурированная эскалация:** «Вот что я пытаюсь, вот что я пробовал, вот в чем, по моему мнению, проблема, вот что мне от вас нужно»
 
-### The Philosophy
+### Философия
 
-> You're not trying to build an agent that doesn't make mistakes. You're building one that **catches and fixes its own mistakes faster than a human would notice them**. Not intelligence — **closed-loop execution with rich feedback**.
+> Вы не пытаетесь создать агента, который не совершает ошибок. Вы создаете систему, которая **выявляет и исправляет собственные ошибки быстрее, чем человек их заметит**. Не интеллект — **исполнение по замкнутому циклу с обширной обратной связью**.
 
 ---

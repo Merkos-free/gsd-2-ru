@@ -1,33 +1,33 @@
-# Top 10 Tips for a World-Class Agent
+# 10 лучших советов для агента мирового класса
 
-### 1. The Orchestrator Is the Product, Not the Model
-The model is a commodity. Two teams using the same model produce wildly different results based on orchestration quality. Invest 70% of effort in the orchestrator, 30% in prompt engineering.
+### 1. Оркестратор — это продукт, а не модель
+Модель является товаром. Две команды, использующие одну и ту же модель, дают совершенно разные результаты в зависимости от качества оркестрации. Вложите 70 % усилий в оркестратор, 30 % — в оперативное проектирование.
 
-### 2. Context Assembly Is a Craft
-Profile your context like you'd profile code. Measure which context elements correlate with first-attempt success. Prune relentlessly. The right files, in the right order, with the right framing, at the right level of detail.
+### 2. Сборка контекста — это ремесло
+Профилируйте свой контекст так же, как профилируйте код. Оцените, какие элементы контекста коррелируют с успехом первой попытки. Обрезайте безжалостно. Правильные файлы, в правильном порядке, с правильным кадрированием, с правильным уровнем детализации.
 
-### 3. Make the Feedback Loop the Fastest Thing
-Treat feedback loop latency like a game engine treats frame rate. Incremental builds, targeted tests, pre-warmed servers, cached deps. Put it on a dashboard you look at every day.
+### 3. Сделайте цикл обратной связи самым быстрым
+Относитесь к задержке цикла обратной связи так же, как игровой движок относится к частоте кадров. Инкрементные сборки, целевые тесты, предварительно прогретые серверы, кэшированные данные. Поместите это на информационную панель, на которую вы смотрите каждый день.
 
-### 4. Build First-Class Error Recovery Into Every Layer
-Retry with variation (never the same way twice), automatic rollback, structured escalation, ability to park blocked tasks. **Design failure paths first** — they'll get more use than you expect.
+### 4. Встраивайте первоклассное восстановление ошибок на каждый уровень
+Повторная попытка с вариациями (никогда не повторяется дважды), автоматический откат, структурированная эскалация, возможность парковки заблокированных задач. **Сначала продумайте пути отказа** — они принесут больше пользы, чем вы ожидаете.
 
-### 5. Verify Through Execution, Not Self-Assessment
-An agent that asks itself "is this correct?" says yes 90% of the time regardless. Run the code, observe results, get ground truth. Self-assessment supplements execution-based verification, never replaces it.
+### 5. Проверка посредством выполнения, а не самооценки
+Агент, который спрашивает себя: «Правильно ли это?» несмотря ни на что, говорит «да» в 90% случаев. Запустите код, наблюдайте за результатами, получите достоверную информацию. Самооценка дополняет проверку на основе исполнения, но никогда не заменяет ее.
 
-### 6. Return Structured, Actionable Data from Every Tool
-Don't return raw terminal output. Return structured objects: what passed, what failed, where, why. Remove cognitive load from the model — it directly translates to better decisions.
+### 6. Получайте структурированные, действенные данные из каждого инструмента
+Не возвращайте необработанный вывод терминала. Возврат структурированных объектов: что прошло, что не удалось, где, почему. Удалите когнитивную нагрузку из модели — это напрямую приведет к принятию более эффективных решений.
 
-### 7. Use a DAG, Not a Flat List
-Explicit inputs, outputs, dependencies, acceptance criteria per task. Maximizes parallelism, identifies critical path, enables smart impact tracing when things change.
+### 7. Используйте DAG, а не простой список
+Явные входные данные, выходные данные, зависимости, критерии приемки для каждой задачи. Максимизирует параллелизм, определяет критический путь, обеспечивает интеллектуальное отслеживание последствий изменений.
 
-### 8. Keep the Manifest Small and Always Current
-One file, <1000 tokens, always included. Updated automatically after every task completion. If it drifts from reality, everything downstream suffers.
+### 8. Держите манифест небольшим и всегда актуальным
+Всегда включен один файл, <1000 токенов. Обновляется автоматически после завершения каждого задания. Если оно отклоняется от реальности, страдает все, что находится ниже по течению.
 
-### 9. Build Observability From Day One
-Log every LLM call. Track iterations per task type, token usage, failure rates, first-attempt success rates. This is your training data for improving the orchestrator. Teams that instrument well improve 10x faster.
+### 9. Обеспечьте наблюдаемость с первого дня
+Записывайте каждый вызов LLM. Отслеживайте итерации по типам задач, использованию токенов, частоте неудач и успешности первой попытки. Это ваши данные обучения для улучшения оркестратора. Команды, которые хорошо используют инструменты, улучшаются в 10 раз быстрее.
 
-### 10. Make Human Touchpoints High-Leverage and Low-Friction
-Present specific questions with context, not walls of text. "The API could return nested or flat fields — which fits your vision?" is a 5-second decision. "Please review everything" takes 20 minutes.
+### 10. Сделайте точки соприкосновения с людьми максимально эффективными и не вызывающими затруднений
+Задавайте конкретные вопросы с контекстом, а не со стенами текста. «API может возвращать вложенные или плоские поля — что соответствует вашему видению?» это 5-секундное решение. «Пожалуйста, просмотрите все» занимает 20 минут.
 
 ---

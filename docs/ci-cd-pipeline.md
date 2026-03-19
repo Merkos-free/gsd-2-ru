@@ -1,8 +1,8 @@
-# CI/CD Pipeline Guide
+# CI/CD Направляющая трубопровода
 
-## Overview
+## Обзор
 
-GSD 2 uses a three-stage promotion pipeline that automatically moves merged PRs through **Dev → Test → Prod** environments using npm dist-tags.
+GSD 2 использует трехэтапный конвейер продвижения, который автоматически перемещает объединенный PRs через среды **Разработка → Тестирование → Продукт** с использованием dist-тегов npm.
 
 ```
 PR merged to main
@@ -21,11 +21,11 @@ PR merged to main
    └─────────┘    → creates GitHub Release
 ```
 
-## For Contributors: Testing Your PR Before It Ships
+## Для участников: тестирование PR перед отправкой
 
-### Install the Dev Build
+### Установите сборку для разработчиков
 
-Every merged PR is immediately installable:
+Каждый объединенный PR можно сразу установить:
 
 ```bash
 # Latest dev build (bleeding edge, every merged PR)
@@ -38,7 +38,7 @@ npx gsd-pi@next
 npx gsd-pi@latest    # or just: npx gsd-pi
 ```
 
-### Using Docker
+### Использование Docker
 
 ```bash
 # Test candidate
@@ -48,50 +48,50 @@ docker run --rm -v $(pwd):/workspace ghcr.io/gsd-build/gsd-pi:next --version
 docker run --rm -v $(pwd):/workspace ghcr.io/gsd-build/gsd-pi:latest --version
 ```
 
-### Checking if a Fix Landed
+### Проверка наличия исправления
 
-1. Find the PR's merge commit SHA (first 7 chars)
-2. Check if it's in `@dev`: `npm view gsd-pi@dev version`
-   - If the version ends in `-dev.<your-sha>`, your PR is in dev
-3. Check if it promoted to `@next`: `npm view gsd-pi@next version`
-4. Check if it's in production: `npm view gsd-pi@latest version`
+1. Найдите коммит слияния PR SHA (первые 7 символов)
+2. Проверьте, находится ли он в `@dev`: `npm view gsd-pi@dev version`.
+   - Если версия заканчивается на `-dev.<your-sha>`, ваша PR находится в стадии разработки.
+3. Проверьте, повышен ли он до `@next`: `npm view gsd-pi@next version`.
+4. Проверьте, находится ли он в производстве: `npm view gsd-pi@latest version`
 
-## For Maintainers
+## Для сопровождающих
 
-### Pipeline Workflows
+### Рабочие процессы конвейера
 
-| Workflow | File | Trigger | Purpose |
+| Рабочий процесс | Файл | Триггер | Цель |
 |----------|------|---------|---------|
-| CI | `ci.yml` | PR + push to main | Build, test, typecheck — **gate for all promotions** |
-| Release Pipeline | `pipeline.yml` | After CI succeeds on main | Three-stage promotion |
-| Native Binaries | `build-native.yml` | `v*` tags | Cross-compile platform binaries |
-| Dev Cleanup | `cleanup-dev-versions.yml` | Weekly (Monday 06:00 UTC) | Unpublish `-dev.` versions older than 30 days |
+| CI | `ci.yml` | PR + переход на главную | Сборка, тестирование, проверка типов — **доступ ко всем рекламным акциям** |
+| Конвейер выпуска | `pipeline.yml` | После CI успех на главной | Трехэтапное продвижение |
+| Собственные двоичные файлы | `build-native.yml` | `v*` теги | Кросс-компиляция двоичных файлов платформы |
+| Очистка для разработчиков | `cleanup-dev-versions.yml` | Еженедельно (понедельник 06:00 UTC) | Отменить публикацию версий `-dev.` старше 30 дней |
 
-### Gating Tests
+### Тесты на ворота
 
-The pipeline only triggers after `ci.yml` passes. Key gating tests include:
+Конвейер запускается только после прохождения `ci.yml`. Ключевые тесты на ворота включают в себя:
 
-- **Unit tests** (`npm run test:unit`) — includes `auto-session-encapsulation.test.ts` which enforces that all auto-mode state is encapsulated in `AutoSession`, plus dispatch loop regression tests that exercise the full `deriveState → resolveDispatch → idempotency` chain without an LLM. Any PR adding module-level mutable state to `auto.ts` will fail CI and block the pipeline.
-- **Integration tests** (`npm run test:integration`)
-- **Extension typecheck** (`npm run typecheck:extensions`)
-- **Package validation** (`npm run validate-pack`)
-- **Smoke tests** (`npm run test:smoke`) — run post-build in the pipeline against the local binary and again against the globally-installed `@dev` package
-- **Fixture tests** (`npm run test:fixtures`) — replay recorded LLM conversations without hitting real APIs
-- **Live regression tests** (`npm run test:live-regression`) — run against the installed binary in the Test stage to catch runtime regressions before promotion to `@next`
+- **Модульные тесты** (`npm run test:unit`) — включают `auto-session-encapsulation.test.ts`, который обеспечивает инкапсуляцию всего состояния автоматического режима в `AutoSession`, а также регрессионные тесты цикла диспетчеризации, которые проверяют всю цепочку `deriveState → resolveDispatch → idempotency` без LLM. Любой PR, добавляющий изменяемое состояние на уровне модуля в `auto.ts`, приведет к сбою CI и блокированию конвейера.
+- **Интеграционные тесты** (`npm run test:integration`)
+- **Проверка типа расширения** (`npm run typecheck:extensions`)
+- **Проверка пакета** (`npm run validate-pack`)
+- **Дымовые тесты** (`npm run test:smoke`) — запустите пост-сборку в конвейере для локального двоичного файла и снова для глобально установленного пакета `@dev`.
+- **Тестирование приспособлений** (`npm run test:fixtures`) — воспроизведение записанных LLM разговоров без попадания в настоящую APIs.
+- **Регрессионные тесты в режиме реального времени** (`npm run test:live-regression`) — запускайте установленный двоичный файл на этапе тестирования, чтобы обнаружить регрессии во время выполнения перед повышением до `@next`.
 
-### Approving a Prod Release
+### Утверждение выпуска рабочей версии
 
-1. A version reaches the Test stage automatically
-2. In GitHub Actions, the `prod-release` job will show "Waiting for review"
-3. Click **Review deployments** → select `prod` → **Approve**
-4. The version is promoted to `@latest` and a GitHub Release is created
+1. Версия автоматически достигает стадии тестирования.
+2. В GitHub Actions задание `prod-release` будет отображаться как «Ожидание проверки».
+3. Нажмите **Проверить развертывания** → выберите `prod` → **Утвердить**.
+4. Версия повышается до `@latest` и создается выпуск GitHub.
 
-To enable live LLM tests during Prod promotion:
-- Set the `RUN_LIVE_TESTS` environment variable to `true` on the `prod` environment
+Чтобы включить интерактивные тесты LLM во время продвижения продукта:
+- Установите для переменной среды `RUN_LIVE_TESTS` значение `true` в среде `prod`.
 
-### Rolling Back a Release
+### Откат релиза
 
-If a broken version reaches production:
+Если сломанная версия доходит до производства:
 
 ```bash
 # Roll back npm
@@ -103,41 +103,41 @@ docker tag ghcr.io/gsd-build/gsd-pi:<previous-good-version> ghcr.io/gsd-build/gs
 docker push ghcr.io/gsd-build/gsd-pi:latest
 ```
 
-For `@dev` or `@next` rollbacks, the next successful merge will overwrite the tag automatically.
+Для откатов `@dev` или `@next` следующее успешное слияние автоматически перезапишет тег.
 
-### GitHub Configuration Required
+### Требуется конфигурация GitHub
 
-| Setting | Value |
+| Настройка | Значение |
 |---------|-------|
-| Environment: `dev` | No protection rules |
-| Environment: `test` | No protection rules |
-| Environment: `prod` | Required reviewers: maintainers |
-| Secret: `NPM_TOKEN` | All environments |
-| Secret: `ANTHROPIC_API_KEY` | Prod environment only |
-| Secret: `OPENAI_API_KEY` | Prod environment only |
-| Variable: `RUN_LIVE_TESTS` | `false` (set to `true` to enable live LLM tests) |
-| GHCR | Enabled for the `gsd-build` org |
+| Окружающая среда: `dev` | Нет правил защиты |
+| Окружающая среда: `test` | Нет правил защиты |
+| Окружающая среда: `prod` | Требуются рецензенты: сопровождающие |
+| Секрет: `NPM_TOKEN` | Все среды |
+| Секрет: `ANTHROPIC_API_KEY` | Только среда разработки |
+| Секрет: `OPENAI_API_KEY` | Только среда разработки |
+| Переменная: `RUN_LIVE_TESTS` | `false` (установите значение `true`, чтобы включить тесты LLM в реальном времени) |
+| GHCR | Включено для организации `gsd-build` |
 
-### Docker Images
+### Изображения Docker
 
-| Image | Base | Purpose | Tags |
+| Изображение | База | Цель | Теги |
 |-------|------|---------|------|
-| `ghcr.io/gsd-build/gsd-ci-builder` | `node:24-bookworm` | CI build environment with Rust toolchain | `:latest`, `:<date>` |
-| `ghcr.io/gsd-build/gsd-pi` | `node:24-slim` | User-facing runtime | `:latest`, `:next`, `:v<version>` |
+| `ghcr.io/gsd-build/gsd-ci-builder` | `node:24-bookworm` | CI среда сборки с помощью набора инструментов Rust | `:latest`, `:<date>` |
+| `ghcr.io/gsd-build/gsd-pi` | `node:24-slim` | Среда выполнения, ориентированная на пользователя | `:latest`, `:next`, `:v<version>` |
 
-The CI builder image is rebuilt automatically when the `Dockerfile` changes. It eliminates ~3-5 min of toolchain setup per CI run.
+Образ компоновщика CI автоматически перестраивается при изменении `Dockerfile`. Это устраняет ~3–5 минут настройки набора инструментов на каждый запуск CI.
 
-## LLM Fixture Tests
+## LLM Тесты приспособлений
 
-The fixture system records and replays LLM conversations without hitting real APIs (zero cost).
+Система фикстур записывает и воспроизводит диалоги LLM без обращения к реальным API (нулевая стоимость).
 
-### Running Fixture Tests
+### Запуск тестов приспособлений
 
 ```bash
 npm run test:fixtures
 ```
 
-### Recording New Fixtures
+### Запись новых матчей
 
 ```bash
 # Set your API key, then record
@@ -145,21 +145,21 @@ GSD_FIXTURE_MODE=record GSD_FIXTURE_DIR=./tests/fixtures/recordings \
   node --experimental-strip-types tests/fixtures/record.ts
 ```
 
-Fixtures are JSON files in `tests/fixtures/recordings/`. Each one captures a conversation's request/response pairs and replays them by turn index.
+Светильники — это файлы JSON в `tests/fixtures/recordings/`. Каждый из них фиксирует пары запрос/ответ разговора и воспроизводит их по индексу хода.
 
-### When to Re-Record
+### Когда перезаписывать
 
-Re-record fixtures when:
-- Provider wire format changes (e.g., new field in Anthropic response)
-- Tool definitions change (affects request shape)
-- System prompt changes (may cause turn count mismatch)
+Перезапись приборов, когда:
+- Изменения формата проводов поставщика (например, новое поле в ответе Anthropic)
+- Изменены определения инструментов (влияет на форму запроса)
+- Изменения системных подсказок (может привести к несоответствию количества поворотов)
 
-## Version Strategy
+## Стратегия версий
 
-| Tag | Published | Format | Who uses it |
+| Тег | Опубликовано | Формат | Кто этим пользуется |
 |-----|-----------|--------|-------------|
-| `@dev` | Every merged PR | `2.27.0-dev.a3f2c1b` | Developers verifying fixes |
-| `@next` | Auto-promoted from dev | Same version | Early adopters, beta testers |
-| `@latest` | Manually approved | Same version | Production users |
+| `@dev` | Каждый объединенный PR | `2.27.0-dev.a3f2c1b` | Разработчики проверяют исправления |
+| `@next` | Автоматическое продвижение от разработчиков | Та же версия | Первые пользователи, бета-тестеры |
+| `@latest` | Одобрено вручную | Та же версия | Пользователи производства |
 
-Old `-dev.` versions are cleaned up weekly (30-day retention).
+Старые версии `-dev.` очищаются еженедельно (30-дневный срок хранения).

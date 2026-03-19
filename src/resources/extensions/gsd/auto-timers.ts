@@ -96,7 +96,7 @@ export function startUnitSupervision(sctx: SupervisionContext): void {
           return;
         }
         ctx.ui.notify(
-          `Stalled tool detected: a tool has been in-flight for ${Math.round(toolAgeMs / 60000)}min. Treating as hung — attempting idle recovery.`,
+          `Обнаружен зависший инструмент: вызов выполняется уже ${Math.round(toolAgeMs / 60000)} мин. Считаю его зависшим — пытаюсь восстановиться после простоя.`,
           "warning",
         );
       }
@@ -123,7 +123,7 @@ export function startUnitSupervision(sctx: SupervisionContext): void {
         phase: "paused",
       });
       ctx.ui.notify(
-        `Unit ${unitType} ${unitId} made no meaningful progress for ${supervisor.idle_timeout_minutes}min. Pausing auto-mode.`,
+        `Unit ${unitType} ${unitId} не показал значимого прогресса за ${supervisor.idle_timeout_minutes} мин. Auto-mode приостанавливается.`,
         "warning",
       );
       await pauseAuto(ctx, pi);
@@ -131,7 +131,7 @@ export function startUnitSupervision(sctx: SupervisionContext): void {
       const message = getErrorMessage(err);
       console.error(`[idle-watchdog] Unhandled error: ${message}`);
       try {
-        ctx.ui.notify(`Idle watchdog error: ${message}`, "warning");
+        ctx.ui.notify(`Ошибка idle watchdog: ${message}`, "warning");
       } catch { /* best effort */ }
     }
   }, 15000);
@@ -155,7 +155,7 @@ export function startUnitSupervision(sctx: SupervisionContext): void {
       if (recovery === "recovered") return;
 
       ctx.ui.notify(
-        `Unit ${unitType} ${unitId} exceeded ${supervisor.hard_timeout_minutes}min hard timeout. Pausing auto-mode.`,
+        `Unit ${unitType} ${unitId} превысил жёсткий таймаут ${supervisor.hard_timeout_minutes} мин. Auto-mode приостанавливается.`,
         "warning",
       );
       await pauseAuto(ctx, pi);
@@ -163,7 +163,7 @@ export function startUnitSupervision(sctx: SupervisionContext): void {
       const message = getErrorMessage(err);
       console.error(`[hard-timeout] Unhandled error: ${message}`);
       try {
-        ctx.ui.notify(`Hard timeout error: ${message}`, "warning");
+        ctx.ui.notify(`Ошибка жёсткого таймаута: ${message}`, "warning");
       } catch { /* best effort */ }
     }
   }, hardTimeoutMs);
@@ -193,7 +193,7 @@ export function startUnitSupervision(sctx: SupervisionContext): void {
 
     if (s.verbose) {
       ctx.ui.notify(
-        `Context at ${contextUsage.percent}% (threshold: ${continueHereThreshold}%) — sending wrap-up signal.`,
+        `Контекст заполнен на ${contextUsage.percent}% (порог: ${continueHereThreshold}%) — отправляю сигнал на завершение.`,
         "info",
       );
     }

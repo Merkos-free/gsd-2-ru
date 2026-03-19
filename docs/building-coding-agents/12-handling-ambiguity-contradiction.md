@@ -1,24 +1,24 @@
-# Handling Ambiguity & Contradiction
+# Обработка двусмысленности и противоречий
 
-**The universal consensus:** This is the highest-cost failure mode. An agent confidently building the wrong thing based on a reasonable-but-incorrect interpretation burns hours of work discovered only at milestone reviews.
+**Всеобщий консенсус:** Это вариант отказа с самой высокой стоимостью. Агент, уверенно создающий неправильную вещь на основе разумной, но неверной интерпретации, тратит часы работы, обнаруженные только при контрольных проверках.
 
-### The Three-Layer Strategy (All 4 Models Agree)
+### Трехуровневая стратегия (все 4 модели согласны)
 
-#### Layer 1: Classification of Ambiguity Type
+#### Уровень 1: Классификация типов неоднозначности
 
-Every requirement should be classified during planning:
+Во время планирования каждое требование должно быть классифицировано:
 
-| Classification | Action |
+| Классификация | Действие |
 |---------------|--------|
-| **Clear and actionable** | Proceed autonomously |
-| **Ambiguous but decidable with sensible defaults** | Proceed + document assumptions |
-| **Genuinely unclear or contradictory** | Halt and escalate to human |
+| **Ясно и практично** | Действуйте автономно |
+| **Неоднозначно, но разрешимо с помощью разумных значений по умолчанию** | Продолжить + документировать предположения |
+| **Совершенно неясно или противоречиво** | Остановить и перейти к человеку |
 
-> The middle category is where most real work lives. "The user should be able to reset their password" has a hundred implied decisions. A good agent resolves these with sensible defaults and **documents the assumptions it made** — it doesn't ask about every one.
+> В средней категории живет больше всего настоящей работы. «Пользователь должен иметь возможность сбросить свой пароль» имеет сотню подразумеваемых решений. Хороший агент решает эти проблемы, используя разумные значения по умолчанию и **документирует сделанные им предположения** — он не спрашивает обо всех.
 
-#### Layer 2: The Assumption Ledger
+#### Уровень 2: Книга предположений
 
-Every task completion includes an `assumptions.md` update listing every interpretive decision the agent made:
+Каждое завершение задачи включает обновление `assumptions.md`, в котором перечислены все интерпретационные решения, принятые агентом:
 
 ```json
 {
@@ -31,26 +31,26 @@ Every task completion includes an `assumptions.md` update listing every interpre
 }
 ```
 
-The human reviews these at **milestones, not in real-time** — preserving speed while maintaining correctness.
+Человек проверяет их на **этапах, а не в режиме реального времени** — сохраняя скорость и сохраняя при этом правильность.
 
-#### Layer 3: Contradiction Detection Pass
+#### Уровень 3: Проход обнаружения противоречий
 
-Before execution begins, a **dedicated reasoning pass** (separate from planning) scans for conflicts:
-- Do requirements contradict each other?
-- Do acceptance criteria conflict with stated architecture?
-- Are there implicit assumptions in one requirement that violate another?
+Перед началом выполнения **специальный этап рассуждения** (отдельный от планирования) проверяет наличие конфликтов:
+- Требования противоречат друг другу?
+- Критерии приемки противоречат заявленной архитектуре?
+- Есть ли в одном требовании неявные предположения, которые нарушают другое?
 
-### Escalation Threshold
+### Порог эскалации
 
-- **Impact confined to current task** → decide and document
-- **Impact touches interface contracts** → escalate (wrong interpretation cascades)
+- **Воздействие ограничено текущей задачей** → принять решение и задокументировать
+- **Влияние касается контрактов интерфейса** → эскалация (каскады неправильной интерпретации)
 
-Grok adds a **"Multi-Hypothesis Planning"** approach: when underspecification is detected, generate three distinct "Intent Hypotheses" (The Minimalist Path, The Scalable Path, The Feature-Rich Path). If the semantic distance between them exceeds a threshold, hard-halt and present a decision matrix to the human.
+Грок добавляет подход ** «Планирование нескольких гипотез»**: при обнаружении недостаточной спецификации генерирует три отдельные «Намеренные гипотезы» (Минималистический путь, Масштабируемый путь, Многофункциональный путь). Если семантическое расстояние между ними превышает пороговое значение, резко остановитесь и предоставьте человеку матрицу решений.
 
-### The Deepest Pitfall
+### Самая глубокая ловушка
 
-Models don't naturally express uncertainty — they pick an interpretation and run with it as if it's obviously correct. The system prompt must explicitly instruct confidence-level flagging, and the orchestrator must treat low-confidence decisions differently from high-confidence ones.
+Модели естественным образом не выражают неопределенность — они выбирают интерпретацию и используют ее так, как будто она очевидно правильна. Системное приглашение должно явно указывать маркировку уровня достоверности, а оркестратор должен обрабатывать решения с низкой степенью достоверности иначе, чем с решениями с высокой степенью достоверности.
 
-> **Proven result:** Grok reports this pattern cuts wrong-path rework by ~65% in 2026 evaluations.
+> **Доказанный результат:** Грок сообщает, что этот шаблон сокращает количество доработок по неправильному пути примерно на 65 % в оценках 2026 года.
 
 ---

@@ -1,31 +1,31 @@
-# Agent Knowledge Index
+# Индекс знаний агентов
 
-Use this file as a machine-operational routing table for pi docs and research references.
+Используйте этот файл в качестве таблицы маршрутизации для рабочих документов и ссылок на исследования.
 
-Rules:
+Правила:
 
-- Read only the specific files relevant to the current task.
-- Prefer the primary bundle first.
-- Read files in parallel when the task clearly maps to multiple known references.
-- Use absolute paths directly with `read`.
-- Follow conditional references only when the primary bundle does not answer the question.
+- Чтение только определенных файлов, имеющих отношение к текущей задаче.
+- Сначала отдайте предпочтение основному пакету.
+- Чтение файлов параллельно, если задача четко соответствует нескольким известным ссылкам.
+- Используйте абсолютные пути напрямую с `read`.
+- Следуйте условным ссылкам только в том случае, если первичная связка не отвечает на вопрос.
 
-## Pi architecture
+## Пи-архитектура
 
-Use when:
+Используйте, когда:
 
-- understanding how pi works end to end
-- tracing subsystem relationships
-- understanding sessions, compaction, models, tools, or prompt flow
-- deciding how to embed pi in a branded app, custom CLI, desktop app, or web product
+- понимание того, как работает число Пи, от начала до конца
+- отслеживание взаимосвязей подсистем
+- понимание сеансов, уплотнения, моделей, инструментов или оперативного потока
+- принятие решения о том, как встроить число pi в фирменное приложение, пользовательское приложение CLI, настольное приложение или веб-продукт.
 
-Read first:
+Прочитайте сначала:
 
 - `/Users/lexchristopherson/.gsd/docs/what-is-pi/01-what-pi-is.md`
 - `/Users/lexchristopherson/.gsd/docs/what-is-pi/04-the-architecture-how-everything-fits-together.md`
 - `/Users/lexchristopherson/.gsd/docs/what-is-pi/05-the-agent-loop-how-pi-thinks.md`
 
-Read together when relevant:
+Прочитайте вместе, когда это уместно:
 
 - `/Users/lexchristopherson/.gsd/docs/what-is-pi/06-tools-how-pi-acts-on-the-world.md`
 - `/Users/lexchristopherson/.gsd/docs/what-is-pi/07-sessions-memory-that-branches.md`
@@ -34,7 +34,7 @@ Read together when relevant:
 - `/Users/lexchristopherson/.gsd/docs/what-is-pi/10-providers-models-multi-model-by-default.md`
 - `/Users/lexchristopherson/.gsd/docs/what-is-pi/13-context-files-project-instructions.md`
 
-Follow-up if needed:
+Дальнейшее сопровождение при необходимости:
 
 - `/Users/lexchristopherson/.gsd/docs/what-is-pi/03-the-four-modes-of-operation.md`
 - `/Users/lexchristopherson/.gsd/docs/what-is-pi/11-the-interactive-tui.md`
@@ -46,24 +46,24 @@ Follow-up if needed:
 - `/Users/lexchristopherson/.gsd/docs/what-is-pi/18-quick-reference-commands-shortcuts.md`
 - `/Users/lexchristopherson/.gsd/docs/what-is-pi/19-building-branded-apps-on-top-of-pi.md`
 
-## Context engineering, hooks, and context flow
+## Контекстная инженерия, перехватчики и поток контекста
 
-Use when:
+Используйте, когда:
 
-- understanding how user prompts flow through to the LLM
-- working with before_agent_start, context, tool_call, tool_result, input hooks
-- injecting, filtering, or transforming LLM context
-- understanding message types and what the LLM actually sees
-- coordinating multiple extensions
-- building mode systems, presets, or context management extensions
-- debugging why the LLM does or doesn't see certain information
+- понимание того, как пользовательские подсказки передаются на LLM
+- работа с before_agent_start, context,tool_call,tool_result, входными хуками
+- внедрение, фильтрация или преобразование контекста LLM
+- понимание типов сообщений и того, что на самом деле видит LLM
+- координация нескольких расширений
+- системы режимов сборки, пресеты или расширения управления контекстом
+- отладка того, почему LLM видит или не видит определенную информацию
 
-Read first:
+Прочитайте сначала:
 
 - `/Users/lexchristopherson/.gsd/docs/context-and-hooks/01-the-context-pipeline.md`
 - `/Users/lexchristopherson/.gsd/docs/context-and-hooks/02-hook-reference.md`
 
-Read together when relevant:
+Прочитайте вместе, когда это уместно:
 
 - `/Users/lexchristopherson/.gsd/docs/context-and-hooks/03-context-injection-patterns.md`
 - `/Users/lexchristopherson/.gsd/docs/context-and-hooks/04-message-types-and-llm-visibility.md`
@@ -71,20 +71,20 @@ Read together when relevant:
 - `/Users/lexchristopherson/.gsd/docs/context-and-hooks/06-advanced-patterns-from-source.md`
 - `/Users/lexchristopherson/.gsd/docs/context-and-hooks/07-the-system-prompt-anatomy.md`
 
-## Extension development
+## Разработка расширений
 
-Use when:
+Используйте, когда:
 
-- building or modifying extensions
-- adding tools, commands, hooks, renderers, state, or packaging
+- создание или изменение расширений
+- добавление инструментов, команд, хуков, средств визуализации, состояния или упаковки.
 
-Read first:
+Прочитайте сначала:
 
 - `/Users/lexchristopherson/.gsd/docs/extending-pi/01-what-are-extensions.md`
 - `/Users/lexchristopherson/.gsd/docs/extending-pi/02-architecture-mental-model.md`
 - `/Users/lexchristopherson/.gsd/docs/extending-pi/03-getting-started.md`
 
-Read together when relevant:
+Прочитайте вместе, когда это уместно:
 
 - `/Users/lexchristopherson/.gsd/docs/extending-pi/06-the-extension-lifecycle.md`
 - `/Users/lexchristopherson/.gsd/docs/extending-pi/07-events-the-nervous-system.md`
@@ -93,11 +93,11 @@ Read together when relevant:
 - `/Users/lexchristopherson/.gsd/docs/extending-pi/10-custom-tools-giving-the-llm-new-abilities.md`
 - `/Users/lexchristopherson/.gsd/docs/extending-pi/11-custom-commands-user-facing-actions.md`
 - `/Users/lexchristopherson/.gsd/docs/extending-pi/14-custom-rendering-controlling-what-the-user-sees.md`
-- `/Users/lexchristopherson/.gsd/docs/extending-pi/25-slash-command-subcommand-patterns.md` # for subcommand-style slash command UX via getArgumentCompletions()
+- `/Users/lexchristopherson/.gsd/docs/extending-pi/25-slash-command-subcommand-patterns.md` # для косой черты в стиле подкоманды UX через getArgumentCompletions()
 - `/Users/lexchristopherson/.gsd/docs/extending-pi/15-system-prompt-modification.md`
 - `/Users/lexchristopherson/.gsd/docs/extending-pi/22-key-rules-gotchas.md`
 
-Follow-up if needed:
+Дальнейшее сопровождение при необходимости:
 
 - `/Users/lexchristopherson/.gsd/docs/extending-pi/04-extension-locations-discovery.md`
 - `/Users/lexchristopherson/.gsd/docs/extending-pi/05-extension-structure-styles.md`
@@ -112,20 +112,20 @@ Follow-up if needed:
 - `/Users/lexchristopherson/.gsd/docs/extending-pi/23-file-reference-documentation.md`
 - `/Users/lexchristopherson/.gsd/docs/extending-pi/24-file-reference-example-extensions.md`
 
-## Pi UI and TUI
+## Пи UI и TUI
 
-Use when:
+Используйте, когда:
 
-- building dialogs, widgets, overlays, custom editors, or UI renderers
-- working on TUI layout or display behavior
+- создание диалогов, виджетов, наложений, пользовательских редакторов или средств визуализации UI
+- работа над макетом или поведением отображения TUI
 
-Read first:
+Прочитайте сначала:
 
 - `/Users/lexchristopherson/.gsd/docs/pi-ui-tui/01-the-ui-architecture.md`
 - `/Users/lexchristopherson/.gsd/docs/pi-ui-tui/03-entry-points-how-ui-gets-on-screen.md`
 - `/Users/lexchristopherson/.gsd/docs/pi-ui-tui/22-quick-reference-all-ui-apis.md`
 
-Read together when relevant:
+Прочитайте вместе, когда это уместно:
 
 - `/Users/lexchristopherson/.gsd/docs/pi-ui-tui/04-built-in-dialog-methods.md`
 - `/Users/lexchristopherson/.gsd/docs/pi-ui-tui/05-persistent-ui-elements.md`
@@ -137,7 +137,7 @@ Read together when relevant:
 - `/Users/lexchristopherson/.gsd/docs/pi-ui-tui/15-message-rendering-custom-message-display.md`
 - `/Users/lexchristopherson/.gsd/docs/pi-ui-tui/21-common-mistakes-and-how-to-avoid-them.md`
 
-Follow-up if needed:
+Дальнейшее сопровождение при необходимости:
 
 - `/Users/lexchristopherson/.gsd/docs/pi-ui-tui/02-the-component-interface-foundation-of-everything.md`
 - `/Users/lexchristopherson/.gsd/docs/pi-ui-tui/08-high-level-components-from-pi-coding-agent.md`
@@ -151,15 +151,15 @@ Follow-up if needed:
 - `/Users/lexchristopherson/.gsd/docs/pi-ui-tui/20-real-world-patterns-from-examples.md`
 - `/Users/lexchristopherson/.gsd/docs/pi-ui-tui/23-file-reference-example-extensions-with-ui.md`
 
-## Building coding agents
+## Создание агентов кодирования
 
-Use when:
+Используйте, когда:
 
-- designing agent behavior
-- improving autonomy, speed, context handling, or decomposition
-- solving hard ambiguity, safety, or verification problems
+- проектирование поведения агента
+- улучшение автономности, скорости, обработки контекста или декомпозиции
+- решение сложных проблем двусмысленности, безопасности или проверки
 
-Read first:
+Прочитайте сначала:
 
 - `/Users/lexchristopherson/.gsd/docs/building-coding-agents/01-work-decomposition.md`
 - `/Users/lexchristopherson/.gsd/docs/building-coding-agents/06-maximizing-agent-autonomy-superpowers.md`
@@ -167,7 +167,7 @@ Read first:
 - `/Users/lexchristopherson/.gsd/docs/building-coding-agents/12-handling-ambiguity-contradiction.md`
 - `/Users/lexchristopherson/.gsd/docs/building-coding-agents/26-cross-cutting-themes-where-all-4-models-converge.md`
 
-Read together when relevant:
+Прочитайте вместе, когда это уместно:
 
 - `/Users/lexchristopherson/.gsd/docs/building-coding-agents/03-state-machine-context-management.md`
 - `/Users/lexchristopherson/.gsd/docs/building-coding-agents/04-optimal-storage-for-project-context.md`
@@ -179,7 +179,7 @@ Read together when relevant:
 - `/Users/lexchristopherson/.gsd/docs/building-coding-agents/20-error-taxonomy-routing.md`
 - `/Users/lexchristopherson/.gsd/docs/building-coding-agents/24-security-trust-boundaries.md`
 
-Follow-up if needed:
+Дальнейшее сопровождение при необходимости:
 
 - `/Users/lexchristopherson/.gsd/docs/building-coding-agents/02-what-to-keep-discard-from-human-engineering.md`
 - `/Users/lexchristopherson/.gsd/docs/building-coding-agents/09-top-10-tips-for-a-world-class-agent.md`
@@ -194,17 +194,17 @@ Follow-up if needed:
 - `/Users/lexchristopherson/.gsd/docs/building-coding-agents/23-evolution-across-project-scale.md`
 - `/Users/lexchristopherson/.gsd/docs/building-coding-agents/25-designing-for-non-technical-users-vibe-coders.md`
 
-## Pi product docs
+## Документация по продукту Pi
 
-Use when:
+Используйте, когда:
 
-- the user asks about pi itself, its SDK, extensions, themes, skills, packages, TUI, prompt templates, keybindings, or custom providers
+- пользователь спрашивает о самом пи, его SDK, расширениях, темах, навыках, пакетах, TUI, шаблонах подсказок, сочетаниях клавиш или пользовательских поставщиках.
 
-Read first:
+Прочитайте сначала:
 
 - `/Users/lexchristopherson/.nvm/versions/node/v22.20.0/lib/node_modules/@mariozechner/pi-coding-agent/README.md`
 
-Read together when relevant:
+Прочитайте вместе, когда это уместно:
 
 - `/Users/lexchristopherson/.nvm/versions/node/v22.20.0/lib/node_modules/@mariozechner/pi-coding-agent/docs/extensions.md`
 - `/Users/lexchristopherson/.nvm/versions/node/v22.20.0/lib/node_modules/@mariozechner/pi-coding-agent/docs/themes.md`
@@ -217,6 +217,6 @@ Read together when relevant:
 - `/Users/lexchristopherson/.nvm/versions/node/v22.20.0/lib/node_modules/@mariozechner/pi-coding-agent/docs/models.md`
 - `/Users/lexchristopherson/.nvm/versions/node/v22.20.0/lib/node_modules/@mariozechner/pi-coding-agent/docs/packages.md`
 
-Follow-up if needed:
+Дальнейшее сопровождение при необходимости:
 
 - `/Users/lexchristopherson/.nvm/versions/node/v22.20.0/lib/node_modules/@mariozechner/pi-coding-agent/examples`

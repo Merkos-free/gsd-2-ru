@@ -1,12 +1,12 @@
-# Working in Teams
+# Работа в командах
 
-GSD supports multi-user workflows where several developers work on the same repository concurrently.
+GSD поддерживает многопользовательские рабочие процессы, при которых несколько разработчиков одновременно работают над одним и тем же репозиторием.
 
-## Setup
+## Настройка
 
-### 1. Set Team Mode
+### 1. Установите командный режим
 
-The simplest way to configure GSD for team use is to set `mode: team` in your project preferences. This enables unique milestone IDs, push branches, and pre-merge checks in one setting:
+Самый простой способ настроить GSD для совместного использования — установить `mode: team` в настройках вашего проекта. Это позволяет использовать уникальную веху IDs, push-ветви и проверки перед слиянием в одной настройке:
 
 ```yaml
 # .gsd/preferences.md (project-level, committed to git)
@@ -16,13 +16,13 @@ mode: team
 ---
 ```
 
-This is equivalent to manually setting `unique_milestone_ids: true`, `git.push_branches: true`, `git.pre_merge_check: true`, and other team-appropriate defaults. You can still override individual settings — for example, adding `git.auto_push: true` on top of `mode: team` if your team prefers auto-push.
+Это эквивалентно ручной настройке `unique_milestone_ids: true`, `git.push_branches: true`, `git.pre_merge_check: true` и других значений по умолчанию, подходящих для команды. Вы по-прежнему можете переопределить отдельные настройки — например, добавив `git.auto_push: true` поверх `mode: team`, если ваша команда предпочитает автоматическое нажатие.
 
-Alternatively, you can configure each setting individually without using a mode (see [Git Strategy](git-strategy.md) for details).
+Альтернативно, вы можете настроить каждый параметр индивидуально, не используя режим (подробнее см. в разделе [Стратегия Git](git-strategy.md).
 
-### 2. Configure `.gitignore`
+### 2. Настройте `.gitignore`
 
-Share planning artifacts (milestones, roadmaps, decisions) while keeping runtime files local:
+Делитесь артефактами планирования (этапами, дорожными картами, решениями), сохраняя при этом файлы времени выполнения локальными:
 
 ```bash
 # ── GSD: Runtime / Ephemeral (per-developer, per-session) ──────
@@ -37,17 +37,17 @@ Share planning artifacts (milestones, roadmaps, decisions) while keeping runtime
 .gsd/milestones/**/*-CONTINUE.md
 ```
 
-**What gets shared** (committed to git):
-- `.gsd/preferences.md` — project preferences
-- `.gsd/PROJECT.md` — living project description
-- `.gsd/REQUIREMENTS.md` — requirement contract
-- `.gsd/DECISIONS.md` — architectural decisions
-- `.gsd/milestones/` — roadmaps, plans, summaries, research
+**Что становится общим** (фиксируется в git):
+- `.gsd/preferences.md` — настройки проекта.
+- `.gsd/PROJECT.md` — описание жилого проекта
+- `.gsd/REQUIREMENTS.md` — договор требования
+- `.gsd/DECISIONS.md` — архитектурные решения
+- `.gsd/milestones/` — дорожные карты, планы, резюме, исследования.
 
-**What stays local** (gitignored):
-- Lock files, metrics, state cache, runtime records, worktrees, activity logs
+**Что остается локальным** (gitignored):
+- Блокировка файлов, показателей, кеша состояния, записей времени выполнения, рабочих деревьев, журналов активности.
 
-### 3. Commit the Preferences
+### 3. Зафиксируйте настройки
 
 ```bash
 git add .gsd/preferences.md
@@ -56,23 +56,23 @@ git commit -m "chore: enable GSD team workflow"
 
 ## `commit_docs: false`
 
-For teams where only some members use GSD, or when company policy requires a clean repo:
+Для команд, в которых только некоторые участники используют GSD или когда политика компании требует чистого репозитория:
 
 ```yaml
 git:
   commit_docs: false
 ```
 
-This adds `.gsd/` to `.gitignore` entirely and keeps all artifacts local. The developer gets the benefits of structured planning without affecting teammates who don't use GSD.
+Это полностью добавляет `.gsd/` к `.gitignore` и сохраняет все артефакты локальными. Разработчик получает преимущества структурированного планирования, не затрагивая при этом товарищей по команде, которые не используют GSD.
 
-## Migrating an Existing Project
+## Миграция существующего проекта
 
-If you have an existing project with `.gsd/` blanket-ignored:
+Если у вас есть существующий проект, в котором `.gsd/` полностью игнорируется:
 
-1. Ensure no milestones are in progress (clean state)
-2. Update `.gitignore` to use the selective pattern above
-3. Add `unique_milestone_ids: true` to `.gsd/preferences.md`
-4. Optionally rename existing milestones to use unique IDs:
+1. Убедитесь, что этапы не выполняются (чистое состояние).
+2. Обновите `.gitignore`, чтобы использовать шаблон выбора, указанный выше.
+3. Добавьте `unique_milestone_ids: true` к `.gsd/preferences.md`.
+4. При необходимости переименуйте существующие этапы, используя уникальный IDs:
    ```
    I have turned on unique milestone ids, please update all old milestone
    ids to use this new format e.g. M001-abc123 where abc123 is a random
@@ -80,17 +80,17 @@ If you have an existing project with `.gsd/` blanket-ignored:
    .gsd file contents, file names and directory names. Validate your work
    once done to ensure referential integrity.
    ```
-5. Commit
+5. Совершить
 
-## Parallel Development
+## Параллельная разработка
 
-Multiple developers can run auto mode simultaneously on different milestones. Each developer:
+Несколько разработчиков могут одновременно запускать автоматический режим на разных этапах. Каждый разработчик:
 
-- Gets their own worktree (`.gsd/worktrees/<MID>/`, gitignored)
-- Works on a unique `milestone/<MID>` branch
-- Squash-merges to main independently
+- Получает собственное рабочее дерево (`.gsd/worktrees/<MID>/`, gitignored)
+- Работает на уникальной ветке `milestone/<MID>`.
+- Сквош-слияния с основным независимо
 
-Milestone dependencies can be declared in `M00X-CONTEXT.md` frontmatter:
+Зависимости Milestone могут быть объявлены во вводной части `M00X-CONTEXT.md`:
 
 ```yaml
 ---
@@ -98,4 +98,4 @@ depends_on: [M001-eh88as]
 ---
 ```
 
-GSD enforces that dependent milestones complete before starting downstream work.
+GSD требует, чтобы зависимые этапы выполнялись до начала последующей работы.

@@ -50,7 +50,7 @@ export async function recoverTimedOutUnit(
     // Exponential backoff: 2^(n-1) seconds, capped at 30s
     const backoffMs = Math.min(1000 * Math.pow(2, attemptNumber - 2), 30000);
     ctx.ui.notify(
-      `Recovery attempt ${attemptNumber} for ${unitType} ${unitId}. Waiting ${backoffMs / 1000}s before retry.`,
+      `Попытка восстановления ${attemptNumber} для ${unitType} ${unitId}. Ожидание ${backoffMs / 1000}с перед повтором.`,
       "info",
     );
     await new Promise(r => setTimeout(r, backoffMs));
@@ -71,7 +71,7 @@ export async function recoverTimedOutUnit(
         recovery: status,
       });
       ctx.ui.notify(
-        `${reason === "idle" ? "Idle" : "Timeout"} recovery: ${unitType} ${unitId} already completed on disk. Continuing auto-mode. (attempt ${attemptNumber})`,
+        `${reason === "idle" ? "Восстановление после простоя" : "Восстановление после таймаута"}: ${unitType} ${unitId} уже завершён на диске. Продолжаю auto-mode. (попытка ${attemptNumber})`,
         "info",
       );
       unitRecoveryCount.delete(recoveryKey);
@@ -121,7 +121,7 @@ export async function recoverTimedOutUnit(
         { triggerTurn: true, deliverAs: "steer" },
       );
       ctx.ui.notify(
-        `${reason === "idle" ? "Idle" : "Timeout"} recovery: steering ${unitType} ${unitId} to finish durable output (attempt ${attemptNumber}, session ${recoveryAttempts + 1}/${maxRecoveryAttempts}).`,
+        `${reason === "idle" ? "Восстановление после простоя" : "Восстановление после таймаута"}: направляю ${unitType} ${unitId} на завершение устойчивого результата (попытка ${attemptNumber}, сессия ${recoveryAttempts + 1}/${maxRecoveryAttempts}).`,
         "warning",
       );
       return "recovered";
@@ -142,7 +142,7 @@ export async function recoverTimedOutUnit(
         lastRecoveryReason: reason,
       });
       ctx.ui.notify(
-        `${unitType} ${unitId} skipped after ${maxRecoveryAttempts} recovery attempts (${diagnostic}). Blocker artifacts written. Advancing pipeline. (attempt ${attemptNumber})`,
+        `${unitType} ${unitId} пропущен после ${maxRecoveryAttempts} попыток восстановления (${diagnostic}). Артефакты blocker записаны. Продвигаю pipeline дальше. (попытка ${attemptNumber})`,
         "warning",
       );
       unitRecoveryCount.delete(recoveryKey);
@@ -158,7 +158,7 @@ export async function recoverTimedOutUnit(
       lastRecoveryReason: reason,
     });
     ctx.ui.notify(
-      `${reason === "idle" ? "Idle" : "Timeout"} recovery check for ${unitType} ${unitId}: ${diagnostic}`,
+      `${reason === "idle" ? "Проверка восстановления после простоя" : "Проверка восстановления после таймаута"} для ${unitType} ${unitId}: ${diagnostic}`,
       "warning",
     );
     return "paused";
@@ -176,7 +176,7 @@ export async function recoverTimedOutUnit(
       lastRecoveryReason: reason,
     });
     ctx.ui.notify(
-      `${reason === "idle" ? "Idle" : "Timeout"} recovery: ${unitType} ${unitId} artifact already exists on disk. Advancing. (attempt ${attemptNumber})`,
+      `${reason === "idle" ? "Восстановление после простоя" : "Восстановление после таймаута"}: артефакт ${unitType} ${unitId} уже есть на диске. Продвигаю дальше. (попытка ${attemptNumber})`,
       "info",
     );
     unitRecoveryCount.delete(recoveryKey);
@@ -225,7 +225,7 @@ export async function recoverTimedOutUnit(
       { triggerTurn: true, deliverAs: "steer" },
     );
     ctx.ui.notify(
-      `${reason === "idle" ? "Idle" : "Timeout"} recovery: steering ${unitType} ${unitId} to produce ${expected} (attempt ${attemptNumber}, session ${recoveryAttempts + 1}/${maxRecoveryAttempts}).`,
+      `${reason === "idle" ? "Восстановление после простоя" : "Восстановление после таймаута"}: направляю ${unitType} ${unitId} на создание ${expected} (попытка ${attemptNumber}, сессия ${recoveryAttempts + 1}/${maxRecoveryAttempts}).`,
       "warning",
     );
     return "recovered";
@@ -245,7 +245,7 @@ export async function recoverTimedOutUnit(
       lastRecoveryReason: reason,
     });
     ctx.ui.notify(
-      `${unitType} ${unitId} skipped after ${maxRecoveryAttempts} recovery attempts. Blocker placeholder written to ${placeholder}. Advancing pipeline. (attempt ${attemptNumber})`,
+      `${unitType} ${unitId} пропущен после ${maxRecoveryAttempts} попыток восстановления. Заглушка blocker записана в ${placeholder}. Продвигаю pipeline дальше. (попытка ${attemptNumber})`,
       "warning",
     );
     unitRecoveryCount.delete(recoveryKey);

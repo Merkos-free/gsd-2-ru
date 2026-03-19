@@ -1,9 +1,9 @@
-# Custom Rendering — Controlling What the User Sees
+# Пользовательский рендеринг — контроль того, что видит пользователь
 
 
-### Tool Rendering
+### Рендеринг инструментов
 
-Tools can provide `renderCall` (how the tool call looks) and `renderResult` (how the result looks):
+Инструменты могут предоставлять `renderCall` (как выглядит вызов инструмента) и `renderResult` (как выглядит результат):
 
 ```typescript
 import { Text } from "@mariozechner/pi-tui";
@@ -38,9 +38,9 @@ pi.registerTool({
 });
 ```
 
-### Message Rendering
+### Отображение сообщений
 
-Register a renderer for custom message types:
+Зарегистрируйте средство визуализации для пользовательских типов сообщений:
 
 ```typescript
 import { Text } from "@mariozechner/pi-tui";
@@ -63,7 +63,7 @@ pi.sendMessage({
 });
 ```
 
-### Theme Colors Reference
+### Справочник по цветам темы
 
 ```typescript
 // Foreground: theme.fg(color, text)
@@ -85,7 +85,7 @@ theme.italic(text)
 theme.strikethrough(text)
 ```
 
-### Syntax Highlighting in Renderers
+### Подсветка синтаксиса в средствах визуализации
 
 ```typescript
 import { highlightCode, getLanguageFromPath } from "@mariozechner/pi-coding-agent";

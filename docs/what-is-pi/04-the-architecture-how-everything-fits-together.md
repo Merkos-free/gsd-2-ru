@@ -1,4 +1,4 @@
-# The Architecture — How Everything Fits Together
+# Архитектура — как все сочетается друг с другом
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
@@ -56,20 +56,20 @@
 └─────────────────────────────────────────────────────────────────────────┘
 ```
 
-### The key subsystems:
+### Ключевые подсистемы:
 
-| Subsystem | What it does |
+| Подсистема | Что он делает |
 |-----------|-------------|
-| **Model Registry** | Tracks all available models across all providers, handles API key lookup |
-| **Auth Storage** | Stores API keys and OAuth tokens securely |
-| **Agent Session** | The main orchestrator — manages the agent loop, session, tools, and events |
-| **Session Manager** | Reads/writes JSONL session files, manages the entry tree, handles branching |
-| **Agent Loop** | The core cycle: send messages to LLM → execute tool calls → repeat until LLM stops |
-| **Tool Executor** | Runs tools (built-in and custom) with cancellation support |
-| **Compaction Engine** | Summarizes old messages when context gets too large |
-| **Event System** | Every action emits events that extensions can observe and modify |
-| **Extension Runtime** | Loads and manages extensions, routes events, handles tool/command registration |
-| **Resource Loader** | Discovers and loads skills, prompts, themes, and context files |
-| **Mode Layer** | Handles I/O for the current mode (TUI rendering, RPC protocol, JSON streaming, print) |
+| **Реестр моделей** | Отслеживает все доступные модели всех поставщиков, выполняет поиск по ключу API |
+| **Хранилище аутентификации** | Надежно хранит ключи API и жетоны OAuth |
+| **Сеанс агента** | Главный оркестратор — управляет циклом агента, сеансом, инструментами и событиями |
+| **Менеджер сеансов** | Чтение/запись файлов сеанса JSONL, управление деревом записей, обработка ветвления |
+| **Петля агентов** | Основной цикл: отправка сообщений на LLM → выполнение вызовов инструментов → повторять до тех пор, пока LLM не остановится |
+| **Исполнитель инструментов** | Запускает инструменты (встроенные и пользовательские) с поддержкой отмены |
+| **Двигатель уплотнения** | Обобщает старые сообщения, когда контекст становится слишком большим |
+| **Система событий** | Каждое действие генерирует события, которые расширения могут наблюдать и изменять |
+| **Среда выполнения расширений** | Загружает расширения и управляет ими, маршрутизирует события, обрабатывает регистрацию инструментов/команд |
+| **Загрузчик ресурсов** | Обнаруживает и загружает навыки, подсказки, темы и файлы контекста |
+| **Слой режима** | Обрабатывает ввод-вывод для текущего режима (рендеринг TUI, протокол RPC, потоковая передача JSON, печать) |
 
 ---

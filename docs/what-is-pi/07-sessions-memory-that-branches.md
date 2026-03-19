@@ -1,18 +1,18 @@
-# Sessions — Memory That Branches
+# Сессии — память, которая разветвляется
 
-Sessions are pi's memory system. They're more sophisticated than simple conversation history.
+Сессии — это система памяти Пи. Они более сложны, чем простая история разговоров.
 
-### Storage Format
+### Формат хранения
 
-Sessions are **JSONL files** (one JSON object per line). Each line is an "entry" with a `type`, `id`, and `parentId`:
+Сеансы представляют собой файлы **JSONL** (по одному объекту JSON в строке). Каждая строка представляет собой «запись» с `type`, `id` и `parentId`:
 
 ```
 ~/.gsd/agent/sessions/--path--to--project--/<timestamp>_<uuid>.jsonl
 ```
 
-### The Entry Tree
+### Дерево входа
 
-Entries form a **tree structure**, not a linear list. This is the key architectural insight:
+Записи образуют **древовидную структуру**, а не линейный список. Это ключевая архитектурная идея:
 
 ```
                     ┌─ [user] ─ [assistant] ─ [tool] ─ [assistant]  ← Branch A
@@ -20,62 +20,62 @@ Entries form a **tree structure**, not a linear list. This is the key architectu
                     └─ [user] ─ [assistant]                          ← Branch B (via /tree)
 ```
 
-Every entry has an `id` and `parentId`. When you navigate to a previous point with `/tree` and continue from there, a new branch is created from that point. **All branches coexist in the same file.** Nothing is deleted.
+Каждая запись имеет `id` и `parentId`. Когда вы переходите к предыдущей точке с помощью `/tree` и продолжаете оттуда, из этой точки создается новая ветвь. **Все ветки сосуществуют в одном файле.** Ничего не удаляется.
 
-### Entry Types
+### Типы записей
 
-| Type | Purpose |
+| Тип | Цель |
 |------|---------|
-| `session` | Header — file metadata, version, working directory |
-| `message` | A conversation message (user, assistant, tool result, custom) |
-| `compaction` | Summary of older messages (created by compaction) |
-| `branch_summary` | Summary of an abandoned branch (created by `/tree`) |
-| `model_change` | Records when the user switched models |
-| `thinking_level_change` | Records when the user changed thinking level |
-| `custom` | Extension state (NOT sent to LLM) |
-| `custom_message` | Extension-injected message (IS sent to LLM) |
-| `label` | User bookmark on an entry |
-| `session_info` | Session metadata (display name) |
+| `session` | Заголовок — метаданные файла, версия, рабочий каталог |
+| `message` | Сообщение беседы (пользователь, помощник, результат инструмента, пользовательское) |
+| `compaction` | Сводка старых сообщений (созданных путем сжатия) |
+| `branch_summary` | Краткое описание заброшенной ветки (создано `/tree`) |
+| `model_change` | Записывает, когда пользователь переключал модели |
+| `thinking_level_change` | Записывает, когда пользователь менял уровень мышления |
+| `custom` | Состояние внутреннего номера (NOT отправлено на LLM) |
+| `custom_message` | Сообщение, добавленное расширением (IS отправлено на LLM) |
+| `label` | Пользовательская закладка на записи |
+| `session_info` | Метаданные сеанса (отображаемое имя) |
 
-### Message Types Within Entries
+### Типы сообщений в записях
 
-Message entries contain typed message objects:
+Записи сообщений содержат типизированные объекты сообщений:
 
-| Role | What it is |
+| Роль | Что это такое |
 |------|-----------|
-| `user` | User's prompt (text and/or images) |
-| `assistant` | LLM's response (text, thinking, tool calls) — includes model, provider, usage stats |
-| `toolResult` | Output from a tool execution — includes `details` for rendering and state |
-| `bashExecution` | Output from user's `!command` (not from LLM tool calls) |
-| `custom` | Extension-injected message |
-| `branchSummary` | Summary of an abandoned branch |
-| `compactionSummary` | Summary from compaction |
+| `user` | Подсказка пользователю (текст и/или изображения) |
+| `assistant` | Ответ LLM (текст, размышления, вызовы инструментов) — включает модель, поставщика, статистику использования |
+| `toolResult` | Результат выполнения инструмента — включает `details` для рендеринга и состояния |
+| `bashExecution` | Вывод из `!command` пользователя (не из вызовов инструментов LLM) |
+| `custom` | Сообщение, внедренное расширением |
+| `branchSummary` | Краткое описание заброшенной ветки |
+| `compactionSummary` | Резюме по уплотнению |
 
-### Context Building
+### Построение контекста
 
-When pi needs to send messages to the LLM, it walks the tree from the current leaf to the root:
+Когда pi нужно отправить сообщение LLM, он проходит дерево от текущего листа к корню:
 
-1. If there's a compaction entry on the path → emit the summary first, then messages from `firstKeptEntryId` onward
-2. If there's a branch summary → include it as context
-3. Custom message entries → included in LLM context
-4. Custom entries (extension state) → NOT included in LLM context
+1. Если на пути есть запись уплотнения → сначала выдать сводку, а затем сообщения, начиная с `firstKeptEntryId`.
+2. Если есть краткое описание ветки → включите его в качестве контекста.
+3. Пользовательские записи сообщений → включены в контекст LLM.
+4. Пользовательские записи (состояние расширения) → NOT включены в контекст LLM
 
-### Session Commands
+### Команды сеанса
 
-| Command | What it does |
+| Команда | Что он делает |
 |---------|-------------|
-| `/tree` | Navigate to any point in the session tree and continue from there |
-| `/fork` | Create a new session file from the current branch |
-| `/resume` | Browse and switch to a previous session |
-| `/new` | Start a fresh session |
-| `/name <name>` | Set a display name for the session |
-| `/session` | Show session info (path, tokens, cost) |
-| `/compact` | Manually trigger compaction |
+| `/tree` | Перейдите к любой точке дерева сеансов и продолжите оттуда |
+| `/fork` | Создать новый файл сеанса из текущей ветки |
+| `/resume` | Просмотр и переход к предыдущему сеансу |
+| `/new` | Начать новую сессию |
+| `/name <name>` | Установите отображаемое имя для сеанса |
+| `/session` | Показать информацию о сеансе (путь, токены, стоимость) |
+| `/compact` | Вручную запустить уплотнение |
 
-### Branching in Practice
+### Ветвление на практике
 
-**`/tree`** — In-place branching. You select a previous point, the conversation continues from there. The old branch is preserved and can be revisited. Pi optionally generates a summary of the branch you're leaving so context isn't lost.
+**`/tree`** — Разветвление по месту. Вы выбираете предыдущую точку, разговор продолжается оттуда. Старая ветка сохраняется и к ней можно вернуться. Pi дополнительно генерирует сводную информацию о ветке, которую вы покидаете, чтобы контекст не терялся.
 
-**`/fork`** — Creates a new session file from the current branch. Opens a selector, copies history up to the selected point, and puts that message in the editor for modification. Good for "start fresh but keep the context."
+**`/fork`** — Создает новый файл сеанса из текущей ветки. Открывает селектор, копирует историю до выбранной точки и помещает это сообщение в редактор для изменения. Подходит для «начни заново, но сохраняй контекст».
 
 ---

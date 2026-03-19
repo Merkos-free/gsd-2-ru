@@ -1,82 +1,82 @@
-# Captures & Triage
+# Захваты и сортировка
 
-*Introduced in v2.19.0*
+*Введено в версии 2.19.0*
 
-Captures let you fire-and-forget thoughts during auto-mode execution. Instead of pausing auto-mode to steer, you can capture ideas, bugs, or scope changes and let GSD triage them at natural seams between tasks.
+Захваты позволяют вам запускать и забывать мысли во время выполнения в автоматическом режиме. Вместо того чтобы приостанавливать автоматический режим для управления, вы можете фиксировать идеи, ошибки или изменения объема и позволить GSD сортировать их по естественным стыкам между задачами.
 
-## Quick Start
+## Быстрый старт
 
-While auto-mode is running (or any time):
+Во время работы автоматического режима (или в любое время):
 
 ```
 /gsd capture "add rate limiting to the API endpoints"
 /gsd capture "the auth flow should support OAuth, not just JWT"
 ```
 
-Captures are appended to `.gsd/CAPTURES.md` and triaged automatically between tasks.
+Захваты добавляются в `.gsd/CAPTURES.md` и автоматически сортируются между задачами.
 
-## How It Works
+## Как это работает
 
-### Pipeline
+### Трубопровод
 
 ```
 capture → triage → confirm → resolve → resume
 ```
 
-1. **Capture** — `/gsd capture "thought"` appends to `.gsd/CAPTURES.md` with a timestamp and unique ID
-2. **Triage** — at natural seams between tasks (in `handleAgentEnd`), GSD detects pending captures and classifies them
-3. **Confirm** — the user is shown the proposed resolution and confirms or adjusts
-4. **Resolve** — the resolution is applied (task injection, replan trigger, deferral, etc.)
-5. **Resume** — auto-mode continues
+1. **Захват** — `/gsd capture "thought"` добавляется к `.gsd/CAPTURES.md` с отметкой времени и уникальным ID.
+2. **Сортировка** — на естественных стыках между задачами (в `handleAgentEnd`), GSD обнаруживает ожидающие захваты и классифицирует их.
+3. **Подтвердить** — пользователю показывается предложенное разрешение, и он подтверждает или корректирует его.
+4. **Решить** — решение применяется (внедрение задачи, триггер перепланирования, отсрочка и т. д.).
+5. **Возобновить** — автоматический режим продолжается.
 
-### Classification Types
+### Типы классификации
 
-Each capture is classified into one of five types:
+Каждый захват классифицируется на один из пяти типов:
 
-| Type | Meaning | Resolution |
+| Тип | Значение | Разрешение |
 |------|---------|------------|
-| `quick-task` | Small, self-contained fix | Inline quick task executed immediately |
-| `inject` | New task needed in current slice | Task injected into the active slice plan |
-| `defer` | Important but not urgent | Deferred to roadmap reassessment |
-| `replan` | Changes the current approach | Triggers slice replan with capture context |
-| `note` | Informational, no action needed | Acknowledged, no plan changes |
+| `quick-task` | Небольшое автономное исправление | Встроенная быстрая задача выполняется немедленно |
+| `inject` | В текущем фрагменте требуется новая задача | Задача, введенная в план активного среза |
+| `defer` | Важно, но не срочно | Отложено до переоценки дорожной карты |
+| `replan` | Меняет текущий подход | Запускает перепланирование среза с контекстом захвата |
+| `note` | Информационно, никаких действий не требуется | Подтверждено, никаких изменений в плане |
 
-### Automatic Triage
+### Автоматическая сортировка
 
-Triage fires automatically between tasks during auto-mode. The triage prompt receives:
-- All pending captures
-- The current slice plan
-- The active roadmap
+В автоматическом режиме сортировка срабатывает автоматически между задачами. Приглашение к сортировке получает:
+- Все ожидающие захваты
+- Текущий план среза
+- Активная дорожная карта
 
-The LLM classifies each capture and proposes a resolution. Plan-modifying resolutions (inject, replan) require user confirmation.
+LLM классифицирует каждый захват и предлагает решение. Решения по изменению плана (вставка, перепланирование) требуют подтверждения пользователя.
 
-### Manual Triage
+### Ручная сортировка
 
-Trigger triage manually at any time:
+Запустите сортировку вручную в любое время:
 
 ```
 /gsd triage
 ```
 
-This is useful when you've accumulated several captures and want to process them before the next natural seam.
+Это полезно, когда у вас накопилось несколько снимков и вы хотите обработать их перед следующим естественным швом.
 
-## Dashboard Integration
+## Интеграция с информационной панелью
 
-The progress widget shows a pending capture count badge when captures are waiting for triage. This is visible in both the `Ctrl+Alt+G` dashboard and the auto-mode progress widget.
+Виджет хода выполнения показывает значок количества ожидающих захватов, когда захваты ожидают сортировки. Это видно как на информационной панели `Ctrl+Alt+G`, так и в виджете прогресса в автоматическом режиме.
 
-## Context Injection
+## Внедрение контекста
 
-Capture context is automatically injected into:
-- **Replan-slice prompts** — so the replan knows what triggered it
-- **Reassess-roadmap prompts** — so deferred captures influence roadmap decisions
+Контекст захвата автоматически вводится в:
+- **Подсказки для перепланирования** — чтобы перепланирование знало, что его вызвало.
+- **Подсказки по переоценке плана действий** – поэтому отложенные съемки влияют на решения по плану действий.
 
-## Worktree Awareness
+## Осведомленность о рабочем дереве
 
-Captures always resolve to the **original project root's** `.gsd/CAPTURES.md`, not the worktree's local copy. This ensures captures from a steering terminal are visible to the auto-mode session running in a worktree.
+Захваты всегда разрешаются в **исходный корень проекта** `.gsd/CAPTURES.md`, а не в локальную копию рабочего дерева. Это гарантирует, что захваты с управляющего терминала будут видны сеансу в автоматическом режиме, работающему в рабочем дереве.
 
-## Commands
+## Команды
 
-| Command | Description |
+| Команда | Описание |
 |---------|-------------|
-| `/gsd capture "text"` | Capture a thought (quotes optional for single words) |
-| `/gsd triage` | Manually trigger triage of pending captures |
+| `/gsd capture "text"` | Запечатлейте мысль (для отдельных слов кавычки необязательны) |
+| `/gsd triage` | Вручную запустить сортировку ожидающих захватов |

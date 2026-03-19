@@ -1,8 +1,8 @@
-# Architecture Overview
+# Обзор архитектуры
 
-GSD is a TypeScript application built on the [Pi SDK](https://github.com/badlogic/pi-mono). It embeds the Pi coding agent and extends it with the GSD workflow engine, auto mode state machine, and project management primitives.
+GSD — это приложение TypeScript, созданное на основе [Pi SDK](https://github.com/badlogic/pi-mono). Он включает в себя агент кодирования Pi и расширяет его механизмом рабочего процесса GSD, конечным автоматом автоматического режима и примитивами управления проектами.
 
-## System Structure
+## Структура системы
 
 ```
 gsd (CLI binary)
@@ -25,84 +25,84 @@ gsd --mode mcp            MCP server mode — exposes tools over stdin/stdout
 vscode-extension/         VS Code extension — chat participant (@gsd), sidebar dashboard, RPC integration
 ```
 
-## Key Design Decisions
+## Ключевые дизайнерские решения
 
-### State Lives on Disk
+### Состояние живет на диске
 
-`.gsd/` is the sole source of truth. Auto mode reads it, writes it, and advances based on what it finds. No in-memory state survives across sessions. This enables crash recovery, multi-terminal steering, and session resumption.
+`.gsd/` является единственным источником истины. Автоматический режим читает его, записывает и продвигается вперед в зависимости от того, что он находит. Никакое состояние в памяти не сохраняется между сеансами. Это обеспечивает восстановление после сбоя, управление несколькими терминалами и возобновление сеанса.
 
-### Two-File Loader Pattern
+### Шаблон двухфайлового загрузчика
 
-`loader.ts` sets all environment variables with zero SDK imports, then dynamically imports `cli.ts` which does static SDK imports. This ensures `PI_PACKAGE_DIR` is set before any SDK code evaluates.
+`loader.ts` устанавливает все переменные среды с нулевым импортом SDK, затем динамически импортирует `cli.ts`, который выполняет статический импорт SDK. Это гарантирует, что `PI_PACKAGE_DIR` будет установлен до оценки любого кода SDK.
 
-### `pkg/` Shim Directory
+### `pkg/` Каталог прокладок
 
-`PI_PACKAGE_DIR` points to `pkg/` (not project root) to avoid Pi's theme resolution colliding with GSD's `src/` directory. Contains only `piConfig` and theme assets.
+`PI_PACKAGE_DIR` указывает на `pkg/` (не корень проекта), чтобы избежать конфликта разрешения темы Pi с каталогом `src/` GSD. Содержит только `piConfig` и ресурсы темы.
 
-### Always-Overwrite Sync
+### Синхронизация с постоянной перезаписью
 
-Bundled extensions and agents are synced to `~/.gsd/agent/` on every launch, not just first run. This means `npm update -g` takes effect immediately.
+Расширения и агенты в комплекте синхронизируются с `~/.gsd/agent/` при каждом запуске, а не только при первом запуске. Это означает, что `npm update -g` вступает в силу немедленно.
 
-### Lazy Provider Loading
+### Отложенная загрузка поставщика
 
-LLM provider SDKs (Anthropic, OpenAI, Google, etc.) are lazy-loaded on first use rather than imported at startup. This significantly reduces cold-start time — only the provider you actually connect to gets loaded.
+Поставщик LLM SDKs (Anthropic, OpenAI, Google и т. д.) загружается лениво при первом использовании, а не импортируется при запуске. Это значительно сокращает время холодного старта — загружается только тот провайдер, к которому вы фактически подключаетесь.
 
-### Fresh Session Per Unit
+### Свежий сеанс на единицу
 
-Every dispatch creates a new agent session. The LLM starts with a clean context window containing only the pre-inlined artifacts it needs. This prevents quality degradation from context accumulation.
+Каждая отправка создает новый сеанс агента. LLM начинается с чистого контекстного окна, содержащего только необходимые предустановленные артефакты. Это предотвращает ухудшение качества из-за накопления контекста.
 
-## Bundled Extensions
+## Расширения в комплекте
 
-| Extension | What It Provides |
+| Расширение | Что это обеспечивает |
 |-----------|-----------------|
-| **GSD** | Core workflow engine — auto mode, state machine, commands, dashboard |
-| **Browser Tools** | Playwright-based browser automation — navigation, forms, screenshots, PDF export, device emulation, visual regression, structured data extraction, route mocking, accessibility tree inspection, and semantic actions |
-| **Search the Web** | Brave Search, Tavily, or Jina page extraction |
-| **Google Search** | Gemini-powered web search with AI-synthesized answers |
-| **Context7** | Up-to-date library/framework documentation |
-| **Background Shell** | Long-running process management with readiness detection |
-| **Subagent** | Delegated tasks with isolated context windows |
-| **Mac Tools** | macOS native app automation via Accessibility APIs |
-| **MCP Client** | Native MCP server integration via @modelcontextprotocol/sdk |
-| **Voice** | Real-time speech-to-text (macOS, Linux) |
-| **Slash Commands** | Custom command creation |
-| **LSP** | Language Server Protocol — diagnostics, definitions, references, hover, rename |
-| **Ask User Questions** | Structured user input with single/multi-select |
-| **Secure Env Collect** | Masked secret collection |
-| **Async Jobs** | Background command execution with `async_bash`, `await_job`, `cancel_job` |
-| **Remote Questions** | Discord, Slack, and Telegram integration for headless question routing |
-| **TTSR** | Tool-triggered system rules — conditional context injection based on tool usage |
-| **Universal Config** | Discovery of existing AI tool configurations (Claude Code, Cursor, Windsurf, etc.) |
+| **GSD** | Основной механизм рабочего процесса — автоматический режим, конечный автомат, команды, панель мониторинга |
+| **Инструменты браузера** | Автоматизация браузера на основе драматурга — навигация, формы, снимки экрана, экспорт PDF, эмуляция устройства, визуальная регрессия, извлечение структурированных данных, имитация маршрутов, проверка дерева доступности и семантические действия |
+| **Поиск в Интернете** | Извлечение страниц Brave Search, Tavily или Jina |
+| **Поиск Google** | Веб-поиск на базе Gemini с ответами, синтезированными по AI |
+| **Контекст7** | Современная документация по библиотеке/фреймворку |
+| **Фоновая оболочка** | Управление длительными процессами с определением готовности |
+| **Субагент** | Делегированные задачи с изолированными контекстными окнами |
+| **Инструменты Mac** | macOS встроенная автоматизация приложений с помощью специальных возможностей APIs |
+| **MCP Клиент** | Интеграция с собственным сервером MCP через @modelcontextprotocol/sdk |
+| **Голос** | Преобразование речи в текст в реальном времени (macOS, Linux) |
+| **Слэш-команды** | Создание собственных команд |
+| **LSP** | Протокол языкового сервера — диагностика, определения, ссылки, наведение, переименование |
+| **Задавайте вопросы пользователям** | Структурированный пользовательский ввод с возможностью одиночного или множественного выбора |
+| **Безопасный сбор конвертов** | Секретная коллекция в масках |
+| **Асинхронные задания** | Выполнение фоновой команды с помощью `async_bash`, `await_job`, `cancel_job` |
+| **Удаленные вопросы** | Интеграция Discord, Slack и Telegram для голосовой маршрутизации вопросов |
+| **TTSR** | Системные правила, активируемые инструментами — условное внедрение контекста на основе использования инструмента |
+| **Универсальная конфигурация** | Обнаружение существующих конфигураций инструментов AI (код Клода, курсор, виндсерфинг и т. д.) |
 
-## Bundled Agents
+## Агенты в комплекте
 
-| Agent | Role |
+| Агент | Роль |
 |-------|------|
-| **Scout** | Fast codebase recon — compressed context for handoff |
-| **Researcher** | Web research — finds and synthesizes current information |
-| **Worker** | General-purpose execution in an isolated context window |
+| **Разведчик** | Быстрая проверка кодовой базы — сжатый контекст для передачи |
+| **Исследователь** | Веб-исследования — поиск и обобщение актуальной информации |
+| **Работник** | Общее выполнение в изолированном контекстном окне |
 
-## Native Engine
+## Родной движок
 
-Performance-critical operations use a Rust N-API engine:
+В критически важных операциях используется двигатель Rust N-API:
 
-- **grep** — ripgrep-backed content search
-- **glob** — gitignore-aware file discovery
-- **ps** — cross-platform process tree management
-- **highlight** — syntect-based syntax highlighting
-- **ast** — structural code search via ast-grep
-- **diff** — fuzzy text matching and unified diff generation
-- **text** — ANSI-aware text measurement and wrapping
-- **html** — HTML-to-Markdown conversion
-- **image** — decode, encode, resize images
-- **fd** — fuzzy file path discovery
-- **clipboard** — native clipboard access
-- **git** — libgit2-backed git read operations (v2.16+)
-- **parser** — GSD file parsing and frontmatter extraction
+- **grep** — поиск контента с помощью ripgrep
+- **glob** — обнаружение файлов с поддержкой gitignore
+- **ps** — кроссплатформенное управление деревом процессов.
+- **highlight** — подсветка синтаксиса на основе синтаксиса.
+- **ast** — поиск структурного кода через ast-grep
+- **diff** — нечеткое сопоставление текста и унифицированное создание различий.
+- **text** — измерение и перенос текста с учетом ANSI.
+- **html** — преобразование HTML в Markdown.
+- **image** — декодирование, кодирование, изменение размера изображений.
+- **fd** — обнаружение нечеткого пути к файлу
+- **буфер обмена** — встроенный доступ к буферу обмена.
+- **git** — операции чтения git с поддержкой libgit2 (v2.16+)
+- **parser** — анализ файла GSD и извлечение вступительной части.
 
-## Dispatch Pipeline
+## Диспетчерский конвейер
 
-The auto mode dispatch pipeline:
+Конвейер отправки в автоматическом режиме:
 
 ```
 1.  Read disk state (STATE.md, roadmap, plans)
@@ -120,43 +120,43 @@ The auto mode dispatch pipeline:
 13. Loop to step 1
 ```
 
-Phase skipping (from token profile) gates steps 2-3: if a phase is skipped, the corresponding unit type is never dispatched.
+Пропуск фазы (из профиля токена) пропускает шаги 2–3: если фаза пропущена, соответствующий тип юнита никогда не отправляется.
 
-## Key Modules (v2.33)
+## Ключевые модули (v2.33)
 
-| Module | Purpose |
+| Модуль | Цель |
 |--------|---------|
-| `auto.ts` | Auto-mode state machine and orchestration |
-| `auto/session.ts` | `AutoSession` class — all mutable auto-mode state in one encapsulated instance |
-| `auto-dispatch.ts` | Declarative dispatch table (phase → unit mapping) |
-| `auto-idempotency.ts` | Completed-key checks, skip loop detection, key eviction |
-| `auto-stuck-detection.ts` | Stuck loop recovery and unit retry escalation |
-| `auto-start.ts` | Fresh-start bootstrap — git/state init, crash lock detection, worktree setup |
-| `auto-post-unit.ts` | Post-unit processing — commit, doctor, state rebuild, hooks |
-| `auto-verification.ts` | Post-unit verification gate (lint/test/typecheck with auto-fix retries) |
-| `auto-prompts.ts` | Prompt builders with inline level compression |
-| `auto-worktree.ts` | Worktree lifecycle (create, enter, merge, teardown) |
-| `auto-recovery.ts` | Expected artifact resolution, completed-key persistence, self-healing |
-| `auto-timeout-recovery.ts` | Timed-out unit recovery and continuation |
-| `auto-timers.ts` | Unit supervision — soft/idle/hard timeouts, continue-here monitor |
-| `complexity-classifier.ts` | Unit complexity classification (light/standard/heavy) |
-| `model-router.ts` | Dynamic model routing with cost-aware selection |
-| `model-cost-table.ts` | Built-in per-model cost data for cross-provider comparison |
-| `routing-history.ts` | Adaptive learning from routing outcomes |
-| `captures.ts` | Fire-and-forget thought capture and triage classification |
-| `triage-resolution.ts` | Capture resolution (inject, defer, replan, quick-task) |
-| `visualizer-overlay.ts` | Workflow visualizer TUI overlay |
-| `visualizer-data.ts` | Data loading for visualizer tabs |
-| `visualizer-views.ts` | Tab renderers (progress, deps, metrics, timeline, discussion status) |
-| `metrics.ts` | Token and cost tracking ledger |
-| `state.ts` | State derivation from disk |
-| `session-lock.ts` | OS-level exclusive session locking (proper-lockfile) |
-| `crash-recovery.ts` | Lock file management for crash detection and recovery |
-| `preferences.ts` | Preference loading, merging, validation |
-| `git-service.ts` | Git operations — commit, merge, worktree sync, completed-units cross-boundary sync |
-| `unit-id.ts` | Centralized `parseUnitId()` — milestone/slice/task extraction from unit IDs |
-| `error-utils.ts` | `getErrorMessage()` — unified error-to-string conversion |
-| `roadmap-slices.ts` | Roadmap parser with prose fallback for LLM-generated variants |
-| `memory-extractor.ts` | Extract reusable knowledge from session transcripts |
-| `memory-store.ts` | Persistent memory store for cross-session knowledge |
-| `queue-order.ts` | Milestone queue ordering |
+| `auto.ts` | Конечный автомат и оркестровка в автоматическом режиме |
+| `auto/session.ts` | Класс `AutoSession` — все изменяемые состояния автоматического режима в одном инкапсулированном экземпляре |
+| `auto-dispatch.ts` | Декларативная таблица диспетчеризации (фаза → отображение единиц) |
+| `auto-idempotency.ts` | Проверки завершенных ключей, обнаружение цикла пропуска, удаление ключей |
+| `auto-stuck-detection.ts` | Восстановление застрявшего цикла и эскалация повторных попыток устройства |
+| `auto-start.ts` | Начальная загрузка — инициализация git/state, обнаружение аварийных блокировок, настройка рабочего дерева |
+| `auto-post-unit.ts` | Постюнитовая обработка — фиксация, доктор, восстановление состояния, перехваты |
+| `auto-verification.ts` | Ворота проверки после устройства (проверка/проверка/проверка типа с повторными попытками автоматического исправления) |
+| `auto-prompts.ts` | Подскажите построители со встроенным сжатием уровня |
+| `auto-worktree.ts` | Жизненный цикл рабочего дерева (создание, ввод, объединение, удаление) |
+| `auto-recovery.ts` | Ожидаемое разрешение артефактов, сохранение завершенного ключа, самовосстановление |
+| `auto-timeout-recovery.ts` | Восстановление и продолжение работы устройства по истечении времени ожидания |
+| `auto-timers.ts` | Контроль устройства — программные/простые/жесткие тайм-ауты, продолжение мониторинга |
+| `complexity-classifier.ts` | Классификация сложности юнитов (легкий/стандартный/тяжелый) |
+| `model-router.ts` | Динамическая маршрутизация моделей с экономичным выбором |
+| `model-cost-table.ts` | Встроенные данные о стоимости каждой модели для сравнения между поставщиками |
+| `routing-history.ts` | Адаптивное обучение на основе результатов маршрутизации |
+| `captures.ts` | Улов мыслей по принципу «выстрелил и забыл» и сортировочная классификация |
+| `triage-resolution.ts` | Зафиксировать разрешение (внедрить, отложить, перепланировать, быстро выполнить задачу) |
+| `visualizer-overlay.ts` | Наложение визуализатора рабочего процесса TUI |
+| `visualizer-data.ts` | Загрузка данных для вкладок визуализатора |
+| `visualizer-views.ts` | Средства визуализации вкладок (прогресс, выполнение, метрики, временная шкала, статус обсуждения) |
+| `metrics.ts` | Книга учета токенов и затрат |
+| `state.ts` | Получение состояния с диска |
+| `session-lock.ts` | Эксклюзивная блокировка сеанса на уровне OS (собственный файл блокировки) |
+| `crash-recovery.ts` | Блокировка управления файлами для обнаружения сбоев и восстановления |
+| `preferences.ts` | Загрузка предпочтений, объединение, проверка |
+| `git-service.ts` | Операции Git — фиксация, слияние, синхронизация рабочего дерева, межграничная синхронизация завершенных модулей |
+| `unit-id.ts` | Централизованное `parseUnitId()` — извлечение вех/срезов/задач из блока IDs |
+| `error-utils.ts` | `getErrorMessage()` — унифицированное преобразование ошибок в строку |
+| `roadmap-slices.ts` | Анализатор дорожной карты с запасным вариантом для вариантов, сгенерированных LLM |
+| `memory-extractor.ts` | Извлечение повторно используемых знаний из стенограмм сеансов |
+| `memory-store.ts` | Постоянное хранилище данных для межсеансовых данных |
+| `queue-order.ts` | Заказ очереди Milestone |

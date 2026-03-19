@@ -1,47 +1,47 @@
-# Quick Reference — All UI APIs
+# Краткий справочник — все UI APIs
 
-### ctx.ui Dialog Methods (Blocking)
+### Методы диалога ctx.ui (Блокировка)
 
-| Method | Returns | Description |
+| Метод | Возврат | Описание |
 |--------|---------|-------------|
-| `select(title, options)` | `string \| undefined` | Selection dialog |
-| `confirm(title, message, opts?)` | `boolean` | Yes/No confirmation |
-| `input(label, placeholder?, opts?)` | `string \| undefined` | Single-line text input |
-| `editor(label, prefill?, opts?)` | `string \| undefined` | Multi-line text editor |
+| `select(title, options)` | `string \| undefined` | Диалог выбора |
+| `confirm(title, message, opts?)` | `boolean` | Да/Нет подтверждение |
+| `input(label, placeholder?, opts?)` | `string \| undefined` | Однострочный ввод текста |
+| `editor(label, prefill?, opts?)` | `string \| undefined` | Многострочный текстовый редактор |
 
-### ctx.ui Persistent Methods (Non-Blocking)
+### ctx.ui Постоянные методы (неблокирующие)
 
-| Method | Description |
+| Метод | Описание |
 |--------|-------------|
-| `notify(message, level)` | Toast notification (`"info"`, `"warning"`, `"error"`) |
-| `setStatus(id, text?)` | Footer status (clear with `undefined`) |
-| `setWidget(id, content?, opts?)` | Widget above/below editor |
-| `setWorkingMessage(text?)` | Working message during streaming |
-| `setFooter(factory?)` | Replace footer (restore with `undefined`) |
-| `setHeader(factory?)` | Replace header (restore with `undefined`) |
-| `setTitle(title)` | Terminal title |
-| `setEditorText(text)` | Set editor content |
-| `getEditorText()` | Get editor content |
-| `pasteToEditor(text)` | Paste into editor |
-| `setToolsExpanded(bool)` | Expand/collapse tool output |
-| `getToolsExpanded()` | Get expansion state |
-| `setEditorComponent(factory?)` | Replace editor (restore with `undefined`) |
-| `custom(factory, opts?)` | Full custom component / overlay |
-| `setTheme(name \| Theme)` | Switch theme |
-| `getTheme(name)` | Load theme without switching |
-| `getAllThemes()` | List available themes |
-| `theme` | Current theme object |
+| `notify(message, level)` | Всплывающее уведомление (`"info"`, `"warning"`, `"error"`) |
+| `setStatus(id, text?)` | Статус нижнего колонтитула (очистить нажатием `undefined`) |
+| `setWidget(id, content?, opts?)` | Виджет выше/ниже редактора |
+| `setWorkingMessage(text?)` | Рабочее сообщение во время трансляции |
+| `setFooter(factory?)` | Заменить нижний колонтитул (восстановить с помощью `undefined`) |
+| `setHeader(factory?)` | Заменить заголовок (восстановить с помощью `undefined`) |
+| `setTitle(title)` | Название терминала |
+| `setEditorText(text)` | Установить содержимое редактора |
+| `getEditorText()` | Получить контент редактора |
+| `pasteToEditor(text)` | Вставить в редактор |
+| `setToolsExpanded(bool)` | Развернуть/свернуть выходные данные инструмента |
+| `getToolsExpanded()` | Получить состояние расширения |
+| `setEditorComponent(factory?)` | Заменить редактор (восстановить с помощью `undefined`) |
+| `custom(factory, opts?)` | Полный пользовательский компонент/оверлей |
+| `setTheme(name \| Theme)` | Сменить тему |
+| `getTheme(name)` | Загрузить тему без переключения |
+| `getAllThemes()` | Список доступных тем |
+| `theme` | Текущий объект темы |
 
-### Component Interface
+### Интерфейс компонента
 
-| Method | Required | Description |
+| Метод | Требуется | Описание |
 |--------|----------|-------------|
-| `render(width): string[]` | Yes | Render to lines (each ≤ width) |
-| `handleInput(data): void` | No | Receive keyboard input |
-| `invalidate(): void` | Yes | Clear caches |
-| `wantsKeyRelease?: boolean` | No | Receive key release events |
+| `render(width): string[]` | Да | Рендеринг в линии (каждая ширина ≤) |
+| `handleInput(data): void` | Нет | Получить ввод с клавиатуры |
+| `invalidate(): void` | Да | Очистить кеши |
+| `wantsKeyRelease?: boolean` | Нет | Получайте ключевые события выпуска |
 
-### Key Imports
+### Ключевой импорт
 
 ```typescript
 // From @mariozechner/pi-tui

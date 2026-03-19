@@ -48,9 +48,9 @@ function exitIfManagedResourcesAreNewer(currentAgentDir: string): void {
   }
 
   process.stderr.write(
-    `[gsd] ${chalk.yellow('Version mismatch detected')}\n` +
-    `[gsd] Synced resources are from ${chalk.bold(`v${managedVersion}`)}, but this \`gsd\` binary is ${chalk.dim(`v${currentVersion}`)}.\n` +
-    `[gsd] Run ${chalk.bold('npm install -g gsd-pi@latest')} or ${chalk.bold('gsd update')}, then try again.\n`,
+    `[gsd] ${chalk.yellow('Обнаружено несовпадение версий')}\n` +
+    `[gsd] Синхронизированные ресурсы имеют версию ${chalk.bold(`v${managedVersion}`)}, а этот бинарник \`gsd\` имеет версию ${chalk.dim(`v${currentVersion}`)}.\n` +
+    `[gsd] Выполните ${chalk.bold('npm install -g gsd-pi@latest')} или ${chalk.bold('gsd update')}, затем попробуйте снова.\n`,
   )
   process.exit(1)
 }
@@ -110,12 +110,12 @@ exitIfManagedResourcesAreNewer(agentDir)
 // handles that prevent process.exit() from completing promptly.
 const hasSubcommand = cliFlags.messages.length > 0
 if (!process.stdin.isTTY && !isPrintMode && !hasSubcommand && !cliFlags.listModels) {
-  process.stderr.write('[gsd] Error: Interactive mode requires a terminal (TTY).\n')
-  process.stderr.write('[gsd] Non-interactive alternatives:\n')
-  process.stderr.write('[gsd]   gsd --print "your message"     Single-shot prompt\n')
+  process.stderr.write('[gsd] Ошибка: для интерактивного режима требуется терминал (TTY).\n')
+  process.stderr.write('[gsd] Неинтерактивные альтернативы:\n')
+  process.stderr.write('[gsd]   gsd --print "your message"     Одноразовый запрос\n')
   process.stderr.write('[gsd]   gsd --mode rpc                 JSON-RPC over stdin/stdout\n')
   process.stderr.write('[gsd]   gsd --mode mcp                 MCP server over stdin/stdout\n')
-  process.stderr.write('[gsd]   gsd --mode text "message"      Text output mode\n')
+  process.stderr.write('[gsd]   gsd --mode text "message"      Режим текстового вывода\n')
   process.exit(1)
 }
 
@@ -148,15 +148,15 @@ if (cliFlags.messages[0] === 'sessions') {
   const safePath = `--${cwd.replace(/^[/\\]/, '').replace(/[/\\:]/g, '-')}--`
   const projectSessionsDir = join(sessionsDir, safePath)
 
-  process.stderr.write(chalk.dim(`Loading sessions for ${cwd}...\n`))
+  process.stderr.write(chalk.dim(`Загрузка сессий для ${cwd}...\n`))
   const sessions = await SessionManager.list(cwd, projectSessionsDir)
 
   if (sessions.length === 0) {
-    process.stderr.write(chalk.yellow('No sessions found for this directory.\n'))
+    process.stderr.write(chalk.yellow('Для этой директории сессии не найдены.\n'))
     process.exit(0)
   }
 
-  process.stderr.write(chalk.bold(`\n  Sessions (${sessions.length}):\n\n`))
+  process.stderr.write(chalk.bold(`\n  Сессии (${sessions.length}):\n\n`))
 
   const maxShow = 20
   const toShow = sessions.slice(0, maxShow)
@@ -167,32 +167,32 @@ if (cliFlags.messages[0] === 'sessions') {
     const name = s.name ? ` ${chalk.cyan(s.name)}` : ''
     const preview = s.firstMessage
       ? s.firstMessage.replace(/\n/g, ' ').substring(0, 80)
-      : chalk.dim('(empty)')
+      : chalk.dim('(пусто)')
     const num = String(i + 1).padStart(3)
-    process.stderr.write(`  ${chalk.bold(num)}. ${chalk.green(date)} ${chalk.dim(`(${msgs} msgs)`)}${name}\n`)
+    process.stderr.write(`  ${chalk.bold(num)}. ${chalk.green(date)} ${chalk.dim(`(${msgs} сообщ.)`)}${name}\n`)
     process.stderr.write(`       ${chalk.dim(preview)}\n\n`)
   }
 
   if (sessions.length > maxShow) {
-    process.stderr.write(chalk.dim(`  ... and ${sessions.length - maxShow} more\n\n`))
+    process.stderr.write(chalk.dim(`  ... и ещё ${sessions.length - maxShow}\n\n`))
   }
 
   // Interactive selection
   const readline = await import('node:readline')
   const rl = readline.createInterface({ input: process.stdin, output: process.stderr })
   const answer = await new Promise<string>((resolve) => {
-    rl.question(chalk.bold('  Enter session number to resume (or q to quit): '), resolve)
+    rl.question(chalk.bold('  Введите номер сессии для продолжения (или q для выхода): '), resolve)
   })
   rl.close()
 
   const choice = parseInt(answer, 10)
   if (isNaN(choice) || choice < 1 || choice > toShow.length) {
-    process.stderr.write(chalk.dim('Cancelled.\n'))
+    process.stderr.write(chalk.dim('Отменено.\n'))
     process.exit(0)
   }
 
   const selected = toShow[choice - 1]
-  process.stderr.write(chalk.green(`\nResuming session from ${selected.modified.toLocaleString()}...\n\n`))
+  process.stderr.write(chalk.green(`\nПродолжение сессии от ${selected.modified.toLocaleString()}...\n\n`))
 
   // Mark for the interactive session below to open this specific session
   cliFlags.continue = true
@@ -246,7 +246,7 @@ if (!isPrintMode) {
 // Warn if terminal is too narrow for readable output
 if (!isPrintMode && process.stdout.columns && process.stdout.columns < 40) {
   process.stderr.write(
-    chalk.yellow(`[gsd] Terminal width is ${process.stdout.columns} columns (minimum recommended: 40). Output may be unreadable.\n`),
+    chalk.yellow(`[gsd] Ширина терминала ${process.stdout.columns} колонок (минимально рекомендуется: 40). Вывод может быть нечитаемым.\n`),
   )
 }
 
@@ -254,7 +254,7 @@ if (!isPrintMode && process.stdout.columns && process.stdout.columns < 40) {
 if (cliFlags.listModels !== undefined) {
   const models = modelRegistry.getAvailable()
   if (models.length === 0) {
-    console.log('No models available. Set API keys in environment variables.')
+    console.log('Нет доступных моделей. Задайте API-ключи в переменных окружения.')
     process.exit(0)
   }
 
@@ -281,9 +281,9 @@ if (cliFlags.listModels !== undefined) {
     m.name,
     fmt(m.contextWindow),
     fmt(m.maxTokens),
-    m.reasoning ? 'yes' : 'no',
+    m.reasoning ? 'да' : 'нет',
   ])
-  const hdrs = ['provider', 'model', 'name', 'context', 'max-out', 'thinking']
+  const hdrs = ['провайдер', 'модель', 'имя', 'контекст', 'макс-вывод', 'мышление']
   const widths = hdrs.map((h, i) => Math.max(h.length, ...rows.map((r) => r[i].length)))
   const pad = (s: string, w: number) => s.padEnd(w)
   console.log(hdrs.map((h, i) => pad(h, widths[i])).join('  '))
@@ -433,8 +433,8 @@ if (cliFlags.messages[0] === 'worktree' || cliFlags.messages[0] === 'wt') {
   } else if (sub === 'remove' || sub === 'rm') {
     await handleRemove(process.cwd(), subArgs)
   } else {
-    process.stderr.write(`Unknown worktree command: ${sub}\n`)
-    process.stderr.write('Commands: list, merge [name], clean, remove <name>\n')
+      process.stderr.write(`Неизвестная команда worktree: ${sub}\n`)
+      process.stderr.write('Команды: list, merge [name], clean, remove <name>\n')
   }
   process.exit(0)
 }

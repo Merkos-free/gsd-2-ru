@@ -1,6 +1,6 @@
-# The Component Interface — Foundation of Everything
+# Интерфейс компонента — основа всего
 
-Every visual element in Pi implements this interface:
+Каждый визуальный элемент в Pi реализует этот интерфейс:
 
 ```typescript
 interface Component {
@@ -11,14 +11,14 @@ interface Component {
 }
 ```
 
-| Method | Purpose | Required? |
+| Метод | Цель | Необходимый? |
 |--------|---------|-----------|
-| `render(width)` | Return array of strings (one per line). Each line ≤ `width` visible chars. | **Yes** |
-| `handleInput(data)` | Receive keyboard input when component has focus. | Optional |
-| `wantsKeyRelease` | If `true`, receive key release events (Kitty protocol). | Optional, default `false` |
-| `invalidate()` | Clear cached render state. Called on theme changes. | **Yes** |
+| `render(width)` | Возвращает массив строк (по одной на строку). В каждой строке ≤ `width` видимых символов. | **Да** |
+| `handleInput(data)` | Получать ввод с клавиатуры, когда компонент находится в фокусе. | Необязательно |
+| `wantsKeyRelease` | Если `true`, получать события выпуска ключа (протокол Kitty). | Необязательно, по умолчанию `false` |
+| `invalidate()` | Очистить кэшированное состояние рендеринга. Позвонил по поводу изменения темы. | **Да** |
 
-### The Render Contract
+### Контракт рендеринга
 
 ```typescript
 render(width: number): string[] {
@@ -30,7 +30,7 @@ render(width: number): string[] {
 }
 ```
 
-### The Invalidation Contract
+### Контракт о признании недействительным
 
 ```typescript
 invalidate(): void {

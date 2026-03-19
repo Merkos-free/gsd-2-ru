@@ -1,20 +1,20 @@
-# The Message Queue — Talking While Pi Thinks
+# Очередь сообщений — говорим, пока Пи думает
 
-Pi doesn't make you wait for the agent to finish before sending more instructions. You can queue messages while the agent is streaming:
+Пи не заставляет вас ждать, пока агент закончит работу, прежде чем отправлять дополнительные инструкции. Вы можете поставить сообщения в очередь во время потоковой передачи агента:
 
-| Key | Behavior |
+| Ключ | Поведение |
 |-----|----------|
-| **Enter** | Queue a **steering** message — delivered after current tool, interrupts remaining tools |
-| **Alt+Enter** | Queue a **follow-up** message — delivered after agent finishes all work |
-| **Escape** | Abort the agent and restore queued messages to editor |
-| **Alt+Up** | Retrieve queued messages back to editor |
+| **Введите** | Поставить в очередь сообщение **управления** — доставляется после текущего инструмента, прерывает работу остальных инструментов |
+| **Alt+Ввод** | Поставить в очередь **последующее** сообщение — доставляется после того, как агент завершит всю работу |
+| **Побег** | Прервать работу агента и восстановить сообщения в очереди в редактор |
+| **Alt+Вверх** | Получить сообщения из очереди обратно в редактор |
 
-**Steering** is for course-correction: "Stop, do this instead." The message is delivered after the current tool finishes, but remaining tool calls in the LLM's response are skipped.
+**Рулевое управление** предназначено для корректировки курса: «Стоп, сделай это». Сообщение доставляется после завершения работы текущего инструмента, но остальные вызовы инструмента в ответе LLM пропускаются.
 
-**Follow-up** is for chaining: "After you're done with that, also do this." The message waits until the agent has no more tool calls to make.
+**Последующие действия** предназначены для цепочки: «После того, как вы закончите с этим, сделайте и это». Сообщение ожидает, пока у агента больше не останется вызовов инструментов.
 
-**Settings:**
-- `steeringMode`: `"one-at-a-time"` (default) or `"all"` (deliver all queued at once)
-- `followUpMode`: same options
+**Настройки:**
+- `steeringMode`: `"one-at-a-time"` (по умолчанию) или `"all"` (доставить все в очереди одновременно)
+- `followUpMode`: те же параметры
 
 ---

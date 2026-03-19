@@ -1,34 +1,34 @@
-# Long-Running Memory Fidelity
+# Долговременная точность памяти
 
-**The core problem:** Every compression loses information. Over enough compressions, summaries drift from reality like a photocopy of a photocopy. The system can't easily tell it's happening because it only sees the current summary, not what was lost.
+**Основная проблема:** При каждом сжатии теряется информация. При достаточном сжатии резюме ускользает от реальности, как фотокопия фотокопии. Система не может легко определить, что это происходит, поскольку она видит только текущую сводку, а не то, что было потеряно.
 
-### Multi-Tier Memory with Different Decay Rates
+### Многоуровневая память с разной скоростью затухания
 
-| Tier | Decay Rate | Content | Update Strategy |
+| Уровень | Скорость распада | Содержание | Обновление стратегии |
 |------|-----------|---------|-----------------|
-| **Manifest** | Fast (updates every task) | Current state only, <1000 tokens | Continuous overwrite — no history |
-| **Decision Log** | Never decays (append-only) | Every significant architectural decision + rationale | Never summarized, grows linearly |
-| **Task Archive** | Medium | Compressed task completion records | Available for retrieval, not routinely loaded |
+| **Манифест** | Быстро (обновляется каждая задача) | Только текущее состояние, <1000 токенов | Непрерывная перезапись — без истории |
+| **Журнал принятия решений** | Никогда не распадается (только добавление) | Каждое значимое архитектурное решение + обоснование | Никогда не суммируется, растет линейно |
+| **Архив задач** | Средний | Сжатые записи выполнения задач | Доступен для извлечения, не загружается регулярно |
 
-### The Critical Mechanism: Periodic Reconciliation
+### Критический механизм: периодическое примирение
 
-All four models converge on some form of automated audit:
+Все четыре модели сходятся в той или иной форме автоматизированного аудита:
 
-- **Claude:** Every milestone or N tasks — agent compares manifest against actual codebase
-- **Gemini:** Every N commits, spawn a "History Auditor" agent whose sole job is manifest-vs-code comparison
-- **GPT:** Self-healing summaries with checksums — when source files change, invalidate and regenerate
-- **Grok:** Deterministic "Memory Fidelity Audit" node every 5 checkpoints — samples key invariants, scores drift 0-100, auto-rebuilds if drift >15%
+- **Клод:** Каждая веха или N задач — агент сравнивает манифест с фактической базой кода.
+- **Gemini:** при каждом N коммите создается агент «Аудитор истории», единственной задачей которого является сравнение манифеста и кода.
+- **GPT:** Самовосстанавливающиеся сводки с контрольными суммами — при изменении исходных файлов, их аннулировании и повторном создании.
+- **Грок:** Детерминированный узел «Аудит точности памяти» каждые 5 контрольных точек — выборка инвариантов ключа, отклонение оценок от 0 до 100, автоматическое восстановление, если отклонение> 15 %.
 
-### The Golden Rule
+### Золотое правило
 
-> **Never summarize summaries.** Each compression layer regenerates from the one below. The codebase is always the lossless source of truth.
+> **Никогда не суммируйте сводки.** Каждый уровень сжатия восстанавливается из предыдущего. Кодовая база всегда является источником истины без потерь.
 
-### The Most Dangerous Form of Drift
+### Самый опасный вид дрифта
 
-Not factual inaccuracy — **the loss of "why."** The manifest says "auth uses JWT tokens." Three months ago there was a long discussion about why JWT was chosen over session-based auth. That context is exactly what gets compressed away. The **append-only decision log** solves this by preserving *why* indefinitely even as *what* gets continuously compressed.
+Это не фактическая неточность — **потеря вопроса «почему».** В манифесте сказано, что «аутентификация использует токены JWT». Три месяца назад шла долгая дискуссия о том, почему JWT была выбрана вместо аутентификации на основе сеанса. Именно этот контекст и сжимается. **Журнал принятия решений только для добавления** решает эту проблему, сохраняя *почему* на неопределенный срок, даже если *что* постоянно сжимается.
 
-### Phase Boundary Refresh
+### Обновление границы фазы
 
-For very long projects (weeks/months), **rebuild the manifest from scratch** at phase boundaries by having the agent read the actual codebase + decision log — rather than carrying forward the old manifest with incremental updates. This is the equivalent of defragmenting a hard drive.
+Для очень длительных проектов (недели/месяцы) **перестраивайте манифест с нуля** на границах фаз, попросив агента прочитать фактическую базу кода + журнал решений — вместо того, чтобы переносить старый манифест с инкрементными обновлениями. Это эквивалент дефрагментации жесткого диска.
 
 ---

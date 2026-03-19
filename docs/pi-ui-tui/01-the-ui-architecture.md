@@ -1,6 +1,6 @@
-# The UI Architecture
+# Архитектура UI
 
-Pi's TUI is a custom terminal rendering system. Understanding its architecture prevents most mistakes:
+Pi’s TUI — это специальная система рендеринга терминала. Понимание его архитектуры предотвращает большинство ошибок:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -39,19 +39,19 @@ Pi's TUI is a custom terminal rendering system. Understanding its architecture p
 └─────────────────────────────────────────────────────────────┘
 ```
 
-**Key principles:**
-- Everything renders as **arrays of strings** (one per line)
-- Each line **must not exceed the `width` parameter** — this is enforced
-- **ANSI escape codes** are used for styling — they don't count toward visible width
-- **Styles do NOT carry across lines** — the TUI resets SGR at the end of each line
-- All **state changes require explicit invalidation** followed by a render request
-- **Theme is always passed via callbacks** — never import it directly
+**Основные принципы:**
+- Все отображается как **массивы строк** (по одной на строку).
+- Каждая строка **не должна превышать параметр `width`** — это обязательно.
+- **ANSI escape-коды** используются для стилизации — они не учитываются при определении видимой ширины.
+- **Стили переносят NOT на другие строки** — TUI сбрасывает SGR в конце каждой строки.
+- Все **изменения состояния требуют явной аннулирования**, после чего следует запрос на рендеринг.
+- **Тема всегда передается через обратные вызовы** — никогда не импортируйте ее напрямую.
 
-### Packages
+### Пакеты
 
-| Package | What it provides |
+| Пакет | Что это дает |
 |---------|-----------------|
-| `@mariozechner/pi-tui` | Core components (`Text`, `Box`, `Container`, `SelectList`, etc.), keyboard handling, text utilities |
-| `@mariozechner/pi-coding-agent` | Higher-level components (`DynamicBorder`, `BorderedLoader`, `CustomEditor`), theming helpers, code highlighting |
+| `@mariozechner/pi-tui` | Основные компоненты (`Text`, `Box`, `Container`, `SelectList` и т. д.), работа с клавиатурой, текстовые утилиты |
+| `@mariozechner/pi-coding-agent` | Компоненты более высокого уровня (`DynamicBorder`, `BorderedLoader`, `CustomEditor`), помощники по темам, подсветка кода |
 
 ---

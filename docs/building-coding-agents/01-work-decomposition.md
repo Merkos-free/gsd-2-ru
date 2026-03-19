@@ -1,34 +1,34 @@
-# Work Decomposition
+# Декомпозиция работы
 
-**The universal consensus:** Elite engineers never jump from vision to code. They use **progressive decomposition** through layers of abstraction.
+**Всеобщий консенсус:** Элитные инженеры никогда не переходят от идеи к коду. Они используют **прогрессивную декомпозицию** через уровни абстракции.
 
-### The Compression Ladder
+### Лестница сжатия
 
 ```
 Vision → Capabilities → Systems/Architecture → Features → Tasks
 ```
 
-Each layer answers a different question:
+Каждый слой отвечает на отдельный вопрос:
 
-| Layer | Question |
+| Слой | Вопрос |
 |-------|----------|
-| Vision | What world are we creating? |
-| Capabilities | What must the product be able to do? |
-| Systems | What infrastructure enables those capabilities? |
-| Features | What does the user interact with? |
-| Tasks | What exact code gets written? |
+| Видение | Какой мир мы создаем? |
+| Возможности | Что должен уметь продукт? |
+| Системы | Какая инфраструктура обеспечивает эти возможности? |
+| Особенности | С чем взаимодействует пользователь? |
+| Задачи | Какой именно код пишется? |
 
-### Core Principles (All 4 Models Agree)
+### Основные принципы (все 4 модели согласны)
 
-- **Start with outcomes, not features.** Define "done" before anything else. Not "build a login page" but "a user can securely access their dashboard using OAuth."
-- **Vertical slices over horizontal layers.** Build thin end-to-end slices (UI → API → DB) rather than completing all backend before all frontend. Each slice is independently demoable and testable.
-- **The 1-Day Rule.** If a task takes longer than a day, it's not a task — it's a milestone. Break it down further until each item is a single, clear action completable in one sitting.
-- **Risk-first exploration.** Identify the hardest/most uncertain parts first. Spike on unknowns before committing to architecture. "Kill the biggest risks while they are still cheap to fix."
-- **Interface-first design.** Define contracts between components before building them. This enables parallel work and creates natural verification checkpoints.
-- **MECE decomposition.** Tasks should be Mutually Exclusive (no overlap) and Collectively Exhaustive (complete the vision when all are done).
+– **Начинайте с результатов, а не функций.** Прежде всего определяйте «готово». Не «создать страницу входа», а «пользователь может безопасно получить доступ к своей панели управления, используя OAuth».
+- **Вертикальные фрагменты поверх горизонтальных слоев.** Создавайте тонкие сквозные фрагменты (UI → API → DB), а не заполняйте всю серверную часть перед всем интерфейсом. Каждый фрагмент можно независимо демонстрировать и тестировать.
+- **Правило 1 дня.** Если задача занимает больше дня, это не задача — это веха. Разбивайте его дальше, пока каждый пункт не станет отдельным, четким действием, которое можно выполнить за один присест.
+- **Исследование с учетом риска.** Сначала определите самые сложные и неопределенные моменты. Прежде чем заняться архитектурой, уделите внимание неизвестному. «Устраните самые большие риски, пока их устранение еще дешево».
+- **Проектирование с упором на интерфейс.** Определите контракты между компонентами перед их созданием. Это обеспечивает параллельную работу и создает естественные контрольные точки проверки.
+- **MECE декомпозиция.** Задачи должны быть взаимоисключающими (без дублирования) и коллективно исчерпывающими (завершить видение, когда все будут выполнены).
 
-### The Recursive Heuristic
+### Рекурсивная эвристика
 
-> If something feels fuzzy, break it down one level deeper. Keep decomposing until a task is obvious how to start.
+> Если что-то кажется нечетким, разберите это на один уровень глубже. Продолжайте декомпозировать до тех пор, пока задача не станет очевидной, с чего начать.
 
 ---

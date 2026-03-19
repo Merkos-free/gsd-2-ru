@@ -1,27 +1,27 @@
-# CI/CD Pipeline Design — GSD 2
+# Проектирование CI/CD pipeline для GSD 2
 
-## Overview
+## Обзор
 
-A three-stage promotion pipeline for GSD 2 that moves merged PRs through Dev → Test → Prod using npm dist-tags as environment markers, GitHub Environments for approval gates, and Docker images for both CI acceleration and end-user distribution.
+Трехэтапный конвейер продвижения для GSD 2, который перемещает объединенный PRs через Dev → Test → Prod с использованием dist-тегов npm в качестве маркеров среды, среды GitHub для шлюзов утверждения и образов Docker как для ускорения CI, так и для распространения среди конечных пользователей.
 
-## Goals
+## Цели
 
-1. Every merged PR is immediately installable via `npx gsd-pi@dev`
-2. Verified builds auto-promote to `@next` for early adopters
-3. Production releases require manual approval and optional live-LLM validation
-4. CI builds are fast and reproducible via pre-built Docker builder image
-5. End users can run GSD via Docker as an alternative to npm
-6. LLM-dependent behavior is testable without API calls via recorded fixtures
+1. Каждый объединенный PR можно сразу установить через `npx gsd-pi@dev`.
+2. Проверенные сборки автоматически продвигаются до `@next` для первых пользователей.
+3. Производственные выпуски требуют утверждения вручную и дополнительной проверки в режиме реального времениLLM.
+4. Сборки CI выполняются быстро и воспроизводятся с помощью предварительно созданного образа Docker builder.
+5. Конечные пользователи могут запускать GSD через Docker в качестве альтернативы npm.
+6. Поведение, зависящее от LLM, можно проверить без вызовов API с помощью записанных приборов.
 
-## Non-Goals
+## Нецели
 
-- Replacing the existing PR gate workflow (`ci.yml`)
-- Replacing the native binary cross-compilation workflow (`build-native.yml`)
-- Cross-platform native binary builds (macOS/Windows remain on `build-native.yml`)
-- Hosting GSD as a web service
-- Automated prompt regression testing (future work)
+- Замена существующего рабочего процесса ворот PR (`ci.yml`)
+— Замена встроенного рабочего процесса кросс-компиляции двоичных файлов (`build-native.yml`).
+- Кроссплатформенные собственные двоичные сборки (macOS/Windows остаются на `build-native.yml`)
+- Хостинг GSD как веб-сервис
+- Автоматизированное оперативное регрессионное тестирование (будущая работа)
 
-## Pipeline Architecture
+## Конвейерная архитектура
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -68,26 +68,26 @@ A three-stage promotion pipeline for GSD 2 that moves merged PRs through Dev →
 └──────────────────────────────────────────────────────────────┘
 ```
 
-### Version Strategy
+### Стратегия версий
 
-| Dist-tag | When published | Version format | Risk level |
+| Dist-тег | При публикации | Формат версии | Уровень риска |
 |----------|---------------|----------------|------------|
-| `@dev` | Every merged PR | `2.27.0-dev.a3f2c1b` | Bleeding edge |
-| `@next` | Auto-promoted from Dev | Same version, new tag | Candidate |
-| `@latest` | Manually approved from Test | Same version, new tag | Production |
+| `@dev` | Каждый объединенный PR | `2.27.0-dev.a3f2c1b` | Кровоточащий край |
+| `@next` | Автоматическое продвижение от разработчиков | Та же версия, новый тег | Кандидат |
+| `@latest` | Одобрено вручную из Test | Та же версия, новый тег | Производство |
 
-The `-dev.` prerelease identifier is distinct from the existing `-next.` convention used in `build-native.yml`. The two pipelines do not overlap — `build-native.yml` only triggers on `v*` tags and checks for `-next.` to determine npm dist-tag. The `-dev.` versions are published exclusively by `pipeline.yml`.
+Идентификатор предварительной версии `-dev.` отличается от существующего соглашения `-next.`, используемого в `build-native.yml`. Два конвейера не перекрываются: `build-native.yml` срабатывает только по тегам `v*` и проверяет наличие `-next.` для определения npm dist-tag. Версии `-dev.` публикуются исключительно издательством `pipeline.yml`.
 
-### Native Binary Strategy for Dev Publishes
+### Собственная двоичная стратегия для публикаций разработчиков
 
-Dev versions (`@dev` tag) use the native binaries from the most recent stable `build-native.yml` release. The `optionalDependencies` in `package.json` use `>=` ranges, so a `-dev.` version of `gsd-pi` resolves the latest stable `@gsd-build/engine-*` packages from the registry.
+Версии для разработчиков (тег `@dev`) используют собственные двоичные файлы из самой последней стабильной версии `build-native.yml`. `optionalDependencies` в `package.json` используют диапазоны `>=`, поэтому версия `-dev.` `gsd-pi` разрешает последние стабильные пакеты `@gsd-build/engine-*` из реестра.
 
-If a PR modifies Rust native crate code (`native/` directory), the dev publish will bundle stale native binaries. This is acceptable because:
-- Native crate changes are infrequent and always accompanied by a `v*` tag release
-- The Test stage validates the installed package works end-to-end
-- Full native binary validation happens via `build-native.yml` on the version tag
+Если PR изменяет собственный код крейта Rust (каталог `native/`), публикация для разработчиков будет включать устаревшие собственные двоичные файлы. Это приемлемо, потому что:
+- Изменения в родном ящике происходят нечасто и всегда сопровождаются выпуском тега `v*`.
+- Этап тестирования проверяет работоспособность установленного пакета от начала до конца.
+- Полная встроенная двоичная проверка осуществляется через `build-native.yml` в теге версии.
 
-### Concurrency Control
+### Управление параллелизмом
 
 ```yaml
 concurrency:
@@ -95,77 +95,77 @@ concurrency:
   cancel-in-progress: false
 ```
 
-Policy:
-- Each pipeline run is keyed to its commit SHA — no two runs for the same commit race
-- Newer merges do NOT cancel in-progress promotions — a version already in the Test stage completes its promotion
-- If Run A is promoting version X to `@next` while Run B publishes version Y to `@dev`, they operate independently — `@next` and `@dev` point to different versions, which is correct
-- The Prod stage always promotes whatever version is currently at `@next`, so approving promotion after a newer version has already moved to `@next` promotes the newer one (last-writer-wins, which is the desired behavior)
+Политика:
+- Каждый запуск конвейера привязан к его коммиту SHA — не может быть двух запусков для одной и той же гонки коммитов.
+- Новые слияния NOT отменяют текущие рекламные акции — версия, уже находящаяся на этапе тестирования, завершает свое продвижение.
+- Если запуск A продвигает версию X до `@next`, а запуск B публикует версию Y до `@dev`, они работают независимо — `@next` и `@dev` указывают на разные версии, и это правильно.
+- На этапе разработки всегда продвигается любая версия, которая в данный момент находится на уровне `@next`, поэтому утверждение продвижения после того, как более новая версия уже перемещена на `@next`, продвигает более новую версию (побеждает последний автор, что является желаемым поведением).
 
-### Failure Modes & Recovery
+### Режимы сбоя и восстановление
 
-| Failure | Impact | Recovery |
+| Неудача | Воздействие | Восстановление |
 |---------|--------|----------|
-| Dev publish succeeds, smoke test fails | Broken version on `@dev` tag | Next successful merge overwrites `@dev`. Manual fix: `npm dist-tag add gsd-pi@<last-good> dev` |
-| Test stage fails after promoting to `@next` | Broken version on `@next` tag | Manual: `npm dist-tag add gsd-pi@<last-good> next`. `@latest` is never affected. |
-| Prod promotion publishes `@latest` then found broken | Broken production release | Manual: `npm dist-tag add gsd-pi@<previous-stable> latest` and `docker tag ghcr.io/gsd-build/gsd-pi:<previous> latest && docker push`. Post-mortem required. |
-| Docker push succeeds, npm dist-tag fails | Images and npm out of sync | Re-run the failed job (GitHub Actions retry). Images are tagged by version so stale tags are harmless. |
-| GHCR push fails | No Docker image for this version | Non-blocking — npm publish is the primary distribution. Docker image can be rebuilt manually. |
+| Публикация Dev прошла успешно, дымовой тест провалился | Неработающая версия тега `@dev` | Следующее успешное слияние перезаписывает `@dev`. Ручное исправление: `npm dist-tag add gsd-pi@<last-good> dev` |
+| Этап тестирования завершился неудачно после повышения до `@next` | Неработающая версия тега `@next` | Руководство: `npm dist-tag add gsd-pi@<last-good> next`. `@latest` никогда не затрагивается. |
+| Промо-акция публикует `@latest`, а затем оказывается сломанной | Сломанная производственная версия | Руководство: `npm dist-tag add gsd-pi@<previous-stable> latest` и `docker tag ghcr.io/gsd-build/gsd-pi:<previous> latest && docker push`. Требуется вскрытие. |
+| Docker push успешен, npm dist-tag не работает | Изображения и npm не синхронизированы | Повторно запустите невыполненное задание (повторите действия GitHub). Изображения помечены по версии, поэтому устаревшие теги безвредны. |
+| GHCR не удалось нажать | Для этой версии нет образа Docker | Неблокируемый — npmPublish является основным дистрибутивом. Образ Docker можно пересобрать вручную. |
 
-Rollback responsibility: any maintainer with npm publish rights and GHCR push access. The Prod environment's required-reviewers list doubles as the rollback-authorized list.
+Ответственность за откат: любой сопровождающий с правами публикации npm и push-доступом GHCR. Список обязательных рецензентов среды Prod одновременно является списком разрешенных к откату.
 
-### Relationship to Existing Workflows
+### Связь с существующими рабочими процессами
 
-| File | Trigger | Purpose | Status |
+| Файл | Триггер | Цель | Статус |
 |------|---------|---------|--------|
-| `ci.yml` | PR opened/updated, push to main | Pre-merge gate: build, test, typecheck | **Unchanged** |
-| `build-native.yml` | `v*` tag or manual dispatch | Cross-compile native binaries for 5 platforms | **Unchanged** |
-| `pipeline.yml` | `workflow_run` (after ci.yml succeeds on main) | Post-merge promotion: Dev → Test → Prod | **New** |
+| `ci.yml` | PR открыт/обновлен, перейти на главную | Предварительное слияние: сборка, тестирование, проверка типа | **Без изменений** |
+| `build-native.yml` | `v*` тег или ручная отправка | Кросс-компиляция собственных двоичных файлов для 5 платформ | **Без изменений** |
+| `pipeline.yml` | `workflow_run` (после того, как ci.yml преуспевает на главной странице) | Продвижение после слияния: Разработка → Тестирование → Разработка | **Новинка** |
 
-The pipeline triggers via `workflow_run` after `ci.yml` completes successfully on `main`, avoiding duplicate build/test work. The Dev stage only performs version stamping, publishing, and smoke testing.
+Конвейер запускается через `workflow_run` после успешного завершения `ci.yml` на `main`, что позволяет избежать дублирования работы по сборке/тестированию. На этапе разработки выполняются только штамповка версий, публикация и дымовое тестирование.
 
-## Docker Images
+## Изображения Docker
 
-### Multi-Stage Dockerfile
+### Многоэтапный файл Docker
 
-Two images from a single `Dockerfile` at the repo root.
+Два изображения из одного `Dockerfile` в корне репо.
 
-#### CI Builder Image
+#### CI Изображение строителя
 
-- **Name:** `ghcr.io/gsd-build/gsd-ci-builder`
-- **Base:** `node:22-bookworm`
-- **Contains:** Node 22, Rust stable toolchain, `aarch64-linux-gnu` cross-compiler
-- **Size:** ~2 GB
-- **Tags:** `:latest`, `:<YYYY-MM-DD>` (date-stamped for rollback)
-- **Rebuilt:** Only when `Dockerfile` changes
-- **Used by:** `pipeline.yml` Dev stage, optionally `ci.yml`
-- **Purpose:** Eliminates 3-5 min toolchain install on every CI run
+- **Имя:** `ghcr.io/gsd-build/gsd-ci-builder`
+- **База:** `node:22-bookworm`
+- **Содержит:** Узел 22, стабильную цепочку инструментов Rust, кросс-компилятор `aarch64-linux-gnu`.
+- **Размер:** ~2 GB
+- **Теги:** `:latest`, `:<YYYY-MM-DD>` (с отметкой даты для отката)
+- **Перестроено:** Только при изменении `Dockerfile`.
+- **Используется:** `pipeline.yml` Стадия разработки, опционально `ci.yml`
+- **Цель:** Устраняет 3–5-минутную установку набора инструментов при каждом запуске CI.
 
-The builder image does NOT include Playwright system deps (not needed for current CI jobs). If browser-based E2E tests are added later, Playwright deps can be added at that point.
+Образ строителя NOT включает в себя системные настройки драматурга (не нужны для текущих заданий CI). Если позже будут добавлены E2E-тесты на основе браузера, на этом этапе можно добавить версии Playwright.
 
-#### Builder Image Versioning
+#### Управление версиями образа Builder
 
-Builder images are tagged with both `:latest` and a date stamp (e.g., `:2026-03-17`). The `pipeline.yml` workflow pins to a specific date-stamped tag. When the Dockerfile is updated, the PR that changes it also updates the tag reference in `pipeline.yml`. This prevents a broken Dockerfile change from silently breaking all subsequent runs.
+Изображения Builder помечаются как `:latest`, так и отметкой даты (например, `:2026-03-17`). Рабочий процесс `pipeline.yml` привязан к определенному тегу с отметкой даты. Когда Dockerfile обновляется, изменяющий его PR также обновляет ссылку на тег в `pipeline.yml`. Это не позволяет сломанному изменению Dockerfile незаметно нарушить все последующие запуски.
 
-#### Runtime Image
+#### Изображение времени выполнения
 
-- **Name:** `ghcr.io/gsd-build/gsd-pi`
-- **Base:** `node:22-slim`
-- **Contains:** Node 22, git, `gsd-pi` installed globally
-- **Size:** ~250 MB
-- **Tags:** `:latest`, `:next`, `:v2.27.0`
-- **Published:** On every Prod promotion
-- **Purpose:** `docker run ghcr.io/gsd-build/gsd-pi` as alternative to `npx`
+- **Имя:** `ghcr.io/gsd-build/gsd-pi`
+- **База:** `node:22-slim`
+- **Содержит:** Узел 22, git, `gsd-pi`, установленный по всему миру.
+- **Размер:** ~250 MB
+- **Теги:** `:latest`, `:next`, `:v2.27.0`
+- **Опубликовано:** в каждой рекламной акции Prod.
+- **Цель:** `docker run ghcr.io/gsd-build/gsd-pi` в качестве альтернативы `npx`.
 
-### Why These Base Images
+### Почему эти базовые изображения
 
-- **Bookworm for CI:** The Rust native crates depend on vendored `libgit2`, image processing, and cross-compilation to ARM64. Debian Bookworm provides the full toolchain via apt. Alpine breaks due to musl vs glibc incompatibilities with N-API bindings.
-- **Slim for runtime:** Only needs Node + git. Native `.node` binaries are prebuilt and bundled in the npm package — no Rust toolchain needed at runtime.
+- **Книжный червь для CI:** Собственные ящики Rust зависят от поставляемого `libgit2`, обработки изображений и кросс-компиляции в ARM64. Debian Bookworm предоставляет полный набор инструментов через apt. Альпийские перерывы из-за несовместимости musl и glibc с креплениями N-API.
+- **Тонкий для среды выполнения:** требуется только Node + git. Собственные двоичные файлы `.node` предварительно собраны и включены в пакет npm — во время выполнения не требуется никакой цепочки инструментов Rust.
 
-## LLM Fixture Recording & Replay System
+## LLM Система записи и воспроизведения приборов
 
-### Architecture
+### Архитектура
 
-The fixture system hooks into the `pi-ai` provider abstraction layer to capture and replay LLM conversations without hitting real APIs.
+Система фиксации подключается к уровню абстракции провайдера `pi-ai` для захвата и воспроизведения разговоров LLM, не затрагивая реальный APIs.
 
 ```
 Agent Session
@@ -181,9 +181,9 @@ FixtureProvider (intercept layer)
     └── replay mode → Load fixture JSON (no API call)
 ```
 
-### Integration Design
+### Интеграционный дизайн
 
-The `FixtureProvider` implements the `Provider` interface from `@gsd/pi-ai` (the same interface all 20+ built-in providers implement). It registers itself via environment variable detection at provider initialization:
+`FixtureProvider` реализует интерфейс `Provider` из `@gsd/pi-ai` (тот же интерфейс, который реализуют все более 20 встроенных поставщиков). Он регистрируется посредством обнаружения переменных среды при инициализации провайдера:
 
 ```typescript
 // Pseudocode — actual implementation will follow pi-ai patterns
@@ -210,22 +210,22 @@ class FixtureProvider implements Provider {
 }
 ```
 
-Key integration details:
-- **Streaming:** Fixture replay simulates streaming by yielding saved response chunks with minimal delay. This exercises the same consumer code paths as real streaming.
-- **Registration:** When `GSD_FIXTURE_MODE` is set, the fixture provider wraps the configured real provider. No changes to provider selection logic needed.
-- **Provider-agnostic:** Fixtures are captured at the `Provider` interface level (above HTTP transport), so they work regardless of which underlying provider was used during recording.
+Ключевые детали интеграции:
+- **Потоковая передача.** Воспроизведение прибора имитирует потоковую передачу, сохраняя фрагменты ответа с минимальной задержкой. При этом используются те же пути пользовательского кода, что и при реальной потоковой передаче.
+- **Регистрация:** Если установлено `GSD_FIXTURE_MODE`, поставщик приборов оборачивает настроенного реального поставщика. Никаких изменений в логике выбора поставщика не требуется.
+- **Независимость от поставщика:** Светильники захватываются на уровне интерфейса `Provider` (выше транспорта HTTP), поэтому они работают независимо от того, какой базовый поставщик использовался во время записи.
 
-### Modes
+### Режимы
 
-| Mode | Trigger | Behavior |
+| Режим | Триггер | Поведение |
 |------|---------|----------|
-| **Record** | `GSD_FIXTURE_MODE=record GSD_FIXTURE_DIR=./fixtures` | Wraps real provider, saves request/response pairs |
-| **Replay** | `GSD_FIXTURE_MODE=replay GSD_FIXTURE_DIR=./fixtures` | Returns saved responses, zero API calls |
-| **Off** | Default (no env vars) | Normal operation, no interception |
+| **Запись** | `GSD_FIXTURE_MODE=record GSD_FIXTURE_DIR=./fixtures` | Обертывает реального провайдера, сохраняет пары запрос/ответ |
+| **Повтор** | `GSD_FIXTURE_MODE=replay GSD_FIXTURE_DIR=./fixtures` | Возвращает сохраненные ответы, ноль вызовов API |
+| **Выкл.** | По умолчанию (без переменных окружения) | Нормальная работа, без перехвата |
 
-### Fixture Format
+### Формат прибора
 
-One JSON file per recorded session:
+Один файл JSON для каждого записанного сеанса:
 
 ```json
 {
@@ -253,39 +253,39 @@ One JSON file per recorded session:
 }
 ```
 
-### Matching Strategy
+### Стратегия соответствия
 
-Turn-index based. Response N is served for request N in sequence. If the conversation diverges from the fixture (e.g., unexpected turn count), the test fails explicitly with a descriptive error rather than silently producing wrong results.
+На основе индекса поворота. Ответ N подается на запрос N последовательно. Если разговор отклоняется от заданного (например, неожиданное количество ходов), тест явно проваливается с описательной ошибкой, а не молча выдает неправильные результаты.
 
-Why not request-body hashing: request bodies contain timestamps, random IDs, and system prompt variations that cause brittle mismatches.
+Почему бы не хешировать тело запроса: тела запроса содержат временные метки, случайные IDs и вариации системных подсказок, которые вызывают серьезные несоответствия.
 
-Why not a generic HTTP VCR: The `pi-ai` layer abstracts 20+ providers with different wire formats. Intercepting above the transport means fixtures are provider-agnostic.
+Почему бы не использовать общий HTTP VCR: уровень `pi-ai` абстрагирует более 20 поставщиков с различными форматами проводов. Перехватывающие устройства транспортных средств не зависят от поставщика.
 
-### What Gets Tested via Fixtures
+### Что тестируется с помощью фикстур
 
-- Agent session lifecycle (start → tool calls → completion)
-- Tool dispatch and response handling
-- Multi-turn conversation flow
-- Extension loading and routing
-- Error handling paths (fixtures can include error responses)
+- Жизненный цикл сеанса агента (начало → вызовы инструментов → завершение)
+- Отправка инструментов и обработка ответов
+- Многоходовой поток разговора
+- Загрузка и маршрутизация расширений
+- Пути обработки ошибок (фиксы могут включать в себя ответы на ошибки)
 
-### What Does NOT Get Tested (Deferred to Live Gate)
+### Что нужно для тестирования NOT (отложено до Live Gate)
 
-- Model output quality
-- Prompt regression
-- New tool compatibility with live APIs
+- Качество вывода модели
+- Быстрый регресс
+- Совместимость нового инструмента с живым APIs.
 
-### Fixture Storage
+### Хранение приспособлений
 
-Committed to repo under `tests/fixtures/recordings/`. Each fixture is 5-50KB of JSON. Recording is a manual developer action, not automated in CI.
+Обязаны провести репо по цене `tests/fixtures/recordings/`. Каждый прибор занимает 5–50 КБ JSON. Запись – это действие разработчика, выполняемое вручную и не автоматизированное в версии CI.
 
-### Dev Version Cleanup
+### Очистка версии для разработчиков
 
-Old `-dev.` versions accumulate on npm with every merged PR. A scheduled workflow (`cleanup-dev-versions.yml`) runs weekly and unpublishes dev versions older than 30 days via `npm unpublish gsd-pi@<old-dev-version>`. This prevents registry bloat while keeping recent dev versions available.
+Старые версии `-dev.` накапливаются в npm при каждом объединении PR. Запланированный рабочий процесс (`cleanup-dev-versions.yml`) запускается еженедельно и отменяет публикацию версий для разработчиков старше 30 дней через `npm unpublish gsd-pi@<old-dev-version>`. Это предотвращает раздувание реестра, сохраняя при этом доступность последних версий для разработчиков.
 
-## New Files & Scripts
+## Новые файлы и скрипты
 
-### Directory Structure
+### Структура каталогов
 
 ```
 tests/
@@ -318,9 +318,9 @@ Dockerfile                     # Multi-stage: builder + runtime
 .github/workflows/cleanup-dev-versions.yml # Weekly dev version pruning
 ```
 
-All test files use `.ts` with `--experimental-strip-types` for consistency with the existing test convention in the project.
+Во всех тестовых файлах используются символы `.ts` и `--experimental-strip-types` для обеспечения соответствия существующему соглашению о тестировании в проекте.
 
-### New npm Scripts
+### Новые скрипты npm
 
 ```json
 {
@@ -334,24 +334,24 @@ All test files use `.ts` with `--experimental-strip-types` for consistency with 
 }
 ```
 
-## GitHub Configuration
+## Конфигурация GitHub
 
-| Setting | Value |
+| Настройка | Значение |
 |---------|-------|
-| Environment: `dev` | No protection rules |
-| Environment: `test` | No protection rules (auto-promote) |
-| Environment: `prod` | Required reviewers: maintainers |
-| Secret: `NPM_TOKEN` | All environments |
-| Secret: `ANTHROPIC_API_KEY` | Prod only |
-| Secret: `OPENAI_API_KEY` | Prod only |
-| GHCR | Enabled for org |
+| Окружающая среда: `dev` | Нет правил защиты |
+| Окружающая среда: `test` | Нет правил защиты (автопродвижение) |
+| Окружающая среда: `prod` | Требуются рецензенты: сопровождающие |
+| Секрет: `NPM_TOKEN` | Все среды |
+| Секрет: `ANTHROPIC_API_KEY` | Только Prod |
+| Секрет: `OPENAI_API_KEY` | Только Prod |
+| GHCR | Включено для организации |
 
-## Success Criteria
+## Критерии успеха
 
-1. A merged PR is installable via `npx gsd-pi@dev` within 15 minutes (assumes warm CI builder image cache)
-2. Fixture replay tests complete in under 60 seconds with zero API calls
-3. The full Dev → Test promotion completes without human intervention
-4. Prod promotion is blocked until a maintainer explicitly approves
-5. `docker run ghcr.io/gsd-build/gsd-pi --version` returns the correct version
-6. Existing `ci.yml` and `build-native.yml` workflows continue to work unchanged
-7. CI builder image reduces toolchain setup from ~3-5 min to ~30s pull
+1. Объединенный PR можно установить через `npx gsd-pi@dev` в течение 15 минут (при условии использования кэша образов сборщика CI).
+2. Тестирование воспроизведения прибора выполняется менее чем за 60 секунд без вызовов API.
+3. Полное продвижение Dev → Test завершается без вмешательства человека.
+4. Продвижение продукта блокируется до тех пор, пока сопровождающий явно не одобрит его.
+5. `docker run ghcr.io/gsd-build/gsd-pi --version` возвращает правильную версию.
+6. Существующие рабочие процессы `ci.yml` и `build-native.yml` продолжают работать без изменений.
+7. Образ компоновщика CI сокращает настройку цепочки инструментов с ~3-5 минут до ~30 секунд.

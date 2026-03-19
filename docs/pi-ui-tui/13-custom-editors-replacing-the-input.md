@@ -1,8 +1,8 @@
-# Custom Editors — Replacing the Input
+# Пользовательские редакторы — замена ввода
 
-Replace the main input editor with a custom implementation. The editor persists until explicitly removed.
+Замените основной редактор ввода собственной реализацией. Редактор сохраняется до тех пор, пока его явно не удалят.
 
-### The Pattern
+### Узор
 
 ```typescript
 import { CustomEditor, type ExtensionAPI } from "@mariozechner/pi-coding-agent";
@@ -62,11 +62,11 @@ export default function (pi: ExtensionAPI) {
 }
 ```
 
-### Critical Rules
+### Критические правила
 
-1. **Extend `CustomEditor`**, not `Editor`. `CustomEditor` provides app keybindings (escape to abort, ctrl+d to exit, model switching) that must not be lost.
-2. **Call `super.handleInput(data)`** for any key you don't handle.
-3. **Use the factory pattern**: `setEditorComponent` receives a factory `(tui, theme, keybindings) => CustomEditor`.
-4. **Pass `undefined` to restore default**: `ctx.ui.setEditorComponent(undefined)`.
+1. **Расширить `CustomEditor`**, а не `Editor`. `CustomEditor` обеспечивает привязку клавиш приложения (Escape для прерывания, Ctrl+D для выхода, переключение модели), которые нельзя потерять.
+2. **Позвоните по номеру `super.handleInput(data)`**, если у вас нет ключа.
+3. **Использовать заводской шаблон**: `setEditorComponent` получает заводской `(tui, theme, keybindings) => CustomEditor`.
+4. **Нажмите `undefined`, чтобы восстановить настройки по умолчанию**: `ctx.ui.setEditorComponent(undefined)`.
 
 ---

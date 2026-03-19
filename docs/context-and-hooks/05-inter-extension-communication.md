@@ -1,12 +1,12 @@
-# Inter-Extension Communication
+# Связь между внутренними номерами
 
-How extensions communicate with each other, share state, and coordinate behavior.
+Как расширения взаимодействуют друг с другом, обмениваются состоянием и координируют поведение.
 
 ---
 
-## pi.events — The Shared Event Bus
+## pi.events — общая шина событий
 
-Every extension receives the same `pi.events` instance. It's a simple typed pub/sub bus.
+Каждое расширение получает один и тот же экземпляр `pi.events`. Это простой типизированный автобус-паб/суб.
 
 ### API
 
@@ -25,18 +25,18 @@ const unsub = pi.events.on("my-channel", (data) => {
 unsub();
 ```
 
-### Characteristics
+### Характеристики
 
-| Property | Behavior |
+| Недвижимость | Поведение |
 |---|---|
-| **Typing** | `data` is `unknown`. No generics. Cast at the consumer. |
-| **Error handling** | Handlers are wrapped in async try/catch. Errors log to `console.error` but don't propagate to emitter or crash the session. |
-| **Ordering** | Handlers fire in subscription order (order of `pi.events.on` calls). |
-| **Persistence** | No replay, no persistence. If you emit before anyone subscribes, the event is lost. |
-| **Scope** | Shared across ALL extensions in the session. The bus is created once and passed to every extension's `createExtensionAPI`. |
-| **Lifecycle** | The bus is cleared on extension reload (`/reload`). Subscriptions from the old extension instances are gone. |
+| **Ввод** | `data` - это `unknown`. Никаких дженериков. Бросьте на потребителя. |
+| **Обработка ошибок** | Обработчики заключены в асинхронный метод try/catch. Ошибки регистрируются в `console.error`, но не распространяются на отправитель и не приводят к сбою сеанса. |
+| **Заказ** | Обработчики срабатывают в порядке подписки (порядок вызовов `pi.events.on`). |
+| **Настойчивость** | Никакого повторения, никакой настойчивости. Если вы отправите сообщение до того, как кто-либо подпишется, событие будет потеряно. |
+| **Объем** | Совместно используется всеми расширениями ALL в сеансе. Шина создается один раз и передается на `createExtensionAPI` каждого расширения. |
+| **Жизненный цикл** | Шина очищается при перезагрузке расширения (`/reload`). Подписки из старых экземпляров расширения исчезли. |
 
-### Example: Extension A Signals Extension B
+### Пример: внутренний номер A сигнализирует внутренний номер B
 
 ```typescript
 // Extension A: plan-mode.ts
@@ -58,19 +58,19 @@ export default function (pi: ExtensionAPI) {
 }
 ```
 
-### Limitations
+### Ограничения
 
-- **No request/response** — emit is fire-and-forget. If you need a response, use shared state or a callback pattern.
-- **No guaranteed delivery** — if the subscriber hasn't loaded yet (load order matters), the event is missed.
-- **No channel namespacing** — use descriptive channel names to avoid collisions (e.g., `"myext:event"` rather than `"update"`).
+- **Нет запроса/ответа** — метод «выстрелил и забыл». Если вам нужен ответ, используйте общее состояние или шаблон обратного вызова.
+- **Нет гарантированной доставки** — если подписчик еще не загрузился (порядок загрузки имеет значение), событие пропускается.
+- **Нет пространства имен каналов** — используйте описательные имена каналов, чтобы избежать коллизий (например, `"myext:event"`, а не `"update"`).
 
 ---
 
-## Shared State Patterns
+## Шаблоны общего состояния
 
-### Pattern 1: Shared Module State
+### Шаблон 1: общее состояние модуля
 
-If two extensions are loaded from the same package (via `package.json` `pi.extensions` array), they can share state through module-level variables in a shared file.
+Если два расширения загружаются из одного и того же пакета (через массив `package.json` `pi.extensions`), они могут совместно использовать состояние через переменные уровня модуля в общем файле.
 
 ```
 my-extension/
@@ -80,11 +80,11 @@ my-extension/
 └── shared.ts       # export const state = { count: 0 }
 ```
 
-**Caveat:** jiti module caching means the shared module is loaded once. But on `/reload`, everything is re-imported from scratch — shared state resets.
+**Предупреждение:** кэширование модуля jiti означает, что общий модуль загружается один раз. Но в `/reload` всё импортируется с нуля — общий сброс состояния.
 
-### Pattern 2: Event Bus as State Channel
+### Схема 2: Шина событий как канал состояния
 
-Use `pi.events` to broadcast state changes. Each extension maintains its own copy.
+Используйте `pi.events` для трансляции изменений состояния. Каждое расширение поддерживает свою собственную копию.
 
 ```typescript
 // Extension A: authoritative state owner
@@ -103,9 +103,9 @@ pi.events.on("items:updated", (data) => {
 });
 ```
 
-### Pattern 3: Session Entries as Coordination Points
+### Схема 3: записи сеанса как точки координации
 
-Extensions can read each other's `appendEntry` data from the session:
+Расширения могут читать данные `appendEntry` друг друга из сеанса:
 
 ```typescript
 // Extension A writes:
@@ -122,15 +122,15 @@ pi.on("session_start", async (_event, ctx) => {
 });
 ```
 
-**Downside:** This only works after `session_start`. Not suitable for real-time coordination during a turn.
+**Недостаток:** Это работает только после `session_start`. Не подходит для координации в реальном времени во время поворота.
 
 ---
 
-## Multi-Extension Coordination Patterns
+## Шаблоны координации нескольких расширений
 
-### Pattern: Mode Manager
+### Шаблон: Менеджер режимов
 
-One extension acts as the mode authority, others react:
+Одно расширение выступает в качестве органа управления режимом, другие реагируют:
 
 ```typescript
 // mode-manager.ts — the authority
@@ -175,11 +175,11 @@ export default function (pi: ExtensionAPI) {
 }
 ```
 
-### Pattern: Extension Priority Chain
+### Шаблон: Цепочка приоритетов расширений
 
-When multiple extensions handle the same hook, load order determines priority. Project-local extensions load before global ones. Within a directory, files are discovered in filesystem order.
+Когда несколько расширений обрабатывают один и тот же хук, порядок загрузки определяет приоритет. Локальные расширения проекта загружаются раньше глобальных. Внутри каталога файлы обнаруживаются в порядке файловой системы.
 
-If you need explicit priority control:
+Если вам нужен явный контроль приоритета:
 
 ```typescript
 // priority-extension.ts
@@ -198,9 +198,9 @@ export default function (pi: ExtensionAPI) {
 
 ---
 
-## The ExtensionContext in Tools
+## Контекст расширения в инструментах
 
-Tools registered by extensions receive `ExtensionContext` as their 5th `execute` parameter. This is the same context event handlers get:
+Инструменты, зарегистрированные расширениями, получают `ExtensionContext` в качестве пятого параметра `execute`. Это тот же самый контекст, который получают обработчики событий контекста:
 
 ```typescript
 pi.registerTool({
@@ -230,4 +230,4 @@ pi.registerTool({
 });
 ```
 
-**Important:** The `ctx` is freshly created via `runner.createContext()` for each tool execution. It reflects the current state at call time (current model, current session, etc.), not the state when the tool was registered.
+**Важно:** `ctx` создается заново с помощью `runner.createContext()` для каждого исполнения инструмента. Он отражает текущее состояние во время вызова (текущая модель, текущий сеанс и т. д.), а не состояние, когда инструмент был зарегистрирован.

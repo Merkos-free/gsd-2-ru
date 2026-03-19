@@ -1,38 +1,38 @@
-# Built-in Dialog Methods
+# Встроенные методы диалога
 
-The simplest UI — blocking dialogs that wait for user response:
+Самый простой UI — блокировка диалогов, ожидающих ответа пользователя:
 
-### Selection
+### Выбор
 
 ```typescript
 const choice = await ctx.ui.select("Pick a color:", ["Red", "Green", "Blue"]);
 // Returns: "Red" | "Green" | "Blue" | undefined (if cancelled)
 ```
 
-### Confirmation
+### Подтверждение
 
 ```typescript
 const ok = await ctx.ui.confirm("Delete file?", "This action cannot be undone.");
 // Returns: true | false
 ```
 
-### Text Input
+### Ввод текста
 
 ```typescript
 const name = await ctx.ui.input("Project name:", "my-project");
 // Returns: string | undefined (if cancelled)
 ```
 
-### Multi-line Editor
+### Многострочный редактор
 
 ```typescript
 const text = await ctx.ui.editor("Edit the description:", "Default text here");
 // Returns: string | undefined (if cancelled)
 ```
 
-### Timed Dialogs (Auto-Dismiss)
+### Диалоги по времени (автоматическое закрытие)
 
-Dialogs can auto-dismiss with a live countdown:
+Диалоги могут автоматически закрываться с обратным отсчетом в реальном времени:
 
 ```typescript
 // Shows "Confirm? (5s)" → "Confirm? (4s)" → ... → auto-dismisses
@@ -44,14 +44,14 @@ const ok = await ctx.ui.confirm(
 // Returns false on timeout
 ```
 
-**Timeout return values:**
+**Возвращаемые значения тайм-аута:**
 - `select()` → `undefined`
 - `confirm()` → `false`
 - `input()` → `undefined`
 
-### Manual Dismissal with AbortSignal
+### Ручное увольнение с помощью AbortSignal
 
-For more control (distinguish timeout from user cancel):
+Для большего контроля (отличайте тайм-аут от отмены пользователя):
 
 ```typescript
 const controller = new AbortController();

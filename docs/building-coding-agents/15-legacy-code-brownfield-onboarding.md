@@ -1,35 +1,35 @@
-# Legacy Code & Brownfield Onboarding
+# Устаревший код и внедрение новых проектов
 
-**The fundamental difference:** Greenfield = design → implement. Brownfield = **observe → infer → validate → modify.**
+**Основное отличие:** «Гринфилд» = проектирование → реализация. Браунфилд = **наблюдать → делать выводы → проверять → изменять.**
 
-### The Onboarding Pipeline (All 4 Models Agree)
+### Процесс адаптации (все 4 модели согласны)
 
-#### Phase 1: Structural Analysis (Deterministic)
-- Dependency graph mapping
-- Module identification, LOC per component
-- Test coverage analysis, entry point discovery
-- Database schema mapping
+#### Этап 1: Структурный анализ (детерминированный)
+- Отображение графа зависимостей
+- Идентификация модуля, LOC за компонент
+- Анализ тестового покрытия, обнаружение точек входа.
+- Сопоставление схемы базы данных
 
-#### Phase 2: Convention Extraction (LLM-Assisted)
-- Sample representative files across modules
-- Identify: error handling patterns, naming conventions, API structure, DB access patterns, testing patterns
-- Output: a **conventions document** that becomes critical reference context
+#### Этап 2: Извлечение соглашений (с помощью LLM)
+- Примеры репрезентативных файлов по модулям.
+- Определить: шаблоны обработки ошибок, соглашения об именах, структуру API, шаблоны доступа DB, шаблоны тестирования.
+- Результат: **документ о конвенциях**, который становится важным справочным контекстом.
 
-#### Phase 3: Pattern Mining
-- Extract implicit "tribal knowledge" — workarounds for browser bugs, special customer cases, performance hacks that look like mistakes
-- Generate decision records into project state
+#### Этап 3: Анализ шаблонов
+- Извлекайте неявные «племенные знания» — обходные пути для ошибок браузера, особые случаи клиентов, хаки производительности, которые выглядят как ошибки.
+- Генерация записей решений в состояние проекта
 
-### The Cardinal Rules
+### Кардинальные правила
 
-| Rule | Why |
+| Правило | Почему |
 |------|-----|
-| **Observe first, edit later** | Agents must never modify code they don't understand |
-| **Preserve local consistency over global ideals** | Resist the "Junior Refactor" — don't "fix" legacy code to modern standards |
-| **Add characterization tests before modifying** | Tests that document *current behavior*, not *correct behavior* |
-| **Minimal, surgical modifications** | Refactoring is a separate task requiring explicit human approval |
+| **Сначала наблюдайте, потом редактируйте** | Агенты никогда не должны изменять код, который они не понимают |
+| **Сохраняйте локальную согласованность, а не глобальные идеалы** | Сопротивляйтесь «младшему рефакторингу» — не «исправляйте» устаревший код в соответствии с современными стандартами |
+| **Добавьте тесты характеристик перед изменением** | Тесты, документирующие *текущее поведение*, а не *правильное поведение* |
+| **Минимальные хирургические модификации** | Рефакторинг — отдельная задача, требующая явного одобрения человека |
 
-### The Biggest Pitfall
+### Самая большая ловушка
 
-The agent will try to refactor legacy code to match its sense of good patterns. Left unchecked, this produces massive diffs that change behavior in subtle ways. **Enforce strict rules:** modifications to legacy code should be minimal and surgical.
+Агент попытается реорганизовать устаревший код, чтобы он соответствовал его представлениям о хороших шаблонах. Если ничего не контролировать, это приводит к огромным различиям, которые тонким образом меняют поведение. **Соблюдайте строгие правила:** изменения устаревшего кода должны быть минимальными и хирургическими.
 
 ---

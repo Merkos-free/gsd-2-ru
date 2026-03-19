@@ -1,8 +1,8 @@
-# Theming — Colors and Styles
+# Тематика — цвета и стили.
 
-### Using Theme Colors
+### Использование цветов темы
 
-The `theme` object is always passed via callbacks — never import it directly.
+Объект `theme` всегда передается через обратные вызовы — никогда не импортируйте его напрямую.
 
 ```typescript
 // Foreground color
@@ -27,26 +27,26 @@ theme.fg("accent", theme.bold("Bold and colored"))
 theme.bg("selectedBg", theme.fg("text", " Selected "))
 ```
 
-### All Foreground Colors
+### Все цвета переднего плана
 
-| Category | Colors |
+| Категория | Цвета |
 |----------|--------|
-| **General** | `text`, `accent`, `muted`, `dim` |
-| **Status** | `success`, `error`, `warning` |
-| **Borders** | `border`, `borderAccent`, `borderMuted` |
-| **Messages** | `userMessageText`, `customMessageText`, `customMessageLabel` |
-| **Tools** | `toolTitle`, `toolOutput` |
-| **Diffs** | `toolDiffAdded`, `toolDiffRemoved`, `toolDiffContext` |
-| **Markdown** | `mdHeading`, `mdLink`, `mdLinkUrl`, `mdCode`, `mdCodeBlock`, `mdCodeBlockBorder`, `mdQuote`, `mdQuoteBorder`, `mdHr`, `mdListBullet` |
-| **Syntax** | `syntaxComment`, `syntaxKeyword`, `syntaxFunction`, `syntaxVariable`, `syntaxString`, `syntaxNumber`, `syntaxType`, `syntaxOperator`, `syntaxPunctuation` |
-| **Thinking** | `thinkingOff`, `thinkingMinimal`, `thinkingLow`, `thinkingMedium`, `thinkingHigh`, `thinkingXhigh` |
-| **Modes** | `bashMode` |
+| **Общие** | `text`, `accent`, `muted`, `dim` |
+| **Статус** | `success`, `error`, `warning` |
+| **Границы** | `border`, `borderAccent`, `borderMuted` |
+| **Сообщения** | `userMessageText`, `customMessageText`, `customMessageLabel` |
+| **Инструменты** | `toolTitle`, `toolOutput` |
+| **Различия** | `toolDiffAdded`, `toolDiffRemoved`, `toolDiffContext` |
+| **Уценка** | `mdHeading`, `mdLink`, `mdLinkUrl`, `mdCode`, `mdCodeBlock`, `mdCodeBlockBorder`, `mdQuote`, `mdQuoteBorder`, `mdHr`, `mdListBullet` |
+| **Синтаксис** | `syntaxComment`, `syntaxKeyword`, `syntaxFunction`, `syntaxVariable`, `syntaxString`, `syntaxNumber`, `syntaxType`, `syntaxOperator`, `syntaxPunctuation` |
+| **Размышление** | `thinkingOff`, `thinkingMinimal`, `thinkingLow`, `thinkingMedium`, `thinkingHigh`, `thinkingXhigh` |
+| **Режимы** | `bashMode` |
 
-### All Background Colors
+### Все цвета фона
 
 `selectedBg`, `userMessageBg`, `customMessageBg`, `toolPendingBg`, `toolSuccessBg`, `toolErrorBg`
 
-### Syntax Highlighting
+### Подсветка синтаксиса
 
 ```typescript
 import { highlightCode, getLanguageFromPath } from "@mariozechner/pi-coding-agent";
@@ -59,7 +59,7 @@ const lang = getLanguageFromPath("/path/to/file.rs");  // "rust"
 const highlighted = highlightCode(code, lang, theme);
 ```
 
-### Markdown Theme
+### Тема уценки
 
 ```typescript
 import { getMarkdownTheme } from "@mariozechner/pi-coding-agent";

@@ -1,102 +1,102 @@
-# Getting Started
+# Начало работы
 
-## Install
+## Установить
 
 ```bash
 npm install -g gsd-pi
 ```
 
-Requires Node.js ≥ 22.0.0 (24 LTS recommended) and Git.
+Требуется Node.js ≥ 22.0.0 (рекомендуется 24 LTS) и Git.
 
-GSD checks for updates once every 24 hours. When a new version is available, you'll see an interactive prompt at startup with the option to update immediately or skip. You can also update from within a session with `/gsd update`.
+GSD проверяет наличие обновлений каждые 24 часа. Когда станет доступна новая версия, при запуске вы увидите интерактивное приглашение с возможностью обновить немедленно или пропустить. Вы также можете выполнить обновление из сеанса с помощью `/gsd update`.
 
-### Set up API keys
+### Настройка клавиш API
 
-If you use a non-Anthropic model, you'll need a search API key for web search. Run `/gsd config` to set keys globally — they're saved to `~/.gsd/agent/auth.json` and apply to all projects:
+Если вы используете неантропную модель, вам понадобится клавиша поиска API для веб-поиска. Запустите `/gsd config`, чтобы установить ключи глобально — они сохраняются в `~/.gsd/agent/auth.json` и применяются ко всем проектам:
 
 ```bash
 # Inside any GSD session:
 /gsd config
 ```
 
-See [Global API Keys](./configuration.md#global-api-keys-gsd-config) for details on supported keys.
+Подробную информацию о поддерживаемых ключах см. в разделе [Глобальные ключи API](./configuration.md#global-api-keys-gsd-config).
 
-### VS Code Extension
+### VS Расширение кода
 
-GSD is also available as a VS Code extension. Install from the marketplace (publisher: FluxLabs) or search for "GSD" in VS Code extensions. The extension provides:
+GSD также доступен как расширение кода VS. Установите из магазина (издатель: FluxLabs) или найдите «GSD» в разделе «Расширения кода VS». Расширение обеспечивает:
 
-- **`@gsd` chat participant** — talk to the agent in VS Code Chat
-- **Sidebar dashboard** — connection status, model info, token usage, quick actions
-- **Full command palette** — start/stop agent, switch models, export sessions
+- **участник чата `@gsd`** — поговорите с агентом в кодовом чате VS.
+- **Панель управления боковой панели** — состояние подключения, информация о модели, использование токенов, быстрые действия.
+- **Полная палитра команд** — запуск/остановка агента, переключение моделей, экспорт сеансов.
 
-The CLI (`gsd-pi`) must be installed first — the extension connects to it via RPC.
+CLI (`gsd-pi`) необходимо установить первым — удлинитель подключается к нему через RPC.
 
-## First Launch
+## Первый запуск
 
-Run `gsd` in any directory:
+Запустите `gsd` в любом каталоге:
 
 ```bash
 gsd
 ```
 
-On first launch, GSD runs a setup wizard:
+При первом запуске GSD запускает мастер настройки:
 
-1. **LLM Provider** — select from 20+ providers (Anthropic, OpenAI, Google, OpenRouter, GitHub Copilot, Amazon Bedrock, Azure, and more). OAuth flows handle Claude Max and Copilot subscriptions automatically; otherwise paste an API key.
-2. **Tool API Keys** (optional) — Brave Search, Context7, Jina, Slack, Discord. Press Enter to skip any.
+1. **LLM Поставщик** — выберите одного из более чем 20 поставщиков (Anthropic, OpenAI, Google, OpenRouter, GitHub Copilot, Amazon Bedrock, Azure и других). Потоки OAuth автоматически обрабатывают подписки Claude Max и Copilot; в противном случае вставьте клавишу API.
+2. **Инструмент API Keys** (необязательно) — Brave Search, Context7, Jina, Slack, Discord. Нажмите Enter, чтобы пропустить любой.
 
-If you have an existing Pi installation, provider credentials are imported automatically.
+Если у вас уже есть установка Pi, учетные данные поставщика импортируются автоматически.
 
-Re-run the wizard anytime with:
+Перезапустите мастер в любое время с помощью:
 
 ```bash
 gsd config
 ```
 
-## Choose a Model
+## Выберите модель
 
-GSD auto-selects a default model after login. Switch later with:
+GSD автоматически выбирает модель по умолчанию после входа в систему. Переключитесь позже с помощью:
 
 ```
 /model
 ```
 
-Or configure per-phase models in preferences — see [Configuration](./configuration.md).
+Или настройте пофазные модели в настройках — см. [Конфигурация](./configuration.md).
 
-## Two Ways to Work
+## Два способа работы
 
-### Step Mode — `/gsd`
+### Шаговый режим — `/gsd`
 
-Type `/gsd` inside a session. GSD executes one unit of work at a time, pausing between each with a wizard showing what completed and what's next.
+Введите `/gsd` внутри сеанса. GSD выполняет по одной единице работы за раз, делая паузу между каждой из них, а мастер показывает, что выполнено и что дальше.
 
-- **No `.gsd/` directory** → starts a discussion flow to capture your project vision
-- **Milestone exists, no roadmap** → discuss or research the milestone
-- **Roadmap exists, slices pending** → plan the next slice or execute a task
-- **Mid-task** → resume where you left off
+- **Нет каталога `.gsd/`** → запускает поток обсуждения, чтобы отразить видение вашего проекта.
+- **Веха существует, дорожной карты нет** → обсудите или изучите веху
+- **План действий существует, фрагменты ожидаются** → запланируйте следующий фрагмент или выполните задачу.
+- **В середине задачи** → продолжить с того места, где вы остановились.
 
-Step mode is the on-ramp. You stay in the loop, reviewing output between each step.
+Шаговый режим — это рампа. Вы остаетесь в курсе, просматривая результаты между каждым шагом.
 
-### Auto Mode — `/gsd auto`
+### Автоматический режим — `/gsd auto`
 
-Type `/gsd auto` and walk away. GSD autonomously researches, plans, executes, verifies, commits, and advances through every slice until the milestone is complete.
+Введите `/gsd auto` и уходите. GSD автономно исследует, планирует, выполняет, проверяет, фиксирует и продвигается по каждому фрагменту, пока не будет завершена контрольная точка.
 
 ```
 /gsd auto
 ```
 
-See [Auto Mode](./auto-mode.md) for full details.
+Подробную информацию см. в разделе [Автоматический режим](./auto-mode.md).
 
-## Two Terminals, One Project
+## Два терминала, один проект
 
-The recommended workflow: auto mode in one terminal, steering from another.
+Рекомендуемый порядок работы: автоматический режим в одном терминале, рулевое управление в другом.
 
-**Terminal 1 — let it build:**
+**Терминал 1 — пусть строит:**
 
 ```bash
 gsd
 /gsd auto
 ```
 
-**Terminal 2 — steer while it works:**
+**Терминал 2 — управляй, пока работает:**
 
 ```bash
 gsd
@@ -105,11 +105,11 @@ gsd
 /gsd queue      # queue the next milestone
 ```
 
-Both terminals read and write the same `.gsd/` files. Decisions in terminal 2 are picked up at the next phase boundary automatically.
+Оба терминала читают и записывают одни и те же файлы `.gsd/`. Решения в терминале 2 принимаются на следующей границе фазы автоматически.
 
-## Project Structure
+## Структура проекта
 
-GSD organizes work into a hierarchy:
+GSD организует работу в иерархию:
 
 ```
 Milestone  →  a shippable version (4-10 slices)
@@ -117,9 +117,9 @@ Milestone  →  a shippable version (4-10 slices)
     Task   →  one context-window-sized unit of work
 ```
 
-The iron rule: **a task must fit in one context window.** If it can't, it's two tasks.
+Железное правило: **задача должна умещаться в одном контекстном окне.** Если нет, то это две задачи.
 
-All state lives on disk in `.gsd/`:
+Все состояние находится на диске в `.gsd/`:
 
 ```
 .gsd/
@@ -141,44 +141,44 @@ All state lives on disk in `.gsd/`:
             T01-SUMMARY.md
 ```
 
-## Resume a Session
+## Возобновить сеанс
 
 ```bash
 gsd --continue    # or gsd -c
 ```
 
-Resumes the most recent session for the current directory.
+Возобновляет самый последний сеанс для текущего каталога.
 
-To browse and pick from all saved sessions:
+Чтобы просмотреть и выбрать все сохраненные сеансы:
 
 ```bash
 gsd sessions
 ```
 
-Shows each session's date, message count, and first-message preview so you can choose which one to resume.
+Показывает дату каждого сеанса, количество сообщений и предварительный просмотр первого сообщения, чтобы вы могли выбрать, какой сеанс возобновить.
 
-## Next Steps
+## Следующие шаги
 
-- [Auto Mode](./auto-mode.md) — deep dive into autonomous execution
-- [Configuration](./configuration.md) — model selection, timeouts, budgets
-- [Commands Reference](./commands.md) — all commands and shortcuts
+- [Авторежим](./auto-mode.md) — глубокое погружение в автономное выполнение.
+- [Конфигурация](./configuration.md) — выбор модели, таймауты, бюджеты
+- [Справочник команд](./commands.md) — все команды и ярлыки
 
-## Troubleshooting
+## Устранение неполадок
 
-### `gsd` command runs `git svn dcommit` instead of GSD
+### `gsd` команда запускает `git svn dcommit` вместо GSD
 
-The [oh-my-zsh git plugin](https://github.com/ohmyzsh/ohmyzsh/tree/master/plugins/git) defines `alias gsd='git svn dcommit'`, which shadows the GSD binary.
+Плагин [oh-my-zsh git](https://github.com/ohmyzsh/ohmyzsh/tree/master/plugins/git) определяет `alias gsd='git svn dcommit'`, который заменяет двоичный файл GSD.
 
-**Option 1** — Remove the alias in your `~/.zshrc` (add after the `source $ZSH/oh-my-zsh.sh` line):
+**Вариант 1** — Удалите псевдоним из `~/.zshrc` (добавьте после строки `source $ZSH/oh-my-zsh.sh`):
 
 ```bash
 unalias gsd 2>/dev/null
 ```
 
-**Option 2** — Use the alternative binary name:
+**Вариант 2** — используйте альтернативное двоичное имя:
 
 ```bash
 gsd-cli
 ```
 
-Both `gsd` and `gsd-cli` point to the same binary.
+И `gsd`, и `gsd-cli` указывают на одну и ту же двоичную систему.

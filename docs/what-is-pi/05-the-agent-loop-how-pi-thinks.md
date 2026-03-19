@@ -1,6 +1,6 @@
-# The Agent Loop — How Pi Thinks
+# Цикл агента — как думает Пи
 
-The agent loop is the heartbeat of pi. It's what happens between you sending a prompt and getting a response:
+Цикл агента — это сердцебиение числа Пи. Вот что происходит между отправкой запроса и получением ответа:
 
 ```
 User sends prompt
@@ -32,13 +32,13 @@ User sends prompt
 └───────────────────────────────────────────────────┘
 ```
 
-**Key insight:** The loop keeps going until the LLM decides to stop calling tools. A single user prompt might trigger 1 turn or 50 turns depending on the task complexity. Each turn is a complete LLM call → response → tool execution cycle.
+**Ключевая мысль:** Цикл продолжается до тех пор, пока LLM не решит прекратить вызов инструментов. Одно пользовательское приглашение может инициировать 1 ход или 50 ходов в зависимости от сложности задачи. Каждый ход представляет собой полный цикл вызова LLM → ответа → выполнения инструмента.
 
-**Stop reasons the LLM can produce:**
-- `stop` — Normal completion, the LLM is done
-- `toolUse` — The LLM wants to call tools (triggers another turn)
-- `length` — Hit the output token limit
-- `error` — Something went wrong
-- `aborted` — User cancelled (Escape)
+**Причины остановки, которые может вызвать LLM:**
+- `stop` — Нормальное завершение, LLM выполнено.
+- `toolUse` — LLM хочет вызвать инструменты (запускает еще один ход)
+- `length` — Достичь лимита выходных жетонов.
+- `error` — Что-то пошло не так
+- `aborted` — Пользователь отменен (Escape)
 
 ---

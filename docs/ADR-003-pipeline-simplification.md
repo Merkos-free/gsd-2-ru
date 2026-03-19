@@ -1,14 +1,14 @@
-# ADR-003: Auto-Mode Pipeline Simplification
+# ADR-003: Упрощение конвейера в автоматическом режиме
 
-**Status:** Proposed
-**Date:** 2026-03-18
-**Deciders:** Lex Christopherson
-**Related:** ADR-001 (branchless worktree architecture), ADR-002 (external state directory)
-**Audited by:** Claude Opus 4.6, OpenAI Codex — findings incorporated below.
+**Статус:** Предлагается
+**Дата:** 18 марта 2026 г.
+**Решающие:** Лекс Кристоферсон
+**Связано:** ADR-001 (архитектура рабочего дерева без ветвей), ADR-002 (каталог внешнего состояния)
+**Проверено:** Claude Opus 4.6, OpenAI Codex — результаты приведены ниже.
 
-## Context
+## Контекст
 
-GSD auto-mode orchestrates a multi-session pipeline where each "unit" of work runs in a fresh LLM session. The pipeline for a single milestone with N slices and M tasks per slice runs through:
+Автоматический режим GSD организует многосессионный конвейер, в котором каждая «единица» работы выполняется в новом сеансе LLM. Конвейер для одной вехи с N слайсами и M задачами на слайс проходит через:
 
 ```
 research-milestone → plan-milestone →
@@ -16,223 +16,223 @@ research-milestone → plan-milestone →
   validate-milestone → complete-milestone
 ```
 
-The exact session count depends on profile. The "quality" profile runs all phases. The "balanced" profile skips slice research by default. The "budget" profile skips milestone research, slice research, reassessment, and milestone validation. This ADR uses the quality profile as the baseline for analysis — it represents the full pipeline and the worst-case ceremony overhead.
+Точное количество сеансов зависит от профиля. Профиль «качество» охватывает все этапы. «Сбалансированный» профиль по умолчанию пропускает исследование срезов. Профиль «бюджета» пропускает этапные исследования, исследования срезов, повторную оценку и проверку этапов. Этот ADR использует профиль качества в качестве основы для анализа — он представляет весь конвейер и наихудшие издержки церемонии.
 
-For a typical 4-slice, 3-task milestone under the quality profile:
-- 1 research-milestone + 1 plan-milestone
-- Per slice: research-slice (skipped for S01) + plan-slice + 3 execute-task + complete-slice + reassess-roadmap (skipped for last slice, since all slices are done)
-- Per-slice total for S01: 0 + 1 + 3 + 1 + 1 = 6
-- Per-slice total for S02–S04: 1 + 1 + 3 + 1 + 1 = 7 (S04 skips reassess since it's the last completed slice: 6)
-- Slices total: 6 + 7 + 7 + 6 = 26
-- Plus: 1 validate-milestone + 1 complete-milestone
+Для типичного этапа из 4 частей и 3 задач в рамках профиля качества:
+- 1 этап исследования + 1 этап планирования
+- Для каждого среза: срез исследования (пропускается для S01) + срез планирования + 3 задачи выполнения + полный срез + дорожная карта повторной оценки (пропускается для последнего среза, поскольку все срезы выполнены)
+- Всего на срез для S01: 0 + 1 + 3 + 1 + 1 = 6
+- Общее количество срезов для S02–S04: 1 + 1 + 3 + 1 + 1 = 7 (S04 пропускает повторную оценку, поскольку это последний завершенный срез: 6)
+- Всего ломтиков: 6 + 7 + 7 + 6 = 26
+- Плюс: 1 этап проверки + 1 этап завершения.
 
-**Total: 30 sessions.** Only 12 are task execution. The remaining 18 are pipeline ceremony.
+**Всего: 30 сеансов.** Только 12 — выполнение задач. Остальные 18 — это церемония трубопровода.
 
-(The "balanced" profile drops slice research for S02-S04: 30 - 3 = 27 sessions. The "budget" profile drops milestone research, all slice research, reassessment, and validation: 30 - 1 - 3 - 3 - 1 = 22 sessions.)
+(«Сбалансированный» профиль исключает срезовые исследования для S02–S04: 30–3 = 27 сеансов. «Бюджетный» профиль исключает этапные исследования, все срезовые исследования, переоценку и проверку: 30–1–3–3–1 = 22 сеанса.)
 
-### The Token Tax
+### Налог на жетоны
 
-Every fresh session re-ingests static context via prompt inlining. The `auto-prompts.ts` builders (1,099 lines) inline the following files into nearly every unit type:
+Каждый новый сеанс повторно принимает статический контекст посредством встраивания подсказок. Компоновщики `auto-prompts.ts` (1099 строк) встраивают следующие файлы почти в каждый тип юнитов:
 
-| File | Inlined Into | Changes After |
+| Файл | Встроен в | Изменения после |
 |------|-------------|---------------|
-| ROADMAP | research-slice, plan-slice, execute-task (excerpt), complete-slice, reassess, validate, complete-milestone | plan-milestone (rare reassess rewrites) |
-| DECISIONS.md | research-milestone, plan-milestone, research-slice, plan-slice, complete-milestone, validate | Appended occasionally during execution |
-| REQUIREMENTS.md | research-milestone, plan-milestone, research-slice, plan-slice, complete-slice, complete-milestone, validate | Updated during complete-slice |
-| KNOWLEDGE.md | research-milestone, plan-milestone, research-slice, plan-slice, execute-task, complete-slice, complete-milestone, validate | Appended occasionally during execution |
-| PROJECT.md | research-milestone, plan-milestone, complete-milestone, validate | Rarely updated |
+| ROADMAP | срез исследования, срез планирования, выполнение задачи (отрывок), полный срез, повторная оценка, проверка, завершение этапа | план-веха (редкие переписывания) |
+| DECISIONS.md | веха исследования, веха плана, срез исследования, срез плана, завершенная веха, проверка | Добавляется время от времени во время выполнения |
+| REQUIREMENTS.md | веха исследования, веха плана, срез исследования, срез плана, полный срез, полная веха, проверка | Обновлено во время полного среза |
+| KNOWLEDGE.md | веха исследования, веха плана, срез исследования, срез плана, выполнение задачи, полный срез, полная веха, проверка | Добавляется время от времени во время выполнения |
+| PROJECT.md | этап исследования, этап планирования, этап завершения, проверка | Редко обновляется |
 
-The ROADMAP alone is inlined into 7 unit types. It never changes during normal execution. This is a static document being re-tokenized per session at a cost of 5–20K tokens each time.
+Одна только цифра ROADMAP встроена в 7 типов юнитов. Он никогда не меняется во время нормального выполнения. Это статический документ, который каждый раз повторно токенизируется за 5–20 тысяч токенов.
 
-For the 30-session milestone above (quality profile), context re-ingestion costs approximately:
-- ROADMAP: 7 re-inlines × ~10K tokens = 70K tokens
-- DECISIONS: 6 re-inlines × ~5K tokens = 30K tokens
-- REQUIREMENTS: 8 re-inlines × ~5K tokens = 40K tokens
-- KNOWLEDGE: 8 re-inlines × ~3K tokens = 24K tokens
-- Templates (research, plan, task-plan, etc.): ~2K per inline × ~10 units = 20K tokens
-- Dependency summaries: ~8K per slice plan × 3 non-S01 slices = 24K tokens
+Для указанного выше этапа в 30 сеансов (профиль качества) стоимость повторного приема контекста составляет примерно:
+- ROADMAP: 7 повторных линий × ~10 000 жетонов = 70 000 жетонов.
+- DECISIONS: 6 повторных линий × ~5 тыс. жетонов = 30 тыс. жетонов
+- REQUIREMENTS: 8 реинлайнов × ~5 тыс. жетонов = 40 тыс. жетонов
+- KNOWLEDGE: 8 повторных линий × ~3 тыс. жетонов = 24 тыс. жетонов
+- Шаблоны (исследования, план, план задач и т. д.): ~2 000 на строку × ~10 единиц = 20 000 токенов.
+- Сводные данные о зависимостях: ~8 КБ на план слайса × 3 слайса, отличных от S01 = 24 000 токенов.
 
-**Total context re-ingestion overhead: ~208K tokens per milestone.** This is pure waste — the LLM re-reads documents it already processed in prior sessions, gaining no new information.
+**Общие затраты на повторный прием контекста: ~208 тыс. токенов на этап.** Это пустая трата — LLM перечитывает документы, уже обработанные в предыдущих сеансах, не получая новой информации.
 
-### The Lossy Handoff Problem
+### Проблема передачи с потерями
 
-Each session boundary is a lossy compression step. The research-milestone agent reads the codebase and writes a RESEARCH.md. The plan-milestone agent reads that research and produces a ROADMAP. The research-slice agent reads the ROADMAP and explores the codebase again for its slice scope. The plan-slice agent reads that slice research and produces a PLAN.
+Каждая граница сеанса представляет собой этап сжатия с потерями. Агент исследования считывает кодовую базу и записывает RESEARCH.md. Агент, определяющий этапы плана, читает это исследование и выдает ROADMAP. Агент исследовательского среза считывает ROADMAP и снова исследует кодовую базу на предмет области его среза. Агент среза плана считывает результаты исследования среза и выдает PLAN.
 
-This is a game of telephone:
+Это игра в телефон:
 
 ```
 Codebase → [researcher reads code] → RESEARCH.md → [planner reads research] → ROADMAP
                                                       ↑ often re-reads the same code
 ```
 
-The research prompt explicitly says: *"Write for the roadmap planner."* The plan prompt says: *"Trust the research. Don't re-read code."* But planners routinely re-read code because research is a lossy compression — a summary of what one LLM session saw, not the thing itself. The fidelity loss compounds at each handoff.
+В подсказке к исследованию прямо говорится: * «Напишите для планировщика дорожной карты». * В подсказке плана говорится: * «Доверяйте исследованию. Не перечитывайте код». * Но планировщики регулярно перечитывают код, потому что исследование представляет собой сжатие с потерями — краткое изложение того, что увидел один сеанс LLM, а не сам объект. Потеря точности увеличивается при каждой передаче обслуживания.
 
-### The Machinery Tax
+### Налог на технику
 
-The multi-session pipeline requires extensive orchestration machinery to handle edge cases, failures, and recovery:
+Многосессионный конвейер требует обширного механизма оркестрации для обработки крайних случаев, сбоев и восстановления:
 
-| File | Lines | Purpose |
+| Файл | Линии | Цель |
 |------|-------|---------|
-| `auto-recovery.ts` | 591 | Artifact resolution, loop remediation, skip/rerun logic |
-| `auto-stuck-detection.ts` | 220 | Dispatch loop detection, lifetime caps, stub recovery |
-| `auto-idempotency.ts` | 150 | Skip completed units, phantom loop detection, stale key recovery |
-| `session-forensics.ts` | 536 | Post-mortem analysis, crash briefings, deep diagnostics |
-| `auto-timeout-recovery.ts` | 262 | Resume after timeout, recovery briefing synthesis |
-| `crash-recovery.ts` | 108 | Lock file management, crash detection |
-| `auto-post-unit.ts` | 591 | Post-agent processing, verification, commits, state sync |
-| `auto-verification.ts` | 229 | Post-task verification enforcement |
-| `verification-gate.ts` | 643 | Test/lint/audit gate runner |
-| `doctor-proactive.ts` | 292 | Health checks, proactive healing, escalation detection |
-| **Total** | **3,622** | **Recovery, verification, and post-processing** |
+| `auto-recovery.ts` | 591 | Разрешение артефактов, исправление циклов, логика пропуска/повторного запуска |
+| `auto-stuck-detection.ts` | 220 | Обнаружение цикла диспетчеризации, ограничение срока службы, восстановление заглушек |
+| `auto-idempotency.ts` | 150 | Пропуск завершенных модулей, обнаружение фантомных петель, восстановление устаревших ключей |
+| `session-forensics.ts` | 536 | Посмертный анализ, брифинги по авариям, глубокая диагностика |
+| `auto-timeout-recovery.ts` | 262 | Возобновление после тайм-аута, синтез брифинга по восстановлению |
+| `crash-recovery.ts` | 108 | Блокировка управления файлами, обнаружение сбоев |
+| `auto-post-unit.ts` | 591 | Постагентная обработка, проверка, фиксации, синхронизация состояния |
+| `auto-verification.ts` | 229 | Принудительная проверка после выполнения задачи |
+| `verification-gate.ts` | 643 | Тест/проверка/аудит бегуна |
+| `doctor-proactive.ts` | 292 | Проверки работоспособности, превентивное лечение, обнаружение эскалации |
+| **Всего** | **3622** | **Восстановление, проверка и постобработка** |
 
-This is 3,622 lines of code managing the complexity of a 15-rule dispatch table across 13 unit types. Much of this machinery exists because the pipeline has so many sessions that failures, timeouts, and stuck states are statistically likely.
+Это 3622 строки кода, управляющие сложностью таблицы диспетчеризации из 15 правил для 13 типов модулей. Большая часть этого механизма существует потому, что конвейер имеет так много сеансов, что статистически вероятны сбои, тайм-ауты и зависания.
 
-### The Ceremony Sessions
+### Церемониальные сеансы
 
-Six of the 13 unit types produce no code. They exist purely to manage the pipeline:
+Шесть из 13 типов единиц не имеют кода. Они существуют исключительно для управления конвейером:
 
-| Unit Type | What It Does | Sessions per Milestone (quality, 4-slice) |
+| Тип устройства | Что он делает | Сессий на этап (качество, 4 среза) |
 |-----------|-------------|----------------------|
-| research-milestone | Reads codebase, writes RESEARCH.md | 1 |
-| research-slice | Reads codebase for slice scope, writes slice RESEARCH.md | 3 (skipped for S01) |
-| complete-slice | Re-reads ROADMAP + plan + all task summaries, writes slice SUMMARY.md + UAT.md | 4 |
-| reassess-roadmap | Re-reads ROADMAP + slice summary, almost always says "roadmap is fine" | 3 (skipped after last slice) |
-| validate-milestone | Re-reads ROADMAP + all slice summaries, writes VALIDATION.md | 1 |
-| complete-milestone | Re-reads ROADMAP + all slice summaries, writes SUMMARY.md | 1 |
+| исследование-веха | Читает кодовую базу, записывает RESEARCH.md | 1 |
+| исследование-срез | Считывает кодовую базу для области фрагмента, записывает фрагмент RESEARCH.md | 3 (пропущено в S01) |
+| полный фрагмент | Перечитывает ROADMAP + план + все сводки задач, записывает фрагмент SUMMARY.md + UAT.md | 4 |
+| переоценка-дорожная карта | Перечитывает ROADMAP + краткое содержание отрывка, почти всегда говорит: «Дорожная карта в порядке» | 3 (пропускается после последнего фрагмента) |
+| проверка-веха | Перечитывает ROADMAP + все аннотации фрагментов, пишет VALIDATION.md | 1 |
+| полный этап | Перечитывает ROADMAP + все сводки срезов, записывает SUMMARY.md | 1 |
 
-Total: 1 + 3 + 4 + 3 + 1 + 1 = **13 ceremony sessions** (under quality profile), each consuming 12–37K tokens of prompt context. Under the balanced profile this drops to 9 (no slice research). These sessions burn tokens re-reading documents that other sessions already produced, producing intermediate artifacts that downstream sessions then re-read.
+Итого: 1 + 3 + 4 + 3 + 1 + 1 = **13 церемониальных сеансов** (в соответствии с профилем качества), каждый из которых потребляет 12–37 000 токенов контекста подсказки. При сбалансированном профиле этот показатель снижается до 9 (без исследования срезов). Эти сеансы сжигают токены, перечитывая документы, уже созданные другими сеансами, создавая промежуточные артефакты, которые затем перечитываются последующими сеансами.
 
-### Root Cause
+### Основная причина
 
-The pipeline was designed around a paradigm where:
-1. LLM context windows are small (32K–100K tokens)
-2. Sessions are expensive, so specialize each one
-3. Handoffs between specialized agents produce better results than generalist sessions
-4. Research → plan → execute is the "correct" decomposition of intellectual work
+Конвейер был спроектирован на основе парадигмы, согласно которой:
+1. Контекстные окна LLM маленькие (32–100 тыс. токенов).
+2. Сессии стоят дорого, поэтому специализируйтесь на каждой из них.
+3. Передача обслуживания между специализированными агентами дает лучшие результаты, чем сеансы универсальных специалистов.
+4. Исследование → план → выполнение — это «правильная» декомпозиция интеллектуальной работы.
 
-With 200K+ token context windows and prompt caching, assumptions 1-2 are obsolete. Assumption 3 is demonstrably false — handoffs lose fidelity. Assumption 4 confuses human workflow patterns with LLM-optimal patterns. An LLM with tool access is already researching while it plans. Forcing it to serialize research into a document, then read that document in a new session, is an artificial bottleneck.
+При наличии более 200 000 контекстных окон токенов и кэширования подсказок предположения 1–2 устарели. Предположение 3 явно неверно: передача управления теряет точность. Предположение 4 путает модели человеческого рабочего процесса с LLM-оптимальными моделями. LLM с доступом к инструментам уже проводит исследования и планирует. Заставить его сериализовать исследование в документе, а затем прочитать этот документ в новом сеансе — это искусственное узкое место.
 
-## Decision
+## Решение
 
-**Collapse the pipeline from 13 unit types to 5. Merge research into planning. Fold completion into post-unit mechanical processing. Replace LLM-driven validation with mechanical verification aggregation.**
+**Сверните конвейер с 13 типов единиц до 5. Объедините исследования с планированием. Совместите завершение с последующей механической обработкой. Замените проверку на основе LLM механическим агрегированием проверок.**
 
-### The Simplified Pipeline
+### Упрощенный конвейер
 
 ```
 plan-milestone → (plan-slice → execute-task × M) × N → done
 ```
 
-Note: `discuss` is an interactive human-facing session, not an auto-mode unit — it's not counted in session math. It continues to work as-is.
+Примечание. `discuss` — это интерактивный сеанс с участием человека, а не блок в автоматическом режиме — он не учитывается в математических расчетах сеанса. Он продолжает работать как есть.
 
-For the same 4-slice, 3-task milestone:
-- 1 plan-milestone (S01 plan + task plans produced inline via single-slice fast path if applicable)
-- S01: plan-slice skipped (milestone planner already explored) + 3 execute-task = 3
-- S02–S04: plan-slice + 3 execute-task = 4 each × 3 slices = 12
+Для той же вехи из 4 срезов и 3 задач:
+- 1 план-этап (план S01 + планы задач, созданные в режиме реального времени с помощью быстрого пути с одним фрагментом, если применимо)
+- S01: сегмент плана пропущен (планировщик этапов уже изучен) + 3 выполнение задачи = 3
+- S02–S04: срез плана + 3 задачи выполнения = 4 каждый × 3 среза = 12
 
-**Total: 1 + 3 + 12 = 16 sessions** (down from 30). The 14 eliminated sessions were the highest-waste ones — each re-ingested context for minimal value.
+**Всего: 1 + 3 + 12 = 16 сеансов** (было 30). 14 исключенных сессий были самыми бесполезными: каждая повторная обработка контекста приносила минимальную пользу.
 
-### Unit Type Changes
+### Изменения типов юнитов
 
-#### 1. Merge research-milestone INTO plan-milestone
+#### 1. Объединение этапа исследования INTO с планом этапа
 
-**Current:** Two sessions. Researcher explores codebase, writes RESEARCH.md. Planner reads RESEARCH.md, writes ROADMAP.
+**Текущее:** Два сеанса. Исследователь изучает кодовую базу и пишет `RESEARCH.md`. Планировщик читает `RESEARCH.md` и пишет `ROADMAP`.
 
-**New:** One session. The plan-milestone agent explores the codebase directly and produces the ROADMAP. It has full tool access — it can read files, run commands, search code. The "research" happens naturally as part of planning, not as a serialized intermediary.
+**Новинка:** Один сеанс. Агент этапа планирования напрямую исследует кодовую базу и выдает ROADMAP. Он имеет полный доступ к инструментам — может читать файлы, запускать команды, искать код. «Исследование» происходит естественным образом как часть планирования, а не как сериализованный посредник.
 
-**What changes:**
-- The plan-milestone prompt gains the research-milestone's exploration instructions: "Explore relevant code, check technologies, identify constraints."
-- The plan-milestone prompt drops "Trust the research" — there is no research document to trust.
-- The RESEARCH.md artifact becomes optional. If the planner wants to capture notes for downstream reference, it can write one. But it's not required, and downstream units don't depend on it.
-- Skill discovery instructions move into the plan-milestone prompt.
-- The research-milestone template (`prompts/research-milestone.md`) is retained but only used when explicitly dispatched via `/gsd dispatch research`.
+**Что изменится:**
+- В подсказке для этапа планирования отображаются инструкции по исследованию этапа исследования: «Изучите соответствующий код, проверьте технологии, определите ограничения».
+- В подсказке о вехе плана пропадает надпись «Доверяйте исследованию» — нет исследовательского документа, которому можно было бы доверять.
+- Артефакт RESEARCH.md становится необязательным. Если планировщик хочет сохранить заметки для последующего использования, он может их написать. Но это не обязательно, и последующие подразделения от этого не зависят.
+- Инструкции по обнаружению навыков перемещаются в подсказку о вехе плана.
+- Шаблон этапа исследования (`prompts/research-milestone.md`) сохраняется, но используется только при явной отправке через `/gsd dispatch research`.
 
-**Token savings:** ~1 full session (12–37K tokens of prompt context) + the RESEARCH.md document no longer re-inlined into plan-milestone (~5–15K tokens).
+**Экономия токенов**: ~1 полный сеанс (12–37 тысяч токенов контекста подсказки) + документ RESEARCH.md больше не встраивается в этап плана (~5–15 тысяч токенов).
 
-**Quality impact:** Positive. The planner has direct access to the codebase instead of reading a lossy summary. It can verify assumptions in real time instead of trusting a prior session's interpretation.
+**Влияние на качество:** Положительное. Планировщик имеет прямой доступ к базе кода вместо чтения сводки с потерями. Он может проверять предположения в режиме реального времени вместо того, чтобы доверять интерпретации предыдущего сеанса.
 
-#### 2. Merge research-slice INTO plan-slice
+#### 2. Объединить исследовательский срез INTO срез плана
 
-**Current:** Two sessions per non-S01 slice. Slice researcher explores codebase for slice scope, writes slice RESEARCH.md. Slice planner reads that research, writes PLAN.md + task plans.
+**Текущее:** Два сеанса на каждый слайс, отличный от S01. Исследователь слайсов исследует кодовую базу для области слайсов и пишет слайс RESEARCH.md. Планировщик срезов читает эти исследования, записывает PLAN.md + планы задач.
 
-**New:** One session. The plan-slice agent explores the relevant code directly and produces the slice plan with task plans.
+**Новинка:** Один сеанс. Агент среза плана напрямую исследует соответствующий код и создает план среза с планами задач.
 
-**What changes:**
-- The plan-slice prompt gains exploration instructions: "Read the relevant code for this slice's scope before decomposing."
-- The plan-slice prompt drops "Trust the research" — there is no slice research document.
-- Slice RESEARCH.md becomes optional (same as milestone research above).
-- The research-slice template is retained for explicit dispatch.
-- The `skip_slice_research` preference becomes the default behavior rather than an opt-in.
-- The dispatch rule "planning (no research, not S01) → research-slice" is removed.
+**Что изменится:**
+- В подсказке фрагмента плана появляются инструкции по исследованию: «Перед декомпозицией прочитайте соответствующий код для области действия этого фрагмента».
+- В подсказке о срезе плана пропадает надпись «Доверяйте исследованию» — документ об исследовании среза отсутствует.
+- Срез RESEARCH.md становится необязательным (так же, как и этапное исследование выше).
+- Шаблон исследовательского среза сохраняется для явной отправки.
+- Предпочтение `skip_slice_research` становится поведением по умолчанию, а не добровольным.
+- Убрано правило отправки «планирование (без исследования, не S01) → исследование-срез».
 
-**Token savings:** ~1 session per non-S01 slice × (N-1) slices. For a 4-slice milestone: 3 sessions × 12–37K tokens = 36–111K tokens.
+**Экономия токенов**: ~1 сеанс на каждый слайс, отличный от S01 × (N-1) слайсов. Для этапа из 4 срезов: 3 сеанса × 12–37 тысяч токенов = 36–111 тысяч токенов.
 
-**Quality impact:** Positive. The planner can read actual code files instead of a summary. It verifies file paths, function signatures, and patterns directly rather than trusting a researcher's notes.
+**Влияние на качество:** Положительное. Планировщик может читать реальные файлы кода вместо сводки. Он проверяет пути к файлам, сигнатуры функций и шаблоны напрямую, а не доверяет заметкам исследователя.
 
-#### 3. Fold complete-slice INTO mechanical post-unit processing
+#### 3. Сложите полный срез INTO, механическая пост-обработка.
 
-**Current:** After all tasks in a slice complete, `deriveState()` emits the `summarizing` phase, dispatching a separate complete-slice LLM session that re-reads the ROADMAP, slice plan, and ALL task summaries to write a slice SUMMARY.md and UAT.md.
+**Текущее:** После завершения всех задач в срезе `deriveState()` запускает фазу `summarizing`, отправляя отдельный сеанс полного среза LLM, который перечитывает ROADMAP, план среза и сводку задач ALL для записи среза SUMMARY.md и UAT.md.
 
-**New:** Slice completion moves to a **post-gate mechanical closeout** in `auto-post-unit.ts`, not into the final executor's prompt. After the last execute-task's verification gate passes:
+**Новое:** Завершение среза переносится на **механическое закрытие после ворот** в `auto-post-unit.ts`, а не на окончательную подсказку исполнителя. После прохождения последнего шлюза проверки выполнения задачи:
 
-1. The post-unit processing detects that all tasks in the slice are done (same check `deriveState()` uses to emit `summarizing`).
-2. It runs mechanical slice completion: aggregate task summaries into a SUMMARY.md using structured frontmatter, generate a UAT.md from the slice plan's verification section, mark the slice done in the ROADMAP.
-3. If the mechanical summary is insufficient (complex slices where structured aggregation loses important narrative), the system detects low quality (e.g., summary is below a character threshold) and dispatches a standalone complete-slice LLM session as recovery.
+1. Последующая обработка обнаруживает, что все задачи в срезе выполнены (та же проверка, которую `deriveState()` использует для выдачи `summarizing`).
+2. Он запускает механическое завершение фрагментов: объединяет сводные данные задач в SUMMARY.md, используя структурированную начальную информацию, генерирует UAT.md из раздела проверки плана фрагментов, отмечает выполненный фрагмент в ROADMAP.
+3. Если механическая сводка недостаточна (сложные фрагменты, в которых структурированная агрегация теряет важную информацию), система обнаруживает низкое качество (например, сводка ниже порогового значения символов) и отправляет автономный сеанс полного фрагмента LLM в качестве восстановления.
 
-**Why post-gate, not in the executor prompt:**
-- Codex audit identified that folding completion into execute-task creates a verification-retry ordering problem: if the executor writes SUMMARY.md and marks the slice done in the ROADMAP before the verification gate runs, a gate failure would retry against incorrect derived state (the slice appears complete when it isn't).
-- Post-gate processing runs after verification succeeds, so state transitions are always consistent.
-- The executor's context budget is fully available for its actual work.
+**Почему после входа, а не в приглашении исполнителя:**
+- Аудит Кодекса выявил, что свертывание завершения в задачу выполнения создает проблему с порядком повторной проверки: если исполнитель записывает SUMMARY.md и отмечает выполненный срез в ROADMAP до запуска шлюза проверки, при сбое шлюза будет повторена попытка с неверным производным состоянием (срез кажется завершенным, когда это не так).
+- Обработка после входа запускается после успешной проверки, поэтому переходы между состояниями всегда согласованы.
+- Контекстный бюджет исполнителя полностью доступен для его реальной работы.
 
-**What changes in `deriveState()`:**
-- The `summarizing` phase still exists in state derivation (all tasks done, slice not marked complete).
-- The dispatch table no longer maps `summarizing → complete-slice`. Instead, post-unit processing handles the transition synchronously.
-- If post-unit mechanical completion fails or produces low-quality output, the `summarizing` phase still exists as a dispatch target and the system falls back to dispatching a complete-slice LLM session.
+**Что изменилось в `deriveState()`:**
+- Фаза `summarizing` все еще находится в состоянии вывода (все задачи выполнены, срез не помечен как завершенный).
+- В таблице отправки больше не отображается `summarizing → complete-slice`. Вместо этого пост-модульная обработка обрабатывает переход синхронно.
+- Если механическое завершение после установки дает сбой или дает низкое качество продукции, фаза `summarizing` все еще существует в качестве цели отправки, и система возвращается к отправке сеанса полного среза LLM.
 
-**What changes:**
-- `auto-post-unit.ts` gains a `mechanicalSliceCompletion()` function.
-- The complete-slice dispatch rule is removed from the default path but retained as a fallback.
-- The complete-slice template is retained for recovery and explicit dispatch.
-- The `summarizing` phase in `state.ts` is unchanged — it serves as the fallback trigger if mechanical completion doesn't run.
+**Что изменится:**
+- `auto-post-unit.ts` получает функцию `mechanicalSliceCompletion()`.
+— Правило отправки полного фрагмента удаляется из пути по умолчанию, но сохраняется в качестве резервного варианта.
+- Шаблон полного фрагмента сохраняется для восстановления и явной отправки.
+- Фаза `summarizing` в `state.ts` не изменилась — она служит резервным триггером, если механическое завершение не запускается.
 
-**Full completion contract preserved:** The mechanical completion writes all three required artifacts (SUMMARY.md, UAT.md, ROADMAP checkbox) — matching the current complete-slice contract. It also handles REQUIREMENTS.md updates and KNOWLEDGE.md/DECISIONS.md appendix that the current complete-slice prompt performs (see Risk 5 below for details).
+**Контракт на полное завершение сохраняется.** При механическом завершении записываются все три требуемых артефакта (флажок SUMMARY.md, UAT.md, ROADMAP), соответствующие текущему контракту на полный фрагмент. Он также обрабатывает обновления REQUIREMENTS.md и приложения KNOWLEDGE.md/DECISIONS.md, которые выполняет текущая подсказка полного фрагмента (подробнее см. Риск 5 ниже).
 
-**Token savings:** ~1 session per slice × N slices. For a 4-slice milestone: 4 sessions × 12–37K tokens = 48–148K tokens.
+**Экономия токенов**: ~1 сеанс на срез × N срезов. Для этапа из 4 срезов: 4 сеанса × 12–37 тысяч токенов = 48–148 тысяч токенов.
 
-**Quality impact:** For most slices, the mechanical summary is sufficient — it aggregates structured frontmatter fields (provides, requires, affects, key_files, key_decisions, patterns_established) from task summaries. For complex slices with important narrative context, the LLM fallback preserves quality.
+**Влияние на качество.** Для большинства срезов достаточно механической сводки — она объединяет структурированные поля заголовка (обеспечивает, требует, влияет, ключевые_файлы, ключевые_решения, шаблоны_установленные) из сводок задач. Для сложных фрагментов с важным повествовательным контекстом резервный вариант LLM сохраняет качество.
 
-#### 4. Eliminate reassess-roadmap (make opt-in)
+#### 4. Устранить план переоценки (согласиться)
 
-**Current:** After every slice completion, a reassess-roadmap session re-reads the ROADMAP and slice summary, then almost always writes "roadmap is fine."
+**Текущее:** После завершения каждого среза сеанс повторной оценки дорожной карты перечитывает ROADMAP и сводку среза, а затем почти всегда пишет: «С дорожной картой все в порядке».
 
-**New:** Reassessment is eliminated by default. The plan-slice agent for the next slice serves as the natural reassessment point — it reads the ROADMAP and prior slice summaries, and can adjust its plan if the ground has shifted.
+**Новое:** Повторная оценка исключена по умолчанию. Агент плана-среза для следующего среза служит естественной точкой повторной оценки — он читает ROADMAP и предыдущие сводки среза и может скорректировать свой план, если почва сдвинулась.
 
-**What changes:**
-- The reassess-roadmap dispatch rule fires only when the `reassess_after_slice` preference is enabled (default: off, was effectively always-on).
-- The plan-slice prompt gains a reassessment preamble: "Before planning this slice, verify that the roadmap's assumptions still hold given prior slice summaries. If the remaining roadmap needs adjustment, modify it before proceeding."
-- The `checkNeedsReassessment()` function in auto-prompts.ts becomes a preference gate, not a mandatory check.
+**Что изменится:**
+- Правило отправки повторной оценки-дорожной карты срабатывает только тогда, когда включена настройка `reassess_after_slice` (по умолчанию: выключена, фактически всегда включена).
+- В подсказке о срезе плана появляется преамбула для повторной оценки: «Прежде чем планировать этот срез, убедитесь, что предположения дорожной карты все еще верны с учетом предыдущих сводок среза. Если оставшаяся дорожная карта требует корректировки, измените ее, прежде чем продолжить».
+- Функция `checkNeedsReassessment()` в auto-prompts.ts становится воротами предпочтения, а не обязательной проверкой.
 
-**Token savings:** ~1 session per completed non-final slice × (N-1) slices minus those already skipped. For a 4-slice milestone under quality profile: 3 sessions × 12–37K tokens = 36–111K tokens.
+**Экономия токенов**: ~1 сеанс на каждый завершенный нефинальный срез × (N–1) слайсов за вычетом уже пропущенных. Для этапа из 4 срезов профиля качества: 3 сеанса × 12–37 тысяч токенов = 36–111 тысяч токенов.
 
-**Quality impact:** Neutral. The reassess prompt says *"Bias strongly toward 'roadmap is fine.'"* — acknowledging that most reassessments produce no change. JIT reassessment during the next plan-slice is more informed (has the next slice's context) and costs zero additional tokens.
+**Влияние на качество:** Нейтральное. В подсказке о переоценке говорится: «Сильный уклон в сторону «дорожной карты — это нормально».»* — признавая, что большинство переоценок не приводят к изменениям. Повторная оценка JIT во время следующего фрагмента плана является более информативной (имеет контекст следующего фрагмента) и не требует дополнительных жетонов.
 
-#### 5. Replace validate-milestone with mechanical verification
+#### 5. Замените веху проверки на механическую проверку.
 
-**Current:** An LLM session re-reads the ROADMAP and all slice summaries, checks success criteria against delivery evidence, and writes a VALIDATION.md with a verdict. It also inlines UAT-RESULT artifacts from slices with `uat_dispatch` enabled.
+**Текущее:** Сеанс LLM перечитывает ROADMAP и все сводки фрагментов, сверяет критерии успеха с доказательствами доставки и записывает VALIDATION.md с вердиктом. Он также встраивает артефакты UAT-RESULT из фрагментов с включенным `uat_dispatch`.
 
-**New:** The system mechanically aggregates verification results from all tasks and slices. The canonical verification data sources are:
+**Новинка:** Система автоматически объединяет результаты проверки всех задач и срезов. Источниками данных канонической проверки являются:
 
-1. **`T##-VERIFY.json`** files (written by `writeVerificationJSON()` in `verification-evidence.ts`) — machine-readable per-task verification results with command, exit code, verdict, duration, and blocking status.
-2. **`S##-UAT-RESULT.md`** files (when `uat_dispatch` is enabled) — human or artifact-driven UAT outcomes.
-3. **Task summary frontmatter** `verification_result` field — a human-readable pass/fail string (not structured, used as a secondary signal).
+1. Файлы **`T##-VERIFY.json`** (написанные `writeVerificationJSON()` в `verification-evidence.ts`) — машиночитаемые результаты проверки каждой задачи с указанием команды, кода выхода, вердикта, продолжительности и статуса блокировки.
+2. Файлы **`S##-UAT-RESULT.md`** (при включении `uat_dispatch`) — результаты UAT, управляемые человеком или артефактом.
+3. **Обозначение сводки задачи** Поле `verification_result` — удобочитаемая строка «пройден/не пройден» (не структурирована, используется в качестве вторичного сигнала).
 
-The aggregator reads `T##-VERIFY.json` as the primary source of truth, supplements with UAT-RESULT artifacts, and produces a deterministic VALIDATION.md.
+Агрегатор считывает `T##-VERIFY.json` как основной источник истины, дополняет артефактами UAT-RESULT и выдает детерминированный VALIDATION.md.
 
-**What changes:**
-- A new `aggregateMilestoneVerification()` function collects `T##-VERIFY.json` files and `S##-UAT-RESULT.md` files across all slices.
-- The function produces a VALIDATION.md with per-task and per-slice pass/fail status, UAT evidence, and an overall verdict.
-- The LLM-driven validate-milestone session is removed from the default pipeline.
-- The validate-milestone template is retained for explicit dispatch (users who want LLM-driven validation can run `/gsd dispatch validate`).
-- The `skip_milestone_validation` preference (which writes a pass-through VALIDATION.md) becomes the default behavior, with the mechanical aggregation replacing it.
+**Что изменится:**
+- Новая функция `aggregateMilestoneVerification()` собирает файлы `T##-VERIFY.json` и `S##-UAT-RESULT.md` по всем фрагментам.
+- Функция выдает VALIDATION.md со статусом «пройден/не пройден» для каждой задачи и каждого среза, свидетельство UAT и общий вердикт.
+— Сеанс проверки контрольных точек, управляемый LLM, удален из конвейера по умолчанию.
+- Шаблон validate-milestone сохраняется для явной отправки (пользователи, которым нужна проверка на основе LLM, могут запустить `/gsd dispatch validate`).
+- Предпочтение `skip_milestone_validation` (которое записывает сквозной VALIDATION.md) становится поведением по умолчанию, и его заменяет механическое агрегирование.
 
 ```typescript
 async function aggregateMilestoneVerification(base: string, mid: string): Promise<ValidationResult> {
@@ -270,33 +270,33 @@ async function aggregateMilestoneVerification(base: string, mid: string): Promis
 }
 ```
 
-**Token savings:** 1 session × 12–37K tokens. This session is one of the most context-heavy — it inlines the ROADMAP + all slice summaries + all UAT results.
+**Экономия токенов:** 1 сеанс × 12–37 тыс. токенов. Этот сеанс является одним из наиболее насыщенных контекстом — в него встраиваются ROADMAP + все сводки срезов + все результаты UAT.
 
-**Quality impact:** Positive. Mechanical verification is deterministic and complete. LLM validation is subjective and can miss things. The verification gate and UAT system already do the hard work — the validate session was a redundant re-check. The `T##-VERIFY.json` artifacts are the canonical machine-readable source, not task summary frontmatter.
+**Влияние на качество:** Положительное. Механическая проверка является детерминированной и полной. Проверка LLM субъективна и может что-то упустить. Ворота проверки и система UAT уже выполняют тяжелую работу — сеанс проверки представлял собой избыточную повторную проверку. Артефакты `T##-VERIFY.json` представляют собой канонический машиночитаемый источник, а не заголовок сводки задачи.
 
-#### 6. Replace complete-milestone with mechanical completion
+#### 6. Замените завершение этапа на механическое завершение.
 
-**Current:** An LLM session re-reads the ROADMAP and all slice summaries to write a SUMMARY.md.
+**Текущее:** Сеанс LLM перечитывает ROADMAP и все сводки фрагментов, чтобы записать SUMMARY.md.
 
-**New:** The system produces a milestone summary mechanically by aggregating slice summaries. The summary includes: milestone title, success criteria with pass/fail status, slice completion dates, key decisions made, and patterns established (all extracted from structured frontmatter in slice summaries).
+**Новинка:** Система автоматически подготавливает сводку этапов путем агрегирования сводок срезов. Сводка включает в себя: название контрольной точки, критерии успеха со статусом «пройдено/не пройдено», даты завершения срезов, принятые ключевые решения и установленные закономерности (все это извлечено из структурированных предисловий в сводках срезов).
 
-**What changes:**
-- A new `generateMilestoneSummary()` function reads all slice SUMMARY.md files, extracts frontmatter fields, and produces a structured milestone SUMMARY.md.
-- The complete-milestone dispatch rule is replaced with a synchronous post-processing step after the validation artifact is written.
-- The complete-milestone template is retained for explicit dispatch.
+**Что изменится:**
+- Новая функция `generateMilestoneSummary()` считывает все файлы фрагментов SUMMARY.md, извлекает поля вступительной части и создает структурированную веху SUMMARY.md.
+— Правило отправки полной вехи заменяется этапом синхронной постобработки после записи артефакта проверки.
+- Шаблон полной вехи сохраняется для явной отправки.
 
-**What changes in `deriveState()`:**
-- The `validating-milestone` and `completing-milestone` phases still exist in state derivation.
-- When mechanical validation + completion runs synchronously in post-unit processing, these phases are transient — `deriveState()` emits them, but the mechanical processing writes the VALIDATION.md and SUMMARY.md artifacts before the next dispatch cycle, so the phases resolve immediately.
-- If mechanical processing fails, the phases remain as dispatch targets and the system falls back to dispatching LLM sessions for validation and/or completion.
+**Что изменилось в `deriveState()`:**
+- Фазы `validating-milestone` и `completing-milestone` все еще существуют в стадии деривации.
+- Когда механическая проверка + завершение выполняется синхронно при обработке после единицы, эти фазы являются временными — `deriveState()` выдает их, но механическая обработка записывает артефакты VALIDATION.md и SUMMARY.md перед следующим циклом отправки, поэтому фазы разрешаются немедленно.
+- Если механическая обработка дает сбой, фазы остаются целевыми объектами диспетчеризации, и система возвращается к отправке сеансов LLM для проверки и/или завершения.
 
-**Token savings:** 1 session × 12–37K tokens.
+**Экономия токенов:** 1 сеанс × 12–37 тыс. токенов.
 
-**Quality impact:** Neutral. Milestone summaries are archival — they capture what happened, not make decisions. Mechanical aggregation of structured frontmatter is more reliable than an LLM re-interpreting task summaries.
+**Влияние на качество:** Нейтральное. Сводки этапов являются архивными — они фиксируют то, что произошло, а не принимают решения. Механическое агрегирование структурированных вступительных материалов более надежно, чем повторная интерпретация сводок задач LLM.
 
-### Dispatch Table Changes
+### Изменения в таблице диспетчеризации
 
-**Current: 15 rules.**
+**Текущее: 15 правил.**
 
 ```
 1. rewrite-docs (override gate)
@@ -316,7 +316,7 @@ async function aggregateMilestoneVerification(base: string, mid: string): Promis
 15. completing-milestone → complete-milestone
 ```
 
-**New: 11 rules.**
+**Новинка: 11 правил.**
 
 ```
 1. rewrite-docs (override gate)                           [unchanged]
@@ -333,18 +333,18 @@ async function aggregateMilestoneVerification(base: string, mid: string): Promis
 12. completing-milestone → complete-milestone              [FALLBACK ONLY — fires when mechanical completion didn't run]
 ```
 
-Note: Rules 2, 11, and 12 are retained as **fallbacks** for cases where mechanical processing fails. They do not fire in the normal path because post-unit processing writes the required artifacts before the next dispatch cycle. This means `deriveState()` is unchanged — it still emits `summarizing`, `validating-milestone`, and `completing-milestone` phases. The change is that these phases are normally resolved mechanically before dispatch evaluates them.
+Примечание. Правила 2, 11 и 12 сохраняются как **запасные** на случай сбоя механической обработки. Они не срабатывают по обычному пути, поскольку обработка после единицы записывает необходимые артефакты перед следующим циклом отправки. Это означает, что `deriveState()` не изменился — он по-прежнему излучает фазы `summarizing`, `validating-milestone` и `completing-milestone`. Изменение состоит в том, что эти фазы обычно решаются механически до того, как диспетчерская служба их оценит.
 
-**Removed rules (no longer in default path):**
-- `reassess-roadmap` — folded into next plan-slice (or opt-in preference)
-- `pre-planning (no research) → research-milestone` — merged into plan-milestone
-- `planning (no research, not S01) → research-slice` — merged into plan-slice
+**Удалены правила (больше не в пути по умолчанию):**
+- `reassess-roadmap` — сворачивается в следующий фрагмент плана (или по желанию).
+- `pre-planning (no research) → research-milestone` — объединено в план-этап
+- `planning (no research, not S01) → research-slice` — объединено в план-срез
 
-### Prompt Changes
+### Быстрые изменения
 
-#### plan-milestone.md — gains exploration instructions
+#### plan-milestone.md — получает инструкции по исследованию
 
-Add before the planning steps:
+Добавьте перед этапами планирования:
 
 ```markdown
 ## Explore First, Then Decompose
@@ -357,9 +357,9 @@ You have full tool access. Before decomposing into slices:
 Narrate key findings as you go. If findings are significant enough to benefit downstream slice planners, write {{researchOutputPath}} — but only if the content would genuinely help. Don't write a research doc just because the template exists.
 ```
 
-#### plan-slice.md — gains exploration + reassessment preamble
+#### plan-slice.md — исследование результатов + преамбула переоценки
 
-Add before the planning steps:
+Добавьте перед этапами планирования:
 
 ```markdown
 ## Verify Roadmap Assumptions
@@ -376,55 +376,55 @@ Read the relevant code for this slice before decomposing:
 3. If the roadmap's description of this slice is wrong or outdated, adjust your plan accordingly.
 ```
 
-### Context Inlining Changes
+### Изменения встраивания контекста
 
-#### Reduce inlining for planning sessions — provide paths for stable documents
+#### Уменьшите количество встроенных файлов для сеансов планирования — укажите пути к стабильным документам
 
-Planning sessions (plan-milestone, plan-slice) currently inline ROADMAP, DECISIONS, REQUIREMENTS, KNOWLEDGE, and PROJECT. Since these sessions now also explore the codebase (merged research), the total prompt size grows. To offset this, stable documents should be provided as file paths rather than inlined content for planning sessions.
+Сеансы планирования (план-веха, план-срез) в настоящее время встроены в ROADMAP, DECISIONS, REQUIREMENTS, KNOWLEDGE и PROJECT. Поскольку эти сеансы теперь также исследуют базу кода (объединенное исследование), общий размер подсказки увеличивается. Чтобы компенсировать это, стабильные документы должны предоставляться в виде путей к файлам, а не встроенного содержимого для сеансов планирования.
 
-**Current pattern:**
+**Текущая схема:**
 ```typescript
 inlined.push(await inlineFile(roadmapPath, roadmapRel, "Milestone Roadmap"));
 ```
 
-**New pattern for plan-milestone/plan-slice:**
+**Новый шаблон для плана-вехи/плана-фрагмента:**
 ```typescript
 sourcePaths.push(`- Milestone Roadmap: \`${roadmapRel}\` — read this for the full slice decomposition`);
 ```
 
-The prompt header changes from "All relevant context has been preloaded below" to "Source files are listed below. Read them before proceeding."
+Заголовок подсказки изменится с «Весь соответствующий контекст предварительно загружен ниже» на «Исходные файлы перечислены ниже. Прочтите их, прежде чем продолжить».
 
-**What stays inlined:**
-- **Task plan** in execute-task (it's the executor's authoritative contract — must be in prompt)
-- **Slice plan excerpt** in execute-task (goal/demo/verification — small and task-specific)
-- **Prior task summaries** in execute-task (carry-forward context — already budget-managed)
-- **Milestone context** in plan-milestone (it's the starting input — relatively small)
+**Что остаётся встроенным:**
+- **План задач** в выполнении задачи (это авторитетный контракт исполнителя — должен быть в командной строке)
+- **Отрывок из плана фрагментов** в выполнении задачи (цель/демо/проверка — небольшой размер и зависит от задачи).
+– **Сводка предыдущих задач** в задаче выполнения (контекст переноса — уже управление бюджетом)
+- **Контекст вехи** в плане-вехе (это начальный ввод — относительно небольшой)
 
-**What moves to file-path references:**
-- ROADMAP in plan-slice, complete-slice, reassess, validate, complete-milestone
-- DECISIONS.md everywhere except execute-task (where it's already omitted for minimal inline level)
-- REQUIREMENTS.md everywhere except execute-task
-- KNOWLEDGE.md everywhere (already uses `inlineFileSmart` for execute-task)
-- PROJECT.md everywhere
+**Что перемещается в ссылки на пути к файлам:**
+- ROADMAP в плане-срезе, полном срезе, повторной оценке, проверке, полной вехе
+- DECISIONS.md везде, кроме выполнения задачи (где он уже опущен для минимального встроенного уровня)
+- REQUIREMENTS.md везде, кроме выполнения задачи
+- KNOWLEDGE.md везде (уже используется `inlineFileSmart` для выполнения задачи)
+- PROJECT.md везде
 
-**Interaction with budget engine:** The current budget engine (`context-budget.ts`) truncates inlined content when it exceeds budget. Removing inlining means the LLM reads the full file via tool call. For most documents (ROADMAP ~3-10K chars, DECISIONS ~2-5K chars), the full read is within budget. For very large REQUIREMENTS.md files (>30K chars), the LLM may need to use the DB-scoped query (`inlineRequirementsFromDb` with slice scoping) or the compact formatter. The path reference should note: "For large files, use scoped queries."
+**Взаимодействие с механизмом бюджета.** Текущий механизм бюджета (`context-budget.ts`) обрезает встроенный контент, когда он превышает бюджет. Удаление встраивания означает, что LLM читает весь файл посредством вызова инструмента. Для большинства документов (ROADMAP ~3–10 тыс. символов, DECISIONS ~2–5 тыс. символов) полное чтение находится в пределах бюджета. Для очень больших файлов REQUIREMENTS.md (>30 000 символов) LLM может потребоваться использовать запрос с областью DB (`inlineRequirementsFromDb` с областью фрагмента) или компактный форматтер. В ссылке на путь должно быть указано: «Для больших файлов используйте запросы с ограниченной областью».
 
-**Risk: LLMs might not read referenced files.**
+**Риск: LLMs может не прочитать файлы, на которые имеются ссылки.**
 
-This is the most significant behavioral risk in this ADR. Inlined content forces processing. Path references require the LLM to decide to read. Mitigation:
+Это наиболее значительный поведенческий риск в этом «176». Встроенный контент требует обработки. Ссылки на пути требуют, чтобы LLM решил прочитать. Смягчение:
 
-1. **Mandatory read directives.** The prompt says "You MUST read the following files before proceeding" with a numbered list of 2-3 critical files. Not "read as needed" — a direct instruction.
-2. **Verification.** The plan-slice prompt requires citing the ROADMAP's slice description in its output (slice title, risk level, depends). If these don't match, the planner didn't read it.
-3. **Phased rollout.** Phase 4 (context reduction) is separate from Phase 1 (research merge). This allows measuring whether path references degrade plan quality before full rollout.
-4. **Fallback.** If path references prove unreliable, restore inlining for critical documents only (ROADMAP in plan-slice). The budget engine still handles truncation.
+1. **Обязательные директивы чтения.** В подсказке говорится: «Вы MUST прочитайте следующие файлы, прежде чем продолжить» с нумерованным списком из 2–3 важных файлов. Не «читай как надо» — прямое указание.
+2. **Проверка.** Подсказка фрагмента плана требует указания описания фрагмента ROADMAP в его выводе (название фрагмента, уровень риска, зависит). Если они не совпадают, планировщик не прочитал это.
+3. **Поэтапное внедрение.** Этап 4 (сокращение контекста) отделен от этапа 1 (объединение исследований). Это позволяет определить, ухудшают ли ссылки на пути качество плана перед полным развертыванием.
+4. **Резервный вариант.** Если ссылки на пути оказываются ненадежными, восстановите встраивание только для важных документов (ROADMAP в фрагменте плана). Бюджетный движок по-прежнему обрабатывает усечение.
 
-**Token savings (Phase 4 only):** Eliminates ~150K tokens of re-ingestion per milestone (revised from 208K — the execute-task sessions retain inlined content). The LLM reads files as needed via tool calls, cached by API prompt caching. Net savings are ~50-60% of the re-ingestion overhead, since the LLM still reads most files once per session.
+**Экономия токенов (только на этапе 4):** исключается примерно 150 тысяч токенов повторного приема на каждом этапе (изменено с 208 тысяч — сеансы выполнения задач сохраняют встроенный контент). LLM считывает файлы по мере необходимости с помощью вызовов инструментов, кэшированных с помощью кэширования подсказок API. Чистая экономия составляет ~50-60% от затрат на повторную загрузку, поскольку LLM по-прежнему читает большинство файлов один раз за сеанс.
 
-### Post-Unit Processing Changes
+### Изменения обработки после юнитов
 
-#### Mechanical slice completion
+#### Механическое завершение среза
 
-After the last execute-task's verification gate passes and post-unit processing detects all tasks done:
+После прохождения шлюза проверки последней задачи выполнения и пост-модульная обработка обнаруживает все выполненные задачи:
 
 ```typescript
 async function mechanicalSliceCompletion(base: string, mid: string, sid: string): Promise<boolean> {
@@ -472,13 +472,13 @@ async function mechanicalSliceCompletion(base: string, mid: string, sid: string)
 }
 ```
 
-**Fallback:** If `mechanicalSliceCompletion()` fails or produces output below a quality threshold (e.g., summary under 200 chars for a multi-task slice), the `summarizing` phase persists in `deriveState()` and the dispatch table's retained fallback rule dispatches a complete-slice LLM session.
+**Резервный вариант:** Если `mechanicalSliceCompletion()` дает сбой или выдает выходные данные ниже порогового значения (например, сводка менее 200 символов для многозадачного среза), фаза `summarizing` сохраняется в `deriveState()`, а сохраненное резервное правило таблицы отправки отправляет сеанс LLM с полным срезом.
 
-#### Mechanical milestone validation
+#### Механическая проверка этапов
 
-See `aggregateMilestoneVerification()` above (Section 5). Reads `T##-VERIFY.json` and `S##-UAT-RESULT.md` as canonical sources.
+См. `aggregateMilestoneVerification()` выше (раздел 5). Читает `T##-VERIFY.json` и `S##-UAT-RESULT.md` как канонические источники.
 
-#### Mechanical milestone summary
+#### Обзор этапов разработки механики
 
 ```typescript
 async function generateMilestoneSummary(base: string, mid: string): Promise<string> {
@@ -496,243 +496,243 @@ async function generateMilestoneSummary(base: string, mid: string): Promise<stri
 }
 ```
 
-## Consequences
+## Последствия
 
-### Session Count Reduction
+### Уменьшение количества сеансов
 
-Counts assume no fallback sessions fire (mechanical processing succeeds). "Current" uses quality profile. "New" is the simplified pipeline.
+При подсчете предполагается, что резервные сеансы не активируются (механическая обработка успешна). «Текущий» использует профиль качества. «Новый» — это упрощенный конвейер.
 
-| Milestone Shape | Current Sessions (quality) | New Sessions | Reduction |
-|----------------|---------------------------|--------------|-----------|
-| 1 slice, 2 tasks | 9 | 3 | 67% |
-| 2 slices, 3 tasks | 17 | 8 | 53% |
-| 4 slices, 3 tasks | 30 | 16 | 47% |
-| 6 slices, 4 tasks | 46 | 31 | 33% |
+| Форма вехи | Текущие сессии (качество) | Новые сессии | Сокращение |
+|----------------|---------------------------|---------------|-----------|
+| 1 кусочек, 2 задания | 9 | 3 | 67% |
+| 2 кусочка, 3 задания | 17 | 8 | 53% |
+| 4 кусочка, 3 задания | 30 | 16 | 47% |
+| 6 кусочков, 4 задания | 46 | 31 | 33% |
 
-**Derivation (4-slice, 3-task):**
+**Деривация (4 среза, 3 задачи):**
 
-Current (quality): research-milestone(1) + plan-milestone(1) + [research-slice(0) + plan-slice(1) + execute(3) + complete-slice(1) + reassess(1)] for S01 + [research-slice(1) + plan-slice(1) + execute(3) + complete-slice(1) + reassess(1)] × 2 for S02-S03 + [research-slice(1) + plan-slice(1) + execute(3) + complete-slice(1) + reassess(0)] for S04 + validate(1) + complete-milestone(1) = 2 + 6 + 14 + 6 + 2 = 30.
+Текущее (качество): этап исследования(1) + этап планирования(1) + [срез исследования(0) + срез плана(1) + выполнение(3) + полный срез(1) + повторная оценка(1)] для S01 + [срез исследования(1) + срез плана(1) + выполнение(3) + полный срез(1) + повторная оценка(1)] × 2 для S02-S03 + [исследовательский-срез(1) + план-срез(1) + выполнение(3) + полный срез(1) + повторная оценка(0)] для S04 + проверка(1) + завершенный этап(1) = 2 + 6 + 14 + 6 + 2 = 30.
 
-New: plan-milestone(1) + [execute(3)] for S01 + [plan-slice(1) + execute(3)] × 3 for S02-S04 = 1 + 3 + 12 = 16.
+Новое: plan-milestone(1) + [execute(3)] для S01 + [plan-slice(1) + Execute(3)] × 3 для S02-S04 = 1 + 3 + 12 = 16.
 
-### Token Savings
+### Экономия токенов
 
-Eliminated sessions are the primary savings mechanism. Context re-ingestion reduction is a secondary effect of having fewer sessions (each of the remaining sessions still ingests some context). These are NOT additive — the re-ingestion savings are already captured in the eliminated session savings.
+Исключенные сеансы являются основным механизмом экономии. Уменьшение повторного приема контекста — это вторичный эффект меньшего количества сеансов (каждый из оставшихся сеансов по-прежнему принимает некоторый контекст). Это добавка NOT — экономия на повторном приеме уже учтена в экономии за исключенные сеансы.
 
-| Source | Per Milestone (4-slice, 3-task) |
+| Источник | За этап (4 фрагмента, 3 задачи) |
 |--------|-------------------------------|
-| Eliminated research sessions (1 milestone + 3 slice) | 48–148K tokens |
-| Eliminated complete-slice sessions (4) | 48–148K tokens |
-| Eliminated reassess sessions (3) | 36–111K tokens |
-| Eliminated validate session (1) | 12–37K tokens |
-| Eliminated complete-milestone session (1) | 12–37K tokens |
-| **Total estimated savings** | **~156–481K tokens** |
+| Исключенные исследовательские сессии (1 этап + 3 среза) | 48–148 тыс. токенов |
+| Исключены сеансы полного среза (4) | 48–148 тыс. токенов |
+| Исключены сеансы переоценки (3) | 36–111 тыс. токенов |
+| Устранена сессия проверки (1) | 12–37 тыс. токенов |
+| Исключена полная контрольная сессия (1) | 12–37 тыс. токенов |
+| **Общая предполагаемая экономия** | **~156–481 тыс. токенов** |
 
-At current Opus pricing ($15/MTok input, $75/MTok output — as of March 2026), the input savings alone are **$2.34–$7.22 per milestone**. Output savings are harder to estimate but typically 30-50% of input.
+При текущих ценах Opus ($15/MTok за вход и $75/MTok за выход по состоянию на март 2026 года) экономия только на входных токенах составляет **$2.34-$7.22 на один milestone**. Экономию на выходе оценить труднее, но обычно она составляет 30-50% от входных затрат.
 
-### Code Deletion
+### Удаление кода
 
-| File / Section | Lines | Impact |
+| Файл/Раздел | Линии | Воздействие |
 |----------------|-------|--------|
-| `auto-dispatch.ts` — 3 removed default-path rules | ~40 | Simpler dispatch table |
-| `auto-prompts.ts` — 5 builders become fallback-only | ~250 | `buildResearchMilestonePrompt`, `buildResearchSlicePrompt`, `buildCompleteSlicePrompt`, `buildValidateMilestonePrompt`, `buildCompleteMilestonePrompt` move to explicit-dispatch codepath |
-| `auto-prompts.ts` — reduced inlining (Phase 4) | ~100 | Remove `inlineFile` calls for static docs in planning prompts, replace with path references |
-| Context re-ingestion helpers (Phase 4) | ~50 | `inlineDecisionsFromDb`, `inlineRequirementsFromDb`, `inlineProjectFromDb` simplified for planning paths |
-| **Total deletable** | **~440** | |
+| `auto-dispatch.ts` — 3 удалены правила пути по умолчанию | ~40 | Упрощенная таблица диспетчеризации |
+| `auto-prompts.ts` — 5 строителей становятся резервными | ~250 | `buildResearchMilestonePrompt`, `buildResearchSlicePrompt`, `buildCompleteSlicePrompt`, `buildValidateMilestonePrompt`, `buildCompleteMilestonePrompt` перейти к кодовому пути явной отправки |
+| `auto-prompts.ts` — сокращение встраивания (этап 4) | ~100 | Удалите вызовы `inlineFile` для статических документов в подсказках по планированию, замените ссылками на пути |
+| Помощники по повторному приему контекста (этап 4) | ~50 | `inlineDecisionsFromDb`, `inlineRequirementsFromDb`, `inlineProjectFromDb` упрощены для планирования путей |
+| **Все можно удалить** | **~440** | |
 
-### Code Added
+### Код добавлен
 
-| File / Section | Lines | Impact |
+| Файл/Раздел | Линии | Воздействие |
 |----------------|-------|--------|
-| `auto-prompts.ts` — plan-milestone exploration | ~30 | Research instructions merged in |
-| `auto-prompts.ts` — plan-slice reassessment + exploration | ~25 | Reassessment + exploration preamble |
-| `auto-post-unit.ts` — `mechanicalSliceCompletion()` | ~80 | Structured frontmatter aggregation, UAT generation, artifact writes |
-| `auto-verification.ts` — `aggregateMilestoneVerification()` | ~60 | T##-VERIFY.json + UAT-RESULT aggregation |
-| `auto-unit-closeout.ts` — `generateMilestoneSummary()` | ~60 | Mechanical summary generation |
-| **Total added** | **~255** | |
+| `auto-prompts.ts` — план-этапные геологоразведочные работы | ~30 | Инструкции по исследованию объединены в |
+| `auto-prompts.ts` — план-срезовая переоценка + разведка | ~25 | Переоценка + разведка, преамбула |
+| `auto-post-unit.ts` — `mechanicalSliceCompletion()` | ~80 | Структурированная агрегация предисловий, генерация UAT, запись артефактов |
+| `auto-verification.ts` — `aggregateMilestoneVerification()` | ~60 | T##-VERIFY.json + UAT-RESULT агрегация |
+| `auto-unit-closeout.ts` — `generateMilestoneSummary()` | ~60 | Генерация механических сводок |
+| **Всего добавлено** | **~255** | |
 
-### Net Impact
+### Чистый эффект
 
-- **~185 lines net deleted** (440 deleted - 255 added)
-- **3 fewer default-path dispatch rules** (15 → 12, with 3 retained as fallbacks)
-- **6 fewer unit types in the default pipeline** (13 → 7 active; 6 retained for fallback/explicit dispatch)
-- **~156–481K fewer tokens per milestone**
-- **14 fewer session handoffs per 4-slice milestone under quality profile** (each a potential failure/timeout point)
-- `auto-prompts.ts` goes from ~1,099 lines to ~924 lines (~175 lines net reduction)
+- **~185 строк удалено** (440 удалено - 255 добавлено)
+- **на 3 правила отправки путей по умолчанию меньше** (15 → 12, 3 остаются в качестве резервных).
+- **На 6 типов юнитов меньше в конвейере по умолчанию** (13 → 7 активных; 6 сохранено для резервного/явного отправки)
+- **~ на 156–481 тыс. токенов меньше на каждом этапе**
+- **На 14 операций меньшего количества сеансов на 4-срезовый этап в профиле качества** (каждый из них представляет собой потенциальный сбой/точку тайм-аута)
+- `auto-prompts.ts` увеличено с ~1099 строк до ~924 строк (чистое сокращение примерно на 175 строк)
 
-### What Stays Unchanged
+### Что остается неизменным
 
-- The **discuss** flow (guided-flow.ts, interactive discussion)
-- The **dispatch table architecture** (declarative rules, first-match-wins)
-- The **fresh session per unit** pattern (still used for plan-slice and execute-task)
-- The **state derivation** (`deriveState()` reads files, derives phase — all existing phases preserved)
-- The **verification gate** (runs tests/lint after each task)
-- The **worktree isolation** model
-- The **crash recovery**, **idempotency**, and **stuck detection** systems (fewer sessions means these fire less often, but the safety nets remain)
-- The **metrics** and **cost tracking** systems
-- The **parallel orchestrator** for independent milestones
-- All prompt templates are **retained** — for fallback, recovery, and explicit dispatch via `/gsd dispatch <unit-type>`
+- Последовательность **обсуждений** (guided-flow.ts, интерактивное обсуждение)
+- **Архитектура таблицы диспетчеризации** (декларативные правила, победа в первом совпадении)
+- Шаблон **новый сеанс на единицу** (все еще используется для планирования-фрагмента и выполнения задачи).
+- **Вывод состояния** (`deriveState()` читает файлы, извлекает фазу — все существующие фазы сохраняются)
+- **Ворота проверки** (запускает тесты/проверку после каждой задачи)
+- Модель **изоляции рабочего дерева**.
+- Системы **восстановления после сбоев**, **идемпотентности** и **обнаружения зависаний** (меньше сеансов означает, что они срабатывают реже, но системы безопасности остаются)
+- Системы **метрик** и **отслеживания затрат**.
+- **Параллельный оркестратор** для независимых этапов
+- Все шаблоны подсказок **сохраняются** — для отката, восстановления и явной отправки через `/gsd dispatch <unit-type>`.
 
-### What Gets Simpler Downstream
+### Что становится проще в дальнейшем
 
-Less machinery is needed when sessions are fewer:
+Когда сеансов меньше, требуется меньше оборудования:
 
-- **Fewer recovery paths.** 14 fewer sessions means 14 fewer opportunities for timeouts, stuck states, and missing artifacts.
-- **Simpler `auto-post-unit.ts`.** Reassess dispatch logic removed (opt-in only). Mechanical completion/validation added but replaces more complex LLM-session dispatch.
-- **Simpler `auto-stuck-detection.ts`.** Fewer unit types means fewer dispatch-loop patterns to detect.
-- **Simpler `auto-idempotency.ts`.** Fewer completed-key types to track.
+- **Меньше путей восстановления.** Меньше на 14 сеансов означает на 14 меньше возможностей для тайм-аутов, зависаний и отсутствующих артефактов.
+- **Упрощено `auto-post-unit.ts`.** Повторная оценка логики отправки удалена (только при согласии). Добавлено механическое завершение/проверка, но заменяет более сложную отправку сеанса LLM.
+- **Упрощено `auto-stuck-detection.ts`.** Меньшее количество типов единиц означает меньшее количество шаблонов диспетчерского цикла для обнаружения.
+- **Упрощен `auto-idempotency.ts`.** Меньше типов готовых ключей для отслеживания.
 
-These simplifications are downstream effects — they don't need to happen in the same change. But they represent ~500-1000 lines of code that becomes significantly simpler or unnecessary as a consequence of this ADR.
+Эти упрощения являются последующими эффектами — они не обязательно должны происходить в одном и том же изменении. Но они представляют собой ~500-1000 строк кода, который из-за этого «226» становится значительно проще или ненужным.
 
-## Risks
+## Риски
 
-### 1. Plan-milestone sessions become heavier
+### 1. Плановые этапы становятся тяжелее
 
-Merging research into planning makes plan-milestone sessions longer. The planner must explore the codebase AND decompose into slices in a single session. Risk: the session hits context pressure before finishing.
+Объединение исследований с планированием делает сессии планирования более длительными. Планировщик должен изучить кодовую базу AND, разложив ее на фрагменты за один сеанс. Риск: сеанс сталкивается с контекстным давлением еще до завершения.
 
-**Mitigation:** Plan-milestone is the session that benefits most from a large context window. Modern context windows (200K+ tokens) easily accommodate exploration + planning. The single-slice fast path (already in plan-milestone.md) already combines planning with slice plan + task plan writing in one session — this extends that pattern. Phase 4 (reducing inlining for planning sessions) further offsets the added exploration work.
+**Снижение рисков.** План-этап – это сеанс, который больше всего выигрывает от большого контекстного окна. Современные контекстные окна (более 200 тысяч токенов) позволяют легко проводить исследование и планирование. Быстрый путь с одним срезом (уже в plan-milestone.md) уже сочетает в себе планирование с планом срезов + написание плана задач за один сеанс — это расширяет этот шаблон. Фаза 4 (сокращение количества операций по планированию) еще больше компенсирует дополнительные геологоразведочные работы.
 
-**Phase ordering note:** Phase 1 (merge research into planning) adds exploration to plan-milestone. If Phase 4 (reduce inlining) hasn't landed yet, the plan-milestone prompt includes both exploration instructions AND the full inlined context. This is the most context-heavy state. To mitigate, Phase 1 should also reduce inlining for plan-milestone/plan-slice specifically — moving DECISIONS, REQUIREMENTS, and PROJECT to path references while keeping ROADMAP and CONTEXT inlined. This is a targeted subset of Phase 4, not a separate phase.
+**Примечание о порядке этапов:** Фаза 1 (объединение исследований с планированием) добавляет исследование к этапу плана. Если этап 4 (уменьшение встраивания) еще не реализован, подсказка о вехе плана включает в себя обе инструкции по исследованию AND и полный встроенный контекст. Это наиболее контекстно-тяжелое состояние. Чтобы смягчить ситуацию, на этапе 1 следует также сократить встраивание для план-вехи/план-фрагмента, переместив DECISIONS, REQUIREMENTS и PROJECT в ссылки на пути, сохранив при этом ROADMAP и CONTEXT встроенными. Это целевая часть этапа 4, а не отдельный этап.
 
-### 2. Mechanical completion quality
+### 2. Качество механической обработки
 
-The mechanical slice completion aggregates structured frontmatter but cannot produce narrative context, forward intelligence sections, or nuanced UAT scenarios that the current LLM-driven complete-slice session produces.
+Механическое завершение срезов объединяет структурированную вступительную часть, но не может создать повествовательный контекст, разделы опережающей разведки или подробные сценарии UAT, которые создает текущий сеанс полного среза, управляемый LLM.
 
-**Mitigation:**
-- For most slices (2-3 tasks, straightforward work), structured aggregation is sufficient. The frontmatter fields (provides, requires, affects, key_files, key_decisions, patterns_established) capture the essential information.
-- The quality threshold fallback dispatches a complete-slice LLM session for complex slices.
-- The LLM fallback is zero-cost to implement — the complete-slice template and dispatch rule are retained.
+**Устранение последствий:**
+— Для большинства срезов (2-3 задачи, несложная работа) достаточно структурированной агрегации. Поля frontmatter (обеспечивает, требует, влияет, ключевые_файлы, ключевые_решения, шаблоны_установлены) содержат важную информацию.
+- Резервный порог качества отправляет сеанс полного среза LLM для сложных срезов.
+- Реализация резервного варианта LLM не требует затрат: сохраняется шаблон полного среза и правило отправки.
 
-### 3. Loss of research artifacts
+### 3. Потеря исследовательских артефактов
 
-RESEARCH.md files provided a useful paper trail for debugging plan quality. Without them, it's harder to understand why a planner made certain decisions.
+Файлы RESEARCH.md предоставили полезный документ для проверки качества плана отладки. Без них труднее понять, почему планировщик принял те или иные решения.
 
-**Mitigation:**
-- The planner's narration (visible in the conversation transcript) captures exploration reasoning.
-- RESEARCH.md is optional, not eliminated. Planners can write one when exploration is complex.
-- The KNOWLEDGE.md file captures non-obvious patterns and decisions.
-- DECISIONS.md captures structural choices.
+**Устранение последствий:**
+- Повествование планировщика (видимое в стенограмме разговора) отражает рассуждения исследования.
+- RESEARCH.md является необязательным, но не исключено. Планировщики могут написать его, когда разведка сложна.
+- Файл KNOWLEDGE.md фиксирует неочевидные закономерности и решения.
+- DECISIONS.md отражает структурные варианты.
 
-### 4. Reassessment gaps
+### 4. Пробелы в переоценке
 
-Without mandatory reassessment, a slice might complete with findings that invalidate the remaining roadmap, and the next planner might not notice.
+Без обязательной повторной оценки часть может завершиться выводами, которые сделают недействительной оставшуюся дорожную карту, и следующий планировщик может этого не заметить.
 
-**Mitigation:**
-- The plan-slice prompt includes a reassessment preamble that explicitly checks prior slice summaries.
-- The `blocker_discovered` flag in task summaries already triggers automatic replanning.
-- Users who want explicit reassessment can enable the `reassess_after_slice` preference.
+**Устранение последствий:**
+- Подсказка о срезе плана включает в себя преамбулу повторной оценки, которая явно проверяет сводные данные предыдущих срезов.
+- Флаг `blocker_discovered` в сводках задач уже запускает автоматическое перепланирование.
+- Пользователи, которым нужна явная переоценка, могут включить настройку `reassess_after_slice`.
 
-### 5. Mechanical completion doesn't cover all complete-slice responsibilities
+### 5. Механическое завершение не охватывает все обязанности по полному срезу.
 
-The current complete-slice prompt (steps 5, 8, 9) updates REQUIREMENTS.md, appends to DECISIONS.md, and appends to KNOWLEDGE.md. The mechanical completion handles REQUIREMENTS.md and DECISIONS.md mechanically but cannot produce KNOWLEDGE.md entries (which require judgment about what's genuinely useful).
+Текущее приглашение полного фрагмента (шаги 5, 8, 9) обновляет REQUIREMENTS.md, добавляется к DECISIONS.md и добавляется к KNOWLEDGE.md. Механическое завершение обрабатывает REQUIREMENTS.md и DECISIONS.md механически, но не может создавать записи KNOWLEDGE.md (что требует суждения о том, что действительно полезно).
 
-**Mitigation:**
-- Execute-task prompt step 13 already instructs executors to append to KNOWLEDGE.md during task execution. Most knowledge entries are discovered during implementation, not during completion.
-- DECISIONS.md appendix is handled mechanically by collecting `key_decisions` from task summaries and deduplicating against existing entries.
-- REQUIREMENTS.md updates are handled mechanically by cross-referencing task verification results against requirement-to-slice mappings.
-- For the LLM fallback path (complex slices), the complete-slice prompt retains all responsibilities.
+**Устранение последствий:**
+- Шаг 13 подсказки выполнения задачи уже предписывает исполнителям добавлять к KNOWLEDGE.md во время выполнения задачи. Большинство записей знаний обнаруживаются во время реализации, а не во время завершения.
+- Приложение DECISIONS.md обрабатывается механически путем сбора `key_decisions` из сводок задач и дедупликации существующих записей.
+- Обновления REQUIREMENTS.md обрабатываются механически путем сопоставления результатов проверки задач с сопоставлениями требований к срезам.
+- Для резервного пути LLM (сложные фрагменты) подсказка полного фрагмента сохраняет все обязанности.
 
-### 6. Migration path
+### 6. Путь миграции
 
-Milestones in progress when this change deploys will have state files (RESEARCH.md, etc.) that the new pipeline doesn't produce. The dispatch table must gracefully handle both old-style and new-style state.
+Вехи, находящиеся на стадии выполнения при развертывании этого изменения, будут иметь файлы состояния (RESEARCH.md и т. д.), которые новый конвейер не создает. Таблица диспетчеризации должна корректно обрабатывать состояния как старого, так и нового стиля.
 
-**Mitigation:**
-- Dispatch rules check for file existence, not file absence. A milestone with an existing RESEARCH.md still works — the plan-milestone rule fires regardless of whether research exists.
-- The idempotency system already handles "completed research unit → dispatch plan" transitions.
-- All `deriveState()` phases are preserved — old-style state resolves correctly.
-- No migration needed. The new pipeline is strictly more permissive than the old one.
+**Устранение последствий:**
+- Правила отправки проверяют наличие файла, а не его отсутствие. Веха с существующим номером RESEARCH.md по-прежнему работает — правило плановой вехи действует независимо от того, проводятся ли исследования.
+- Система идемпотентности уже обрабатывает переходы «завершенное исследовательское подразделение → план отправки».
+- Все фазы `deriveState()` сохранены — состояние старого стиля разрешается правильно.
+- Миграция не требуется. Новый трубопровод строго более либерален, чем старый.
 
-## Alternatives Considered
+## Рассмотренные альтернативы
 
-### A. Keep research as a separate session, just make it optional
+### А. Выделите исследование в отдельный сеанс, просто сделайте его необязательным.
 
-Add a `skip_research` preference (already exists) and make it default to true. This is the minimal change — one boolean flip.
+Добавьте настройку `skip_research` (уже существует) и установите для нее значение по умолчанию true. Это минимальное изменение — одно логическое изменение.
 
-**Rejected:** This saves sessions but doesn't address the context re-ingestion problem, the lossy handoff problem, or the ceremony session overhead. It's a preference toggle, not an architectural improvement.
+**Отклонено:** Это сохраняет сеансы, но не решает проблему повторного приема контекста, проблему передачи обслуживания с потерями или накладные расходы сеанса церемонии. Это переключение предпочтений, а не архитектурное улучшение.
 
-### B. Keep all unit types but share context via a persistent cache
+### Б. Сохраняйте все типы юнитов, но разделяйте контекст через постоянный кеш.
 
-Instead of fresh sessions, maintain a shared context store that persists across units. Each unit reads from the store instead of re-inlining files.
+Вместо новых сеансов поддерживайте общее хранилище контекста, которое сохраняется между подразделениями. Каждый модуль считывает данные из хранилища вместо повторного встраивания файлов.
 
-**Rejected:** This requires a fundamentally different session model — either a long-running session (which hits context limits) or a cache mechanism that the LLM can query (which doesn't exist in the Claude API). The fresh-session-per-unit model is correct; the problem is what we put in each session, not the session model itself.
+**Отклонено:** Для этого требуется принципиально другая модель сеанса — либо длительный сеанс (который достигает ограничений контекста), либо механизм кэширования, который может запрашивать LLM (которого нет в Claude API). Модель «свежий сеанс на единицу» верна; проблема в том, что мы добавляем в каждый сеанс, а не в саму модель сеанса.
 
-### C. Collapse everything into a single session per slice
+### C. Свернуть все в один сеанс для каждого среза
 
-One session per slice: plan + execute all tasks + complete. Maximum context efficiency.
+Один сеанс на срез: планирование + выполнение всех задач + завершение. Максимальная контекстная эффективность.
 
-**Rejected:** This hits real context limits for slices with 4+ tasks. Task execution is legitimately heavy — reading code, writing code, running tests, debugging failures. A single session for all of this would exhaust the context window. The plan-slice / execute-task boundary is a genuine engineering constraint, not ceremony.
+**Отклонено:** Это соответствует реальным ограничениям контекста для фрагментов с более чем 4 задачами. Выполнение задач действительно тяжелое — чтение кода, написание кода, запуск тестов, отладка сбоев. Один сеанс для всего этого исчерпал бы контекстное окно. Граница «план-фрагмент/выполнение-задача» — это настоящее инженерное ограничение, а не церемония.
 
-### D. Fold completion into the last executor's prompt instead of post-unit processing
+### D. Сворачивание завершения в приглашение последнего исполнителя вместо обработки после модуля
 
-The original design had the last execute-task writing SUMMARY.md, UAT.md, and marking the slice done.
+В исходном проекте последняя задача выполнения записывала SUMMARY.md, UAT.md и отмечала срез как выполненный.
 
-**Rejected (per Codex audit):** This creates a verification-retry ordering problem. If the executor writes SUMMARY.md and marks the slice done in the ROADMAP before the verification gate runs, a gate failure retries against incorrect derived state. Post-gate mechanical processing avoids this by running only after verification succeeds.
+**Отклонено (согласно аудиту Кодекса):** Это создает проблему с повторной проверкой заказа. Если исполнитель записывает SUMMARY.md и отмечает выполненный срез в ROADMAP до запуска шлюза проверки, при сбое шлюза повторяется попытка с неверным производным состоянием. Механическая обработка после шлюза позволяет избежать этого, запустившись только после успешной проверки.
 
-### E. Keep complete-slice as a separate session
+### E. Сохраняйте полный фрагмент как отдельный сеанс
 
-The mechanical summary quality might be insufficient for complex slices.
+Качество механического обобщения может быть недостаточным для сложных срезов.
 
-**Addressed:** The mechanical approach with LLM fallback provides the best of both worlds. Simple slices get fast mechanical completion. Complex slices fall back to the existing LLM session. The quality threshold is tunable.
+**Решение:** Механический подход с резервным вариантом LLM сочетает в себе лучшее из обоих миров. Простые ломтики получают быстрое механическое завершение. Сложные фрагменты возвращаются к существующему сеансу LLM. Порог качества настраивается.
 
-## Action Items
+## Действия
 
-### Phase 1: Merge research into planning (+ targeted inlining reduction)
-1. Update `buildPlanMilestonePrompt()` — add exploration instructions, skill discovery, drop "Trust the research"
-2. Update `buildPlanSlicePrompt()` — add exploration instructions, reassessment preamble, drop "Trust the research"
-3. Remove dispatch rule "pre-planning (no research) → research-milestone" — merge with "pre-planning (has research) → plan-milestone" into single "pre-planning → plan-milestone"
-4. Remove dispatch rule "planning (no research, not S01) → research-slice"
-5. Update `plan-milestone.md` and `plan-slice.md` prompt templates
-6. Make `skip_research` and `skip_slice_research` preferences default to true (backwards compat)
-7. Retain research templates for explicit `/gsd dispatch research` use
-8. **Targeted inlining reduction for planning sessions:** Move DECISIONS, REQUIREMENTS, PROJECT to path references in plan-milestone and plan-slice prompts. Keep ROADMAP and CONTEXT inlined. This prevents context pressure from the added exploration work.
+### Этап 1. Объединение исследований с планированием (+ целевое сокращение количества встроенных данных)
+1. Обновление `buildPlanMilestonePrompt()` — добавлены инструкции по исследованию, открытие навыков, удалено «Доверяйте исследованиям».
+2. Обновление `buildPlanSlicePrompt()` — добавлены инструкции по исследованию, преамбула к повторной оценке, удален пункт «Доверяйте исследованию».
+3. Удалить правило отправки «предпланирование (без исследования) → исследование-веха» — объединить с «предварительное планирование (есть исследование) → план-веха» в одно «предварительное планирование → план-веха»
+4. Удалить правило отправки «планирование (без исследования, не S01) → исследование-срез».
+5. Обновите шаблоны приглашений `plan-milestone.md` и `plan-slice.md`.
+6. Установите для настроек `skip_research` и `skip_slice_research` значение по умолчанию true (обратная совместимость).
+7. Сохраняйте шаблоны исследований для использования в явном виде `/gsd dispatch research`.
+8. **Целевое сокращение количества вложений для сеансов планирования.** Переместите DECISIONS, REQUIREMENTS, PROJECT в ссылки на пути в подсказках о вехах плана и фрагментах плана. Оставьте ROADMAP и CONTEXT встроенными. Это предотвращает контекстное давление со стороны дополнительных геологоразведочных работ.
 
-### Phase 2: Mechanical slice completion
-9. Implement `mechanicalSliceCompletion()` in `auto-post-unit.ts`
-10. Wire into post-unit processing: detect all-tasks-done after verification gate passes, run mechanical completion
-11. Implement quality threshold check (summary length, artifact presence)
-12. Retain `summarizing → complete-slice` dispatch rule as fallback for mechanical failures
-13. Implement `mechanicalRequirementsUpdate()` and `appendNewDecisions()`
+### Этап 2: Механическое завершение среза
+9. Внедрите `mechanicalSliceCompletion()` в `auto-post-unit.ts`.
+10. Подключение к обработке после установки: определение всех выполненных задач после прохождения ворот проверки, запуск механического завершения.
+11. Внедрить проверку порога качества (длина сводки, наличие артефактов)
+12. Сохраните правило отправки `summarizing → complete-slice` в качестве запасного варианта на случай механических сбоев.
+13. Внедрите `mechanicalRequirementsUpdate()` и `appendNewDecisions()`.
 
-### Phase 3: Mechanical milestone validation + completion
-14. Implement `aggregateMilestoneVerification()` reading `T##-VERIFY.json` and `S##-UAT-RESULT.md`
-15. Implement `generateMilestoneSummary()` from slice summary aggregation
-16. Wire into post-unit processing: after last slice completion, run mechanical validation + summary
-17. Make reassess-roadmap opt-in via `reassess_after_slice` preference (default: false)
-18. Retain `validating-milestone` and `completing-milestone` dispatch rules as fallbacks
+### Этап 3: Проверка механической части + завершение
+14. Реализуйте `aggregateMilestoneVerification()` для чтения `T##-VERIFY.json` и `S##-UAT-RESULT.md`.
+15. Внедрить `generateMilestoneSummary()` из агрегирования сводок срезов.
+16. Подключение к пост-единичной обработке: после завершения последнего среза запустите механическую проверку + сводку
+17. Согласитесь на переоценку дорожной карты с помощью предпочтения `reassess_after_slice` (по умолчанию: false)
+18. Сохраните правила отправки `validating-milestone` и `completing-milestone` в качестве запасных вариантов.
 
-### Phase 4: Full context re-ingestion reduction
-19. Replace remaining `inlineFile()` calls for stable documents with mandatory-read path references
-20. Update prompt headers with explicit "You MUST read" directives for critical files
-21. Add plan output verification (must cite ROADMAP slice description)
-22. Measure plan quality metrics before/after to validate the change
+### Этап 4: полное сокращение повторного приема контекста
+19. Замените оставшиеся вызовы `inlineFile()` для стабильных документов ссылками на пути обязательного чтения.
+20. Обновите заголовки подсказок, включив в них явные директивы «Вы MUST прочитали» для важных файлов.
+21. Добавьте проверку выходных данных плана (необходимо указать описание фрагмента ROADMAP).
+22. Измерьте показатели качества плана до/после, чтобы подтвердить изменения.
 
-### Phase 5: Downstream simplification (optional, deferred)
-23. Simplify `auto-post-unit.ts` — remove reassess dispatch logic (opt-in only)
-24. Simplify `auto-stuck-detection.ts` — fewer unit type patterns
-25. Simplify `auto-idempotency.ts` — fewer completed-key types
-26. Review `auto-recovery.ts` — simplify recovery paths for unit types that are now fallback-only
-27. Update auto-mode documentation (`docs/auto-mode.md`)
+### Этап 5: Упрощение последующих этапов (необязательно, отложено)
+23. Упростите `auto-post-unit.ts` — удалите логику повторной оценки отправки (только при согласии)
+24. Упростите `auto-stuck-detection.ts` — меньше шаблонов типов юнитов.
+25. Упростить `auto-idempotency.ts` — меньше типов завершенных ключей.
+26. Пересмотрите `auto-recovery.ts` — упростите пути восстановления для типов юнитов, которые теперь доступны только для резервного копирования.
+27. Обновление документации автоматического режима (`docs/auto-mode.md`)
 
-## Audit Trail
+## Контрольный журнал
 
-### Round 1 — Three-model review (March 18, 2026)
+### Раунд 1 — Обзор трех моделей (18 марта 2026 г.)
 
-**Claude Opus 4.6** identified 8 issues:
-1. ✅ Session count math inconsistent about S01 plan-slice skip — **fixed**: explicit derivation added with per-slice breakdown
-2. ✅ `discuss` session counted in pipeline but not in math — **fixed**: noted as interactive session, not auto-mode unit
-3. ✅ Token savings double-counting (eliminated sessions + re-ingestion) — **fixed**: removed overlap, noted savings are not additive
-4. ✅ Context inlining change (file paths vs inline) underanalyzed — **fixed**: expanded to dedicated risk section with enforcement strategy, phased rollout, and interaction with budget engine
-5. ✅ Budget engine interaction not discussed — **fixed**: addressed in context inlining section
-6. ✅ `aggregateMilestoneVerification()` reads wrong data source — **fixed**: now reads `T##-VERIFY.json` as primary source, supplemented by `S##-UAT-RESULT.md`
-7. ✅ Phase ordering creates heavy intermediate state (Phase 1 without Phase 4) — **fixed**: Phase 1 now includes targeted inlining reduction for planning sessions
-8. ✅ ADR number conflict — **fixed**: confirmed no ADR-003 exists in `docs/` (the referenced file doesn't exist in current git)
+**Claude Opus 4.6** выявил 8 проблем:
+1. ✅ Математические расчеты количества сеансов не соответствуют пропуску срезов плана S01 — **исправлено**: добавлен явный вывод с разбивкой по срезам.
+2. ✅ Сеанс `discuss` учитывается в конвейере, но не учитывается в математических вычислениях — **исправлено**: отмечается как интерактивный сеанс, а не как модуль автоматического режима.
+3. ✅ Двойной учет экономии токенов (исключенные сеансы + повторный прием) — **исправлено**: удалено дублирование, отмеченная экономия не суммируется.
+4. ✅ Изменение встроенного контекста (пути к файлам вместо встроенного) недостаточно анализируется — **исправлено**: расширено до специального раздела о рисках со стратегией обеспечения соблюдения, поэтапным развертыванием и взаимодействием с бюджетным механизмом.
+5. ✅ Взаимодействие с бюджетным механизмом не обсуждается — **исправлено**: рассматривается в разделе встраивания контекста.
+6. ✅ `aggregateMilestoneVerification()` считывает неверный источник данных — **исправлено**: теперь `T##-VERIFY.json` читается как основной источник, дополненный `S##-UAT-RESULT.md`.
+7. ✅ Порядок фаз создает тяжелое промежуточное состояние (фаза 1 без фазы 4) — **исправлено**: фаза 1 теперь включает целевое сокращение встраивания для сеансов планирования.
+8. ✅ Конфликт номеров ADR — **исправлено**: подтверждено, что ADR-003 не существует в `docs/` (файл, на который есть ссылка, не существует в текущем git)
 
-**OpenAI Codex** identified 6 issues:
-1. ✅ HIGH: Folding completion into execute-task breaks verification-retry model — **fixed**: moved completion to post-gate mechanical processing instead of executor prompt. Added Alternative D explaining why.
-2. ✅ HIGH: Mechanical validation reads nonexistent `verification_evidence` frontmatter — **fixed**: now reads `T##-VERIFY.json` (canonical machine-readable source from `verification-evidence.ts`)
-3. ✅ HIGH: Replacement validation drops UAT evidence — **fixed**: aggregator now reads both `T##-VERIFY.json` and `S##-UAT-RESULT.md`
-4. ✅ HIGH: "State derivation stays unchanged" is false — **fixed**: explicitly documented that `deriveState()` phases are preserved, mechanical processing resolves them synchronously, fallback dispatch rules handle failures
-5. ✅ MEDIUM: Folded completion omits REQUIREMENTS.md and KNOWLEDGE.md updates — **fixed**: mechanical completion handles REQUIREMENTS.md and DECISIONS.md; KNOWLEDGE.md addressed in Risk 5
-6. ✅ MEDIUM: Session and token math inconsistent — **fixed**: complete rederivation with per-slice breakdown, corrected to 30 baseline sessions, noted profile variations
+**Кодекс OpenAI** выявил 6 проблем:
+1. ✅ HIGH: Свертывание завершения в модель «проверка-повторная попытка» прерывает выполнение задачи — **исправлено**: завершение перенесено в механическую обработку после шлюза вместо приглашения исполнителя. Добавлен Альтернатива D, объясняющая почему.
+2. ✅ HIGH: Механическая проверка читает несуществующую заставку `verification_evidence` — **исправлено**: теперь читается `T##-VERIFY.json` (канонический машиночитаемый источник из `verification-evidence.ts`)
+3. ✅ HIGH: при проверке замены удаляются доказательства UAT — **исправлено**: агрегатор теперь считывает и `T##-VERIFY.json`, и `S##-UAT-RESULT.md`.
+4. ✅ HIGH: «Вывод состояния остается неизменным» является ложным — **исправлено**: явно задокументировано, что фазы `deriveState()` сохраняются, механическая обработка разрешает их синхронно, правила резервной отправки обрабатывают сбои.
+5. ✅ MEDIUM: в сложенном дополнении отсутствуют обновления REQUIREMENTS.md и KNOWLEDGE.md — **исправлено**: механические ручки завершения REQUIREMENTS.md и DECISIONS.md; KNOWLEDGE.md, указанный в Риске 5
+6. ✅ MEDIUM: математические вычисления сеанса и токена несовместимы — **исправлено**: полное повторное деривирование с разбивкой по срезам, исправлено до 30 базовых сеансов, отмечены вариации профиля.
 
-**Gemini 2.5 Pro** audit was not usable — it hallucinated the ADR as a CI/CD pipeline document about GitHub Actions, matrix builds, and nx workspace tooling. No findings were applicable to the actual content.
+Аудит **Gemini 2.5 Pro** был невозможен — он представлял ADR как документ конвейера CI/CD, посвященный действиям GitHub, построению матриц и инструментам рабочего пространства nx. Никакие выводы не были применимы к реальному содержанию.

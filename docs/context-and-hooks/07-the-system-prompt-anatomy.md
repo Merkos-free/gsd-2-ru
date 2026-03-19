@@ -1,12 +1,12 @@
-# The System Prompt Anatomy
+# Анатомия системных подсказок
 
-How pi's system prompt is built, what goes into it, when it's rebuilt, and every lever you have to shape it.
+Как устроена системная подсказка Пи, что в нее входит, когда она перестраивается, и каждый рычаг, который вам нужен для ее формирования.
 
 ---
 
-## The Final Prompt Structure
+## Окончательная структура приглашения
 
-When `buildSystemPrompt()` runs, it assembles sections in this exact order:
+При запуске `buildSystemPrompt()` разделы собираются именно в таком порядке:
 
 ```
 ┌──────────────────────────────────────────────────┐
@@ -31,15 +31,15 @@ When `buildSystemPrompt()` runs, it assembles sections in this exact order:
 └──────────────────────────────────────────────────┘
 ```
 
-After `buildSystemPrompt()`, extensions can further modify via `before_agent_start`.
+После `buildSystemPrompt()` расширения могут быть изменены с помощью `before_agent_start`.
 
 ---
 
-## Section 1: The Base Prompt
+## Раздел 1: Базовая подсказка
 
-### Default Base Prompt (no SYSTEM.md)
+### Базовая подсказка по умолчанию (без SYSTEM.md)
 
-When no SYSTEM.md exists, pi uses its built-in base:
+Когда SYSTEM.md не существует, число pi использует встроенную базу:
 
 ```
 You are an expert coding assistant operating inside pi, a coding agent harness.
@@ -70,69 +70,69 @@ Pi documentation (read only when the user asks about pi itself...):
 - Examples: [path]
 ```
 
-### SYSTEM.md Override (full replacement)
+### SYSTEM.md Override (полная замена)
 
-If `.gsd/SYSTEM.md` (project) or `~/.gsd/agent/SYSTEM.md` (global) exists, its contents **completely replace** the default base prompt above. The tools list, guidelines, pi docs pointers — all gone. You own the entire base.
+Если существует `.gsd/SYSTEM.md` (проект) или `~/.gsd/agent/SYSTEM.md` (глобальный), его содержимое **полностью заменяет** базовое приглашение по умолчанию, указанное выше. Список инструментов, рекомендации, указатели на Pi-документы — все исчезло. Вы владеете всей базой.
 
-Project takes precedence over global. Only one SYSTEM.md is used (first found wins).
+Проект имеет приоритет над глобальным. Используется только один SYSTEM.md (выигрыш, найденный первым).
 
-**What still gets appended even with a custom SYSTEM.md:**
-- APPEND_SYSTEM.md content
-- Project context files (AGENTS.md / CLAUDE.md)
-- Skills listing (if the `read` tool is active)
-- Date/time and cwd
+**Что по-прежнему добавляется даже при использовании пользовательского SYSTEM.md:**
+- APPEND_SYSTEM.md контента
+- Файлы контекста проекта (AGENTS.md / CLAUDE.md)
+- Список навыков (если инструмент `read` активен)
+- Дата/время и cwd
 
-**What you lose:**
-- The entire default prompt structure
-- Built-in tool descriptions and guidelines
-- Pi documentation pointers
-- Dynamic guidelines from `promptGuidelines` on tools
+**Что вы теряете:**
+- Вся структура подсказок по умолчанию.
+- Встроенные описания и рекомендации инструментов.
+- Указатели документации Pi
+- Динамические рекомендации из `promptGuidelines` по инструментам.
 
-### How Tool Descriptions Appear
+### Как появляются описания инструментов
 
-Each active tool gets a line in "Available tools":
+Каждый активный инструмент получает строку в разделе «Доступные инструменты»:
 
 ```
 - toolname: [one-line description]
 ```
 
-The description is determined by priority:
-1. `promptSnippet` from the tool registration (if provided)
-2. Built-in description from `toolDescriptions` map (for read, bash, edit, write, grep, find, ls)
-3. The tool's `name` as fallback
+Описание определяется приоритетом:
+1. `promptSnippet` от регистрации инструмента (если предусмотрено)
+2. Встроенное описание из карты `toolDescriptions` (для чтения, bash, редактирования, записи, grep, find, ls)
+3. Инструмент `name` в качестве запасного варианта.
 
-`promptSnippet` is normalized: newlines collapsed to spaces, trimmed to a single line.
+`promptSnippet` нормализуется: символы новой строки свернуты в пробелы и обрезаны до одной строки.
 
-### How Guidelines Are Built
+### Как создаются рекомендации
 
-Guidelines are assembled dynamically based on which tools are active:
+Рекомендации собираются динамически в зависимости от того, какие инструменты активны:
 
-| Condition | Guideline |
+| Состояние | Руководство |
 |---|---|
-| bash active, no grep/find/ls | "Use bash for file operations like ls, rg, find" |
-| bash active + grep/find/ls | "Prefer grep/find/ls tools over bash for file exploration" |
-| read + edit active | "Use read to examine files before editing" |
-| edit active | "Use edit for precise changes (old text must match exactly)" |
-| write active | "Use write only for new files or complete rewrites" |
-| edit or write active | "When summarizing your actions, output plain text directly" |
-| Always | "Be concise in your responses" |
-| Always | "Show file paths clearly when working with files" |
+| bash активен, нет grep/find/ls | «Используйте bash для операций с файлами, таких как ls, rg, find» |
+| bash active + grep/find/ls | «Для исследования файлов предпочитайте инструменты grep/find/ls, а не bash» |
+| читать + редактировать активно | «Используйте чтение для проверки файлов перед редактированием» |
+| редактировать активный | «Используйте редактирование для точных изменений (старый текст должен точно совпадать)» |
+| писать активно | «Использовать запись только для новых файлов или полной перезаписи» |
+| редактировать или писать активно | «При подведении итогов своих действий выводите простой текст напрямую» |
+| Всегда | «Будьте краткими в своих ответах» |
+| Всегда | «Четкое отображение путей к файлам при работе с файлами» |
 
-**Extension tool guidelines** from `promptGuidelines` are appended after the built-in guidelines. They're deduplicated (same string appears only once even if multiple tools register it).
-
----
-
-## Section 2: Append System Prompt
-
-If `.gsd/APPEND_SYSTEM.md` (project) or `~/.gsd/agent/APPEND_SYSTEM.md` (global) exists, its contents are appended after the base prompt.
-
-This is the safe way to add project-wide instructions without replacing the default prompt. It works with both the default base and a custom SYSTEM.md.
+**Инструкции по инструментам расширения** из `promptGuidelines` добавляются после встроенных рекомендаций. Они дедуплицированы (одна и та же строка появляется только один раз, даже если ее зарегистрировали несколько инструментов).
 
 ---
 
-## Section 3: Project Context Files
+## Раздел 2: Добавление системной подсказки
 
-Pi walks the filesystem collecting context files:
+Если `.gsd/APPEND_SYSTEM.md` (проект) или `~/.gsd/agent/APPEND_SYSTEM.md` (глобальный) существует, его содержимое добавляется после основного приглашения.
+
+Это безопасный способ добавления инструкций для всего проекта без замены приглашения по умолчанию. Он работает как с базой по умолчанию, так и с пользовательской SYSTEM.md.
+
+---
+
+## Раздел 3: Файлы контекста проекта
+
+Пи обходит файловую систему, собирая файлы контекста:
 
 ```
 1. ~/.gsd/agent/AGENTS.md (global)
@@ -141,7 +141,7 @@ Pi walks the filesystem collecting context files:
    - Files are collected root-down (ancestors first, cwd last)
 ```
 
-All found files are concatenated under a "# Project Context" header:
+Все найденные файлы объединяются под заголовком «# Project Context»:
 
 ```markdown
 # Project Context
@@ -157,13 +157,13 @@ Project-specific instructions and guidelines:
 [project AGENTS.md content]
 ```
 
-**AGENTS.md vs CLAUDE.md:** Both are treated identically. Per directory, AGENTS.md is checked first. If it exists, CLAUDE.md in the same directory is skipped.
+**AGENTS.md против CLAUDE.md:** Оба обрабатываются одинаково. В каждом каталоге сначала проверяется AGENTS.md. Если он существует, CLAUDE.md в том же каталоге пропускается.
 
 ---
 
-## Section 4: Skills Listing
+## Раздел 4: Список навыков
 
-If the `read` tool is active and skills are loaded, an XML block is appended:
+Если инструмент `read` активен и навыки загружены, добавляется блок XML:
 
 ```xml
 The following skills provide specialized instructions for specific tasks.
@@ -179,15 +179,15 @@ When a skill file references a relative path, resolve it against the skill direc
 </available_skills>
 ```
 
-Skills with `disable-model-invocation: true` in their frontmatter are excluded from this listing.
+Навыки с `disable-model-invocation: true` в названии исключены из этого списка.
 
-**Key design:** Only names, descriptions, and file paths go into the system prompt. The full skill content is NOT loaded. The agent uses the `read` tool to load specific skills on demand. This keeps the system prompt small even with many skills.
+**Дизайн ключа:** в системную подсказку попадают только имена, описания и пути к файлам. Полный контент навыков загружен NOT. Агент использует инструмент `read` для загрузки определенных навыков по требованию. Благодаря этому системное приглашение остается небольшим даже при наличии многих навыков.
 
 ---
 
-## Section 5: Date/Time and CWD
+## Раздел 5: Дата/время и CWD
 
-Always appended last:
+Всегда добавляется последним:
 
 ```
 Current date and time: Saturday, March 7, 2026 at 08:55:05 AM CST
@@ -196,21 +196,21 @@ Current working directory: /Users/you/projects/myapp
 
 ---
 
-## When the System Prompt Is Rebuilt
+## Когда системная подсказка перестроена
 
-The base system prompt (`_baseSystemPrompt`) is rebuilt in these situations:
+Подсказка базовой системы (`_baseSystemPrompt`) перестраивается в следующих ситуациях:
 
-| Trigger | What happens |
+| Триггер | Что происходит |
 |---|---|
-| **Startup** (`_buildRuntime`) | Full rebuild with initial tool set |
-| **`setActiveToolsByName()`** | Rebuild with new tool set (guidelines and snippets change) |
-| **`reload()`** (`/reload`) | Full rebuild — reloads SYSTEM.md, APPEND_SYSTEM.md, context files, skills, extensions |
-| **`extendResourcesFromExtensions()`** | Rebuild after `resources_discover` adds new skills/prompts/themes |
-| **`_refreshToolRegistry()`** | Rebuild when extension tools change dynamically |
+| **Запуск** (`_buildRuntime`) | Полный ремонт с использованием первоначального набора инструментов |
+| **`setActiveToolsByName()`** | Перестройка с использованием нового набора инструментов (изменения в руководствах и фрагментах) |
+| **`reload()`** (`/reload`) | Полный ребилд — перезагрузка SYSTEM.md, APPEND_SYSTEM.md, контекстных файлов, навыков, расширений |
+| **`extendResourcesFromExtensions()`** | Восстановление после `resources_discover` добавляет новые навыки/подсказки/темы |
+| **`_refreshToolRegistry()`** | Перестроить, когда инструменты расширения изменяются динамически |
 
-### Per-Prompt Modifications
+### Изменения для каждого запроса
 
-On each user prompt, the `before_agent_start` hook can modify the system prompt. This modification is **not persisted** — the base prompt is restored if no extension modifies it on the next prompt:
+В каждом приглашении пользователя перехватчик `before_agent_start` может изменить системное приглашение. Это изменение **не сохраняется** — базовое приглашение восстанавливается, если никакое расширение не изменяет его в следующем приглашении:
 
 ```
 User prompt 1:
@@ -220,82 +220,82 @@ User prompt 2:
   before_agent_start → no extensions modify → LLM sees base system prompt (reset)
 ```
 
-This means `before_agent_start` modifications are truly per-prompt. You cannot make a permanent system prompt change through this hook alone (the change must be re-applied every time).
+Это означает, что изменения `before_agent_start` действительно выполняются по запросу. Вы не можете внести постоянное изменение системного приглашения только с помощью этого хука (изменение необходимо применять повторно каждый раз).
 
 ---
 
-## Every Lever for Shaping the System Prompt
+## Каждый рычаг для формирования системной подсказки
 
-From static configuration to dynamic extension hooks, ordered from broadest to most targeted:
+От статической конфигурации до динамических расширений, в порядке от самого широкого до наиболее целевого:
 
-### Static (file-based, loaded at startup)
+### Статический (файловый, загружается при запуске)
 
-| Mechanism | Scope | Effect |
+| Механизм | Область применения | Эффект |
 |---|---|---|
-| `SYSTEM.md` | Replace base prompt entirely | Nuclear option — you own everything |
-| `APPEND_SYSTEM.md` | Append to base prompt | Safe additive instructions |
-| `AGENTS.md` / `CLAUDE.md` | Project context section | Per-project conventions and rules |
-| Skill `SKILL.md` files | Skills listing | On-demand capability descriptions |
+| `SYSTEM.md` | Заменить базовую подсказку полностью | Ядерный вариант — все принадлежит вам |
+| `APPEND_SYSTEM.md` | Добавить в базовую подсказку | Инструкции по безопасным добавкам |
+| `AGENTS.md` / `CLAUDE.md` | Раздел контекста проекта | Соглашения и правила для каждого проекта |
+| Файлы навыков `SKILL.md` | Список навыков | Описания возможностей по требованию |
 
-### Dynamic (extension-based, runtime)
+### Динамический (на основе расширений, среда выполнения)
 
-| Mechanism | Scope | Timing | Effect |
+| Механизм | Область применения | Тайминг | Эффект |
 |---|---|---|---|
-| `before_agent_start` → `systemPrompt` | Full prompt | Per user prompt | Modify/append/replace system prompt |
-| `promptSnippet` on tools | Tool description line | When tool set changes | Custom one-liner in "Available tools" |
-| `promptGuidelines` on tools | Guidelines section | When tool set changes | Add behavioral bullets |
-| `pi.setActiveTools()` | Tool list + guidelines | Immediate, next prompt | Add/remove tools (rebuilds prompt) |
-| `resources_discover` event | Skills listing | Startup + reload | Inject additional skills from extensions |
+| `before_agent_start` → `systemPrompt` | Полная подсказка | Запрос пользователя | Изменить/добавить/заменить системное приглашение |
+| `promptSnippet` об инструментах | Строка описания инструмента | Когда меняется набор инструментов | Пользовательская однострочная строка в «Доступных инструментах» |
+| `promptGuidelines` об инструментах | Раздел «Рекомендации» | Когда меняется набор инструментов | Добавьте поведенческие маркеры |
+| `pi.setActiveTools()` | Список инструментов + рекомендации | Немедленно, следующая подсказка | Добавить/удалить инструменты (подсказка перестроить) |
+| `resources_discover` событие | Список навыков | Запуск + перезагрузка | Внедрить дополнительные навыки из расширений |
 
-### Per-Turn (message-based, not system prompt)
+### За ход (на основе сообщений, а не системных подсказок)
 
-These don't modify the system prompt but add to what the LLM sees:
+Они не изменяют системное приглашение, а добавляют к тому, что видит LLM:
 
-| Mechanism | Timing | Effect |
+| Механизм | Тайминг | Эффект |
 |---|---|---|
-| `before_agent_start` → `message` | Per user prompt | Inject custom message (becomes user role) |
-| `context` event | Per LLM turn | Filter/inject/transform message array |
-| `pi.sendMessage()` | Anytime | Inject custom message into conversation |
+| `before_agent_start` → `message` | Запрос пользователя | Внедрить пользовательское сообщение (становится ролью пользователя) |
+| `context` событие | За ход LLM | Фильтровать/внедрить/преобразовать массив сообщений |
+| `pi.sendMessage()` | В любое время | Вставить собственное сообщение в разговор |
 
 ---
 
-## Practical Tradeoffs
+## Практические компромиссы
 
-### SYSTEM.md vs before_agent_start
+### SYSTEM.md против before_agent_start
 
 | | SYSTEM.md | before_agent_start |
 |---|---|---|
-| **Persistence** | Permanent until file changes | Per-prompt, must re-apply |
-| **Dynamism** | Static file content | Can compute based on state |
-| **Tool awareness** | Loses built-in tool guidelines | Preserves base prompt, appends |
-| **Composability** | Only one SYSTEM.md (project or global) | Multiple extensions can chain |
+| **Настойчивость** | Постоянно до изменения файла | По запросу необходимо повторно подать заявку |
+| **Динамизм** | Статическое содержимое файла | Может выполнять вычисления на основе состояния |
+| **Информация об инструментах** | Теряет встроенные рекомендации по инструменту | Сохраняет базовое приглашение, добавляет |
+| **Компоновываемость** | Только один SYSTEM.md (проектный или глобальный) | Несколько расширений могут объединяться |
 
-**Recommendation:** Use SYSTEM.md only when you genuinely need to replace the entire prompt (e.g., custom agent personality, non-coding use case). Use `before_agent_start` for everything else.
+**Рекомендация.** Используйте SYSTEM.md только в том случае, если вам действительно необходимо заменить всю подсказку (например, персонализированная личность агента, вариант использования без кодирования). Для всего остального используйте `before_agent_start`.
 
-### APPEND_SYSTEM.md vs AGENTS.md
+### APPEND_SYSTEM.md против AGENTS.md
 
-Both append content, but they appear in different sections:
+Оба добавляют контент, но появляются в разных разделах:
 
-- **APPEND_SYSTEM.md** appears immediately after the base prompt, before "# Project Context"
-- **AGENTS.md** appears inside "# Project Context" with a `## filepath` header
+- **APPEND_SYSTEM.md** появляется сразу после основного приглашения, перед «# Project Context».
+- **AGENTS.md** отображается внутри «# контекста проекта» с заголовком `## filepath`.
 
-Functionally equivalent for the LLM. Use APPEND_SYSTEM.md for instructions that feel like system-level directives. Use AGENTS.md for project-specific conventions and context.
+Функционально эквивалентен LLM. Используйте APPEND_SYSTEM.md для инструкций, которые похожи на директивы системного уровня. Используйте AGENTS.md для обозначения условных обозначений и контекста, специфичных для проекта.
 
-### promptGuidelines vs before_agent_start
+### promptGuidelines против before_agent_start
 
 | | promptGuidelines | before_agent_start |
 |---|---|---|
-| **Scope** | Only when the tool is active | Always (or conditionally in your code) |
-| **Positioning** | Inside "Guidelines" section | Appended to end (or wherever you put it) |
-| **Tool coupling** | Automatically appears/disappears with tool | Independent of tool state |
+| **Объем** | Только когда инструмент активен | Всегда (или условно в вашем коде) |
+| **Позиционирование** | Внутри раздела «Рекомендации» | Добавлено в конец (или где бы вы его ни поставили) |
+| **Соединение инструмента** | Автоматически появляется/исчезает с помощью инструмента | Независимость от состояния инструмента |
 
-**Recommendation:** Use `promptGuidelines` for instructions directly related to tool usage. Use `before_agent_start` for behavioral modifications independent of tool state.
+**Рекомендация.** Используйте `promptGuidelines` для получения инструкций, непосредственно связанных с использованием инструмента. Используйте `before_agent_start` для изменения поведения независимо от состояния инструмента.
 
 ---
 
-## The Full Context Surface Area
+## Полная область контекста
 
-Everything the LLM sees on a given turn:
+Все, что LLM видит на данном ходу:
 
 ```
 System prompt (built from all sources above + before_agent_start mods)
@@ -313,4 +313,4 @@ Tool definitions:
   - Only for active tools (pi.getActiveTools())
 ```
 
-Understanding this complete surface area — and which levers control which parts — is the key to effective context engineering in pi.
+Понимание всей этой площади поверхности — и того, какие рычаги управляют какими частями — является ключом к эффективному контекстному проектированию в пи.

@@ -1,26 +1,26 @@
-# Cost-Quality Tradeoff & Model Routing
+# Компромисс «цена-качество» и маршрутизация моделей
 
-### The Key Insight
+### Ключевая идея
 
-Quality requirements vary enormously across task types, but most systems use the same model for everything.
+Требования к качеству сильно различаются в зависимости от типа задач, но большинство систем используют одну и ту же модель для всего.
 
-### The Optimal Model Routing Strategy (All 4 Agree)
+### Оптимальная модель маршрутизации (все четверо согласны)
 
-| Task Type | Model Tier | Rationale |
+| Тип задачи | Модельный уровень | Обоснование |
 |-----------|-----------|-----------|
-| **Planning, architecture, critique** | Frontier (always) | Planning errors cascade through every downstream task |
-| **Ambiguity resolution** | Frontier | Wrong interpretation = wasted execution |
-| **Well-specified implementation** (CRUD, standard UI, utilities) | Mid-tier / capable but cheaper | Task is well-defined, patterns established |
-| **Code review, test generation** | Mid-tier | Evaluating against known criteria, not generating novel solutions |
-| **Summarization** (task records, manifest updates) | Lightest viable | Language competence, minimal reasoning depth |
-| **Boilerplate** | Small/fast model | Predictable output, low reasoning requirements |
+| **Планирование, архитектура, критика** | Граница (всегда) | Ошибки планирования каскадом проходят через каждую последующую задачу |
+| **Разрешение неоднозначности** | Граница | Неправильная интерпретация = напрасное выполнение |
+| **Точно продуманная реализация** (CRUD, стандарт UI, утилиты) | Средний уровень/мощный, но дешевле | Задача четко определена, закономерности установлены |
+| **Просмотр кода, создание тестов** | Средний уровень | Оценка по известным критериям, а не поиск новых решений |
+| **Сводка** (записи задач, обновления манифеста) | Самый легкий жизнеспособный | Языковая компетентность, минимальная глубина рассуждения |
+| **Шаблон** | Маленькая/быстрая модель | Предсказуемый результат, низкие требования к обоснованию |
 
-### The Non-Obvious Cost Optimization
+### Неочевидная оптимизация затрат
 
-> **Reducing wasted tokens is higher leverage than reducing token price.** A bloated context window costs money on every single call. Trimming 500 unnecessary tokens from context assembly saves more over a project than switching to a model that's 10% cheaper.
+> **Сокращение потраченных впустую токенов является более эффективным рычагом, чем снижение цены токена.** Раздутое контекстное окно стоит денег при каждом отдельном вызове. Удаление 500 ненужных токенов из сборки контекста позволяет сэкономить больше на проекте, чем переход на модель, которая на 10 % дешевле.
 
-### Measurement
+### Измерение
 
-Track **cost-per-successful-task**, not cost-per-task. If the cheaper model requires twice as many iterations, it's not actually cheaper. Grok reports 60-70% cost reduction with zero quality loss when routing is done at the orchestrator level.
+Отслеживайте **цену за выполненную задачу**, а не цену за задачу. Если более дешевая модель требует вдвое больше итераций, на самом деле она не дешевле. Grok сообщает о снижении затрат на 60–70 % при нулевой потере качества при маршрутизации на уровне оркестратора.
 
 ---

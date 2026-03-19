@@ -1,30 +1,30 @@
-# Slash Command Subcommand Patterns
+# Шаблоны подкоманд команды Slash
 
-Pi does not have a separate built-in concept of "nested slash commands" like `/wt new` or `/foo delete`.
+В Pi нет отдельной встроенной концепции «вложенных косых команд», таких как `/wt new` или `/foo delete`.
 
-Instead, this UX is built by registering a single slash command and using **argument completions** to make the first argument behave like a subcommand.
+Вместо этого эта UX создается путем регистрации одной косой черты и использования **дополнения аргументов**, чтобы первый аргумент вел себя как подкоманда.
 
-This is the pattern used by the built-in worktree extension:
+Это шаблон, используемый встроенным расширением рабочего дерева:
 - `/wt`
 - `/wt new`
 - `/wt ls`
 - `/wt switch my-branch`
 
-The key API is:
+Ключ API:
 - `pi.registerCommand(name, options)`
 - `getArgumentCompletions(prefix)`
 - `handler(args, ctx)`
 
-## Mental Model
+## Ментальная модель
 
-Treat the command as:
+Отнеситесь к команде как:
 
-- one top-level slash command
-- one or more positional arguments
-- the first positional argument acting as a subcommand
-- optional later arguments completed dynamically based on the first
+- одна косая черта верхнего уровня
+- один или несколько позиционных аргументов
+- первый позиционный аргумент, действующий как подкоманда
+- необязательные последующие аргументы завершаются динамически на основе первого
 
-So this:
+Итак, это:
 
 ```text
 /wt
@@ -36,12 +36,12 @@ So this:
   status
 ```
 
-is really just:
+действительно просто:
 
-- command: `wt`
-- first arg: one of `new | ls | switch | merge | rm | status`
+- команда: `wt`
+- первый аргумент: один из `new | ls | switch | merge | rm | status`
 
-## The Core Pattern
+## Основной шаблон
 
 ```typescript
 pi.registerCommand("foo", {
@@ -101,35 +101,35 @@ pi.registerCommand("foo", {
 });
 ```
 
-## How `getArgumentCompletions()` Behaves
+## Как ведет себя `getArgumentCompletions()`
 
-`getArgumentCompletions(prefix)` receives everything after the slash command name.
+`getArgumentCompletions(prefix)` получает все, что находится после имени команды с косой чертой.
 
-Examples for `/foo`:
+Примеры для `/foo`:
 
-- typing `/foo ` gives `prefix === ""`
-- typing `/foo de` gives `prefix === "de"`
-- typing `/foo delete a` gives `prefix === "delete a"`
+- ввод `/foo ` дает `prefix === ""`
+- ввод `/foo de` дает `prefix === "de"`
+- ввод `/foo delete a` дает `prefix === "delete a"`
 
-That means you can parse the prefix into words and decide what suggestions to show next.
+Это означает, что вы можете разобрать префикс на слова и решить, какие предложения показывать дальше.
 
-A common structure is:
+Общая структура:
 
-1. If the user is on the first argument, show available subcommands.
-2. If the first argument selects a branch like `delete`, show completions for the next argument.
-3. Otherwise return `[]`.
+1. Если пользователь указан в качестве первого аргумента, отобразите доступные подкоманды.
+2. Если первый аргумент выбирает ветвь типа `delete`, покажите завершение для следующего аргумента.
+3. В противном случае верните `[]`.
 
-## Important Detail: Empty Prefix Handling
+## Важная деталь: обработка пустого префикса
 
-A practical gotcha is that:
+Практическая ошибка заключается в том, что:
 
 ```typescript
 "".trim().split(/\s+/)
 ```
 
-produces `['']`, not `[]`.
+производит `['']`, а не `[]`.
 
-That is why the common pattern is:
+Вот почему общая схема такова:
 
 ```typescript
 const parts = prefix.trim().split(/\s+/);
@@ -138,15 +138,15 @@ if (parts.length <= 1) {
 }
 ```
 
-This handles both:
-- completely empty input after the command
-- partially typed first arguments
+Это обрабатывает оба:
+- полностью пустой ввод после команды
+- частично типизированные первые аргументы
 
-## Dynamic Second-Argument Completion
+## Динамическое завершение второго аргумента
 
-This pattern becomes powerful when later arguments depend on the subcommand.
+Этот шаблон становится эффективным, когда последующие аргументы зависят от подкоманды.
 
-Example:
+Пример:
 
 ```typescript
 getArgumentCompletions: (prefix) => {
@@ -169,32 +169,32 @@ getArgumentCompletions: (prefix) => {
 }
 ```
 
-This is how `/wt switch`, `/wt merge`, and `/wt rm` can suggest current worktree names.
+Таким образом, `/wt switch`, `/wt merge` и `/wt rm` могут предлагать текущие имена рабочего дерева.
 
-## Real Example: `/wt`
+## Реальный пример: `/wt`
 
-The worktree extension uses this exact structure in:
+Расширение рабочего дерева использует именно эту структуру:
 
 - `/Users/lexchristopherson/.gsd/agent/extensions/worktree/index.ts`
 
-It defines:
+Он определяет:
 
 ```typescript
 const subcommands = ["new", "ls", "switch", "merge", "rm", "status"];
 ```
 
-Then:
+Тогда:
 
-- when the first argument is still being typed, it suggests those subcommands
-- when the first argument is `switch`, `merge`, or `rm`, it suggests matching worktree names for the second argument
+- когда первый аргумент все еще вводится, он предлагает эти подкоманды
+- если первый аргумент – `switch`, `merge` или `rm`, предлагается сопоставить имена рабочих деревьев для второго аргумента.
 
-That is why typing:
+Вот почему набираем:
 
 ```text
 /wt 
 ```
 
-shows:
+показывает:
 
 ```text
 new
@@ -205,19 +205,19 @@ rm
 status
 ```
 
-and typing:
+и набрав:
 
 ```text
 /wt switch 
 ```
 
-shows available worktree names.
+показывает доступные имена рабочих деревьев.
 
-## Parsing in the Handler
+## Разбор в обработчике
 
-Your completion logic and your handler logic should agree on the command shape.
+Ваша логика завершения и логика вашего обработчика должны согласовываться по форме команды.
 
-A common structure is:
+Общая структура:
 
 ```typescript
 handler: async (args, ctx) => {
@@ -242,83 +242,83 @@ handler: async (args, ctx) => {
 }
 ```
 
-Keep the parsing simple and mirror the same branches your completions advertise.
+Сохраняйте синтаксический анализ простым и зеркально отображайте те же ветки, которые рекламируют ваши завершения.
 
-## When to Use This Pattern
+## Когда использовать этот шаблон
 
-Use a single command with subcommand-style completions when:
+Используйте одну команду с завершением в стиле подкоманды, когда:
 
-- the actions belong to one clear domain
-- you want discoverability from one entry point
-- the subcommands feel like one family of operations
-- later arguments depend on the earlier choice
+- действия принадлежат одному четкому домену
+- вам нужна возможность обнаружения из одной точки входа
+- подкоманды ощущаются как одно семейство операций
+- последующие аргументы зависят от предыдущего выбора
 
-Examples:
+Примеры:
 
 - `/wt new|switch|merge|rm|status`
 - `/preset save|load|delete`
 - `/workflow start|list|abort`
 - `/foo new|list|delete`
 
-## When to Prefer Separate Commands
+## Когда лучше использовать отдельные команды
 
-Prefer separate commands when:
+Отдавайте предпочтение отдельным командам, когда:
 
-- the actions are conceptually unrelated
-- each command needs its own distinct description and identity
-- autocomplete would become too deep or overloaded
-- the combined command would become hard to remember or document
+- действия концептуально не связаны между собой
+- каждая команда нуждается в своем собственном четком описании и идентичности
+- автозаполнение станет слишком глубоким или перегруженным
+- объединенную команду станет трудно запомнить или документировать
 
-Good candidates for separate commands:
+Хорошие кандидаты в отдельные команды:
 
 - `/deploy`
 - `/rollback`
 - `/handoff`
 
-rather than forcing all of those into one umbrella command.
+вместо того, чтобы объединять их всех в одну команду.
 
-## UX Guidelines
+## UX Рекомендации
 
-A few practical rules make this pattern feel good:
+Несколько практических правил сделают этот шаблон приятным:
 
-- Keep top-level subcommands short and obvious.
-- Use names that read naturally after the slash command.
-- Keep branching shallow; one or two levels is usually enough.
-- Return an empty array when no completion makes sense.
-- Make your fallback usage text match your completion structure.
-- If a subcommand needs required data, validate it again in the handler.
+- Делайте подкоманды верхнего уровня короткими и понятными.
+- Используйте имена, которые естественным образом читаются после косой черты.
+- Следите за тем, чтобы ветки были неглубокими; одного или двух уровней обычно достаточно.
+— Возвращать пустой массив, если завершение не имеет смысла.
+- Сделайте так, чтобы текст резервного использования соответствовал вашей структуре завершения.
+- Если подкоманде требуются необходимые данные, проверьте их еще раз в обработчике.
 
-## Recommended Structure
+## Рекомендуемая структура
 
-A solid command with subcommands usually has:
+Сплошная команда с подкомандами обычно имеет:
 
-- `description` showing the top-level grammar
-- `getArgumentCompletions()` for first and second argument suggestions
-- `handler()` that branches on the first argument
-- a fallback usage message for invalid input
+- `description` показывает грамматику верхнего уровня.
+- `getArgumentCompletions()` для предложений первого и второго аргумента.
+- `handler()`, который разветвляется по первому аргументу
+- сообщение об использовании резервного варианта для недопустимого ввода
 
-Example description:
+Пример описания:
 
 ```typescript
 description: "Manage foo items: /foo new|list|delete [name]"
 ```
 
-## Related Docs
+## Сопутствующие документы
 
-Read these alongside this pattern:
+Прочтите их рядом с этим шаблоном:
 
 - `/Users/lexchristopherson/.gsd/docs/extending-pi/11-custom-commands-user-facing-actions.md`
 - `/Users/lexchristopherson/.gsd/docs/extending-pi/09-extensionapi-what-you-can-do.md`
 - `/Users/lexchristopherson/.gsd/agent/extensions/worktree/index.ts`
 
-## Summary
+## Резюме
 
-If you want `/foo` to behave like it has nested subcommands, do this:
+Если вы хотите, чтобы `/foo` вела себя так, как будто у нее есть вложенные подкоманды, сделайте следующее:
 
-1. register one slash command
-2. treat the first argument as a subcommand
-3. implement `getArgumentCompletions(prefix)`
-4. optionally complete later arguments dynamically
-5. branch in the handler based on the parsed first argument
+1. зарегистрировать одну косую черту
+2. рассматривать первый аргумент как подкоманду
+3. реализовать `getArgumentCompletions(prefix)`
+4. при необходимости динамически дополнять последующие аргументы
+5. переход в обработчике на основе разобранного первого аргумента
 
-That is the mechanism behind the `/wt` experience.
+Это механизм, лежащий в основе опыта `/wt`.

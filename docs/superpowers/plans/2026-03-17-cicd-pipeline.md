@@ -1,58 +1,58 @@
-# CI/CD Pipeline Implementation Plan
+# CI/CD План реализации трубопровода
 
-> **For agentic workers:** REQUIRED: Use superpowers:subagent-driven-development (if subagents available) or superpowers:executing-plans to implement this plan. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **Для агентских работников:** REQUIRED: используйте суперспособности:разработка под агентом (если субагенты доступны) или суперсилы:выполнение планов для реализации этого плана. Для отслеживания шагов используется синтаксис флажка (`- [ ]`).
 
-**Goal:** Build a three-stage promotion pipeline (Dev → Test → Prod) with Docker images, LLM fixture replay, and npm dist-tag management.
+**Цель:** Создать трехэтапный конвейер продвижения (Разработка → Тестирование → Разработка) с использованием образов Docker, воспроизведения настроек LLM и управления dist-тегами npm.
 
-**Architecture:** GitHub Actions `workflow_run` trigger chains `ci.yml` success into a new `pipeline.yml` with three jobs (dev-publish, test-verify, prod-release). A `FixtureProvider` wraps `pi-ai`'s `ApiProvider` interface to record/replay LLM conversations. Two Docker images (CI builder + slim runtime) are built from a single multi-stage Dockerfile.
+**Архитектура:** Действия GitHub `workflow_run` запускают цепочки `ci.yml` успеха в новый `pipeline.yml` с тремя заданиями (разработка-публикация, тестирование-проверка, выпуск-выпуск). `FixtureProvider` объединяет интерфейс `ApiProvider` `pi-ai` для записи/воспроизведения разговоров LLM. Два образа Docker (CI builder + slim runtime) создаются из одного многоэтапного файла Dockerfile.
 
-**Tech Stack:** GitHub Actions, Docker (multi-stage), Node 22, Rust toolchain, npm dist-tags, GHCR
+**Технический стек:** Действия GitHub, Docker (многоэтапный), Node 22, набор инструментов Rust, npm dist-tags, GHCR
 
-**Spec:** `docs/superpowers/specs/2026-03-17-cicd-pipeline-design.md`
+**Спецификация:** `docs/superpowers/specs/2026-03-17-cicd-pipeline-design.md`
 
 ---
 
-## File Structure
+## Структура файла
 
-### New Files
+### Новые файлы
 
-| File | Responsibility |
+| Файл | Ответственность |
 |------|---------------|
-| `Dockerfile` | Multi-stage: `builder` target (CI image) + `runtime` target (user image) |
-| `.github/workflows/pipeline.yml` | Three-stage promotion pipeline (Dev → Test → Prod) |
-| `.github/workflows/cleanup-dev-versions.yml` | Weekly scheduled cleanup of old `-dev.` npm versions |
-| `scripts/version-stamp.mjs` | Reads `package.json` version, appends `-dev.<sha>`, writes back |
-| `tests/smoke/run.ts` | Smoke test runner — discovers and executes all smoke tests |
-| `tests/smoke/test-version.ts` | Verify `gsd --version` outputs valid semver |
-| `tests/smoke/test-help.ts` | Verify `gsd --help` exits 0 and contains expected output |
-| `tests/smoke/test-init.ts` | Verify `gsd init` creates expected files in a temp dir |
-| `tests/fixtures/provider.ts` | `FixtureProvider` — wraps `ApiProvider`, records/replays turns |
-| `tests/fixtures/run.ts` | Fixture test runner — loads recordings, replays via `FixtureProvider` |
-| `tests/fixtures/record.ts` | Recording helper — runs a session with `GSD_FIXTURE_MODE=record` |
-| `tests/fixtures/recordings/agent-creates-file.json` | Sample fixture: single-turn file creation |
-| `tests/fixtures/recordings/agent-reads-and-edits.json` | Fixture: multi-turn read + edit flow |
-| `tests/fixtures/recordings/agent-handles-error.json` | Fixture: error response handling |
-| `tests/fixtures/recordings/agent-multi-turn-tools.json` | Fixture: multi-turn tool use round-trips |
-| `tests/live/run.ts` | Live LLM test runner (optional, Prod gate only) |
-| `tests/live/test-anthropic-roundtrip.ts` | Real Anthropic API round-trip test |
-| `tests/live/test-openai-roundtrip.ts` | Real OpenAI API round-trip test |
+| `Dockerfile` | Многоэтапный: мишень `builder` (изображение CI) + мишень `runtime` (изображение пользователя) |
+| `.github/workflows/pipeline.yml` | Трехэтапный конвейер продвижения (Разработка → Тестирование → Разработка) |
+| `.github/workflows/cleanup-dev-versions.yml` | Еженедельная плановая очистка старых версий npm `-dev.` |
+| `scripts/version-stamp.mjs` | Читает версию `package.json`, добавляет `-dev.<sha>`, записывает обратно |
+| `tests/smoke/run.ts` | Программа Smoke Test Runner — обнаруживает и выполняет все дымовые тесты |
+| `tests/smoke/test-version.ts` | Убедитесь, что выходные данные `gsd --version` действительны semver |
+| `tests/smoke/test-help.ts` | Убедитесь, что `gsd --help` выходит из 0 и содержит ожидаемый результат |
+| `tests/smoke/test-init.ts` | Убедитесь, что `gsd init` создает ожидаемые файлы во временной папке |
+| `tests/fixtures/provider.ts` | `FixtureProvider` — переворачивает `ApiProvider`, записывает/повторяет ходы |
+| `tests/fixtures/run.ts` | Программа тестирования приборов — загружает записи и повторы через `FixtureProvider` |
+| `tests/fixtures/record.ts` | Помощник по записи — запускает сеанс с `GSD_FIXTURE_MODE=record` |
+| `tests/fixtures/recordings/agent-creates-file.json` | Пример приспособления: создание однооборотного файла |
+| `tests/fixtures/recordings/agent-reads-and-edits.json` | Крепление: многооборотное чтение + поток редактирования |
+| `tests/fixtures/recordings/agent-handles-error.json` | Исправление: обработка ответов об ошибках |
+| `tests/fixtures/recordings/agent-multi-turn-tools.json` | Крепеж: многооборотный инструмент использует туда и обратно |
+| `tests/live/run.ts` | Живой тест-раннер LLM (опционально, только Prod Gate) |
+| `tests/live/test-anthropic-roundtrip.ts` | Настоящий антропный тест туда и обратно API |
+| `tests/live/test-openai-roundtrip.ts` | Реальный тест OpenAI API туда и обратно |
 
-### Modified Files
+### Измененные файлы
 
-| File | Change |
+| Файл | Изменить |
 |------|--------|
-| `package.json` | Add 6 new scripts (`test:smoke`, `test:fixtures`, etc.) |
+| `package.json` | Добавить 6 новых скриптов (`test:smoke`, `test:fixtures` и т. д.) |
 
 ---
 
-## Chunk 1: Version Stamp Script + Dockerfile
+## Чанк 1: сценарий штампа версии + файл Dockerfile
 
-### Task 1: Version Stamp Script
+### Задача 1. Скрипт штампа версии
 
-**Files:**
-- Create: `scripts/version-stamp.mjs`
+**Файлы:**
+- Создать: `scripts/version-stamp.mjs`
 
-- [ ] **Step 1: Write the version stamp script**
+- [ ] **Шаг 1. Напишите сценарий отметки версии**
 
 ```javascript
 // scripts/version-stamp.mjs
@@ -75,16 +75,16 @@ writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + "\n");
 console.log(`Stamped version: ${devVersion}`);
 ```
 
-- [ ] **Step 2: Test it locally**
+- [ ] **Шаг 2. Проверьте локально**
 
-Run: `node scripts/version-stamp.mjs`
-Expected: Outputs `Stamped version: 2.27.0-dev.<your-sha>` and modifies `package.json`
+Пробег: `node scripts/version-stamp.mjs`
+Ожидается: выводит `Stamped version: 2.27.0-dev.<your-sha>` и изменяет `package.json`.
 
-- [ ] **Step 3: Revert the package.json change**
+- [ ] **Шаг 3. Отмените изменение package.json**
 
-Run: `git checkout -- package.json`
+Пробег: `git checkout -- package.json`
 
-- [ ] **Step 4: Commit**
+- [ ] **Шаг 4: Зафиксировать**
 
 ```bash
 git add scripts/version-stamp.mjs
@@ -93,12 +93,12 @@ git commit -m "feat(ci): add version stamp script for dev publishes"
 
 ---
 
-### Task 2: Multi-Stage Dockerfile
+### Задача 2: многоэтапный файл Dockerfile
 
-**Files:**
-- Create: `Dockerfile`
+**Файлы:**
+- Создать: `Dockerfile`
 
-- [ ] **Step 1: Write the Dockerfile**
+- [ ] **Шаг 1. Напишите файл Dockerfile**
 
 ```dockerfile
 # ──────────────────────────────────────────────
@@ -145,22 +145,22 @@ ENTRYPOINT ["gsd"]
 CMD ["--help"]
 ```
 
-- [ ] **Step 2: Verify builder stage builds**
+- [ ] **Шаг 2. Проверка сборок на этапе сборки**
 
-Run: `docker build --target builder -t gsd-ci-builder-test .`
-Expected: Completes successfully (may take 5-10 min first time)
+Пробег: `docker build --target builder -t gsd-ci-builder-test .`
+Ожидается: успешное завершение (первый раз может занять 5–10 минут).
 
-- [ ] **Step 3: Verify runtime stage builds**
+- [ ] **Шаг 3. Проверка сборок на этапе выполнения**
 
-Run: `docker build --target runtime -t gsd-pi-test .`
-Expected: Completes successfully
+Пробег: `docker build --target runtime -t gsd-pi-test .`
+Ожидается: завершено успешно.
 
-- [ ] **Step 4: Verify runtime image works**
+- [ ] **Шаг 4. Убедитесь, что образ среды выполнения работает**
 
-Run: `docker run --rm gsd-pi-test --version`
-Expected: Outputs a version string
+Пробег: `docker run --rm gsd-pi-test --version`
+Ожидается: выводит строку версии.
 
-- [ ] **Step 5: Commit**
+- [ ] **Шаг 5: Зафиксировать**
 
 ```bash
 git add Dockerfile
@@ -169,18 +169,18 @@ git commit -m "feat(ci): add multi-stage Dockerfile for CI builder and runtime i
 
 ---
 
-## Chunk 2: Smoke Tests
+## Часть 2: Дымовые тесты
 
-### Task 3: Smoke Test Runner and Tests
+### Задача 3: Программа выполнения дымовых тестов и тесты
 
-**Files:**
-- Create: `tests/smoke/run.ts`
-- Create: `tests/smoke/test-version.ts`
-- Create: `tests/smoke/test-help.ts`
-- Create: `tests/smoke/test-init.ts`
-- Modify: `package.json` (add `test:smoke` script)
+**Файлы:**
+- Создать: `tests/smoke/run.ts`
+- Создать: `tests/smoke/test-version.ts`
+- Создать: `tests/smoke/test-help.ts`
+- Создать: `tests/smoke/test-init.ts`
+- Изменить: `package.json` (добавить сценарий `test:smoke`)
 
-- [ ] **Step 1: Create the smoke test runner**
+- [ ] **Шаг 1. Создайте средство запуска дымового теста**
 
 ```typescript
 // tests/smoke/run.ts
@@ -221,7 +221,7 @@ console.log(`\n${passed} passed, ${failed} failed`);
 if (failed > 0) process.exit(1);
 ```
 
-- [ ] **Step 2: Create test-version.ts**
+- [ ] **Шаг 2. Создайте test-version.ts**
 
 ```typescript
 // tests/smoke/test-version.ts
@@ -244,7 +244,7 @@ if (!/^\d+\.\d+\.\d+/.test(output)) {
 console.log(`version: ${output}`);
 ```
 
-- [ ] **Step 3: Create test-help.ts**
+- [ ] **Шаг 3. Создайте test-help.ts**
 
 ```typescript
 // tests/smoke/test-help.ts
@@ -268,7 +268,7 @@ for (const keyword of requiredKeywords) {
 console.log("help output OK");
 ```
 
-- [ ] **Step 4: Create test-init.ts**
+- [ ] **Шаг 4. Создайте test-init.ts**
 
 ```typescript
 // tests/smoke/test-init.ts
@@ -303,19 +303,19 @@ try {
 }
 ```
 
-- [ ] **Step 5: Add test:smoke script to package.json**
+- [ ] **Шаг 5. Добавьте скрипт test:smoke в package.json**
 
-Add to `package.json` `scripts`:
+Добавьте к `package.json` `scripts`:
 ```json
 "test:smoke": "node --experimental-strip-types tests/smoke/run.ts"
 ```
 
-- [ ] **Step 6: Run the smoke tests locally**
+- [ ] **Шаг 6. Запустите дымовые тесты локально**
 
-Run: `npm run test:smoke`
-Expected: All 3 tests pass (version, help, init)
+Пробег: `npm run test:smoke`
+Ожидается: все 3 теста пройдены (версия, справка, инициализация).
 
-- [ ] **Step 7: Commit**
+- [ ] **Шаг 7: Зафиксировать**
 
 ```bash
 git add tests/smoke/ package.json
@@ -324,14 +324,14 @@ git commit -m "feat(ci): add CLI smoke tests for pipeline test stage"
 
 ---
 
-## Chunk 3: LLM Fixture Provider
+## Часть 3: Поставщик приспособлений LLM
 
-### Task 4: FixtureProvider Implementation
+### Задача 4. Реализация FixtureProvider
 
-**Files:**
-- Create: `tests/fixtures/provider.ts`
+**Файлы:**
+- Создать: `tests/fixtures/provider.ts`
 
-The `FixtureProvider` operates at the `ApiProvider` level defined in `packages/pi-ai/src/api-registry.ts:23-27`. The key interface is:
+`FixtureProvider` работает на уровне `ApiProvider`, определенном в `packages/pi-ai/src/api-registry.ts:23-27`. Ключевой интерфейс:
 
 ```typescript
 interface ApiProvider<TApi, TOptions> {
@@ -341,9 +341,9 @@ interface ApiProvider<TApi, TOptions> {
 }
 ```
 
-The provider is registered via `registerApiProvider()` from `packages/pi-ai/src/api-registry.ts:66`.
+Провайдер зарегистрирован через `registerApiProvider()` от `packages/pi-ai/src/api-registry.ts:66`.
 
-- [ ] **Step 1: Write the FixtureProvider**
+- [ ] **Шаг 1. Напишите FixtureProvider**
 
 ```typescript
 // tests/fixtures/provider.ts
@@ -484,14 +484,14 @@ export class FixtureReplayer {
 }
 ```
 
-Note: This provider implements the core recording/replay data structures and utilities. Wiring it into the `pi-ai` registry as a drop-in `ApiProvider` (via `registerApiProvider()` from `packages/pi-ai/src/api-registry.ts`) requires importing `@gsd/pi-ai` internals, which couples tests to the build output. This integration is deferred to a follow-up task after the pipeline is operational. The current implementation validates fixture format, turn sequencing, and replay correctness independently.
+Примечание. Этот поставщик реализует основные структуры и утилиты записи/воспроизведения данных. Подключение его к реестру `pi-ai` в качестве вставки `ApiProvider` (через `registerApiProvider()` из `packages/pi-ai/src/api-registry.ts`) требует импорта внутренних компонентов `@gsd/pi-ai`, которые связывают тесты с результатами сборки. Эта интеграция откладывается до последующей задачи после ввода трубопровода в эксплуатацию. Текущая реализация независимо проверяет формат приспособлений, последовательность поворотов и правильность воспроизведения.
 
-- [ ] **Step 2: Verify the file has no syntax errors**
+- [ ] **Шаг 2. Убедитесь, что файл не содержит синтаксических ошибок**
 
-Run: `node --experimental-strip-types -e "import('./tests/fixtures/provider.ts').then(() => console.log('OK'))"`
-Expected: `OK`
+Пробег: `node --experimental-strip-types -e "import('./tests/fixtures/provider.ts').then(() => console.log('OK'))"`
+Ожидается: `OK`
 
-- [ ] **Step 3: Commit**
+- [ ] **Шаг 3: Зафиксировать**
 
 ```bash
 git add tests/fixtures/provider.ts
@@ -500,16 +500,16 @@ git commit -m "feat(ci): add FixtureProvider for LLM conversation recording and 
 
 ---
 
-### Task 5: Fixture Test Runner
+### Задача 5: Программа тестирования приспособлений
 
-**Files:**
-- Create: `tests/fixtures/run.ts`
-- Create: `tests/fixtures/recordings/agent-creates-file.json`
-- Modify: `package.json` (add `test:fixtures` script)
+**Файлы:**
+- Создать: `tests/fixtures/run.ts`
+- Создать: `tests/fixtures/recordings/agent-creates-file.json`
+- Изменить: `package.json` (добавить сценарий `test:fixtures`)
 
-- [ ] **Step 1: Create a sample fixture recording**
+- [ ] **Шаг 1: Создайте образец записи прибора**
 
-Save to `tests/fixtures/recordings/agent-creates-file.json`:
+Сохранить в `tests/fixtures/recordings/agent-creates-file.json`:
 
 ```json
 {
@@ -542,7 +542,7 @@ Save to `tests/fixtures/recordings/agent-creates-file.json`:
 }
 ```
 
-- [ ] **Step 2: Create the fixture test runner**
+- [ ] **Шаг 2. Создайте средство запуска тестов устройств**
 
 ```typescript
 // tests/fixtures/run.ts
@@ -620,19 +620,19 @@ console.log(`\n${passed} passed, ${failed} failed`);
 if (failed > 0) process.exit(1);
 ```
 
-- [ ] **Step 3: Add test:fixtures script to package.json**
+- [ ] **Шаг 3. Добавьте скрипт test:fixtures в package.json**
 
-Add to `package.json` `scripts`:
+Добавьте к `package.json` `scripts`:
 ```json
 "test:fixtures": "node --experimental-strip-types tests/fixtures/run.ts"
 ```
 
-- [ ] **Step 4: Run the fixture tests**
+- [ ] **Шаг 4. Запустите тесты приспособлений**
 
-Run: `npm run test:fixtures`
-Expected: `✓ agent-creates-file (1 turns)` — 1 passed, 0 failed
+Пробег: `npm run test:fixtures`
+Ожидается: `✓ agent-creates-file (1 turns)` — 1 пройдено, 0 не пройдено
 
-- [ ] **Step 5: Commit**
+- [ ] **Шаг 5: Зафиксировать**
 
 ```bash
 git add tests/fixtures/run.ts tests/fixtures/recordings/ package.json
@@ -641,16 +641,16 @@ git commit -m "feat(ci): add fixture test runner with sample recording"
 
 ---
 
-### Task 5b: Additional Fixture Recordings
+### Задача 5b: Дополнительные записи приборов
 
-**Files:**
-- Create: `tests/fixtures/recordings/agent-reads-and-edits.json`
-- Create: `tests/fixtures/recordings/agent-handles-error.json`
-- Create: `tests/fixtures/recordings/agent-multi-turn-tools.json`
+**Файлы:**
+- Создать: `tests/fixtures/recordings/agent-reads-and-edits.json`
+- Создать: `tests/fixtures/recordings/agent-handles-error.json`
+- Создать: `tests/fixtures/recordings/agent-multi-turn-tools.json`
 
-- [ ] **Step 1: Create multi-turn read+edit fixture**
+- [ ] **Шаг 1: Создайте многооборотное приспособление для чтения и редактирования**
 
-Save to `tests/fixtures/recordings/agent-reads-and-edits.json`:
+Сохранить в `tests/fixtures/recordings/agent-reads-and-edits.json`:
 
 ```json
 {
@@ -693,9 +693,9 @@ Save to `tests/fixtures/recordings/agent-reads-and-edits.json`:
 }
 ```
 
-- [ ] **Step 2: Create error-handling fixture**
+- [ ] **Шаг 2. Создайте приспособление для обработки ошибок**
 
-Save to `tests/fixtures/recordings/agent-handles-error.json`:
+Сохранить в `tests/fixtures/recordings/agent-handles-error.json`:
 
 ```json
 {
@@ -737,9 +737,9 @@ Save to `tests/fixtures/recordings/agent-handles-error.json`:
 }
 ```
 
-- [ ] **Step 3: Create multi-turn tool use fixture**
+- [ ] **Шаг 3. Создайте приспособление для многооборотного инструмента**
 
-Save to `tests/fixtures/recordings/agent-multi-turn-tools.json`:
+Сохранить в `tests/fixtures/recordings/agent-multi-turn-tools.json`:
 
 ```json
 {
@@ -782,12 +782,12 @@ Save to `tests/fixtures/recordings/agent-multi-turn-tools.json`:
 }
 ```
 
-- [ ] **Step 4: Re-run fixture tests to verify all 4 fixtures pass**
+- [ ] **Шаг 4. Повторно запустите тесты приспособлений, чтобы убедиться, что все четыре приспособления прошли успешно**
 
-Run: `npm run test:fixtures`
-Expected: 4 passed, 0 failed
+Пробег: `npm run test:fixtures`
+Ожидается: 4 пройдено, 0 не пройдено
 
-- [ ] **Step 5: Commit**
+- [ ] **Шаг 5: Зафиксировать**
 
 ```bash
 git add tests/fixtures/recordings/
@@ -796,16 +796,16 @@ git commit -m "feat(ci): add additional fixture recordings for multi-turn and er
 
 ---
 
-## Chunk 4: Live Tests (Stub) + npm Scripts
+## Часть 4: Живые тесты (заглушка) + скрипты npm
 
-### Task 6: Live Test Stubs
+### Задача 6: живые тестовые заглушки
 
-**Files:**
-- Create: `tests/live/run.ts`
-- Create: `tests/live/test-anthropic-roundtrip.ts`
-- Modify: `package.json` (add remaining scripts)
+**Файлы:**
+- Создать: `tests/live/run.ts`
+- Создать: `tests/live/test-anthropic-roundtrip.ts`
+- Изменить: `package.json` (добавить оставшиеся скрипты)
 
-- [ ] **Step 1: Create live test runner**
+- [ ] **Шаг 1. Создайте средство запуска живых тестов**
 
 ```typescript
 // tests/live/run.ts
@@ -853,7 +853,7 @@ console.log(`\n${passed} passed, ${failed} failed`);
 if (failed > 0) process.exit(1);
 ```
 
-- [ ] **Step 2: Create Anthropic roundtrip test**
+- [ ] **Шаг 2. Создайте антропный двусторонний тест**
 
 ```typescript
 // tests/live/test-anthropic-roundtrip.ts
@@ -897,7 +897,7 @@ if (!text || text.length === 0) {
 console.log(`Anthropic roundtrip OK: "${text.substring(0, 50)}"`);
 ```
 
-- [ ] **Step 3: Create OpenAI roundtrip test**
+- [ ] **Шаг 3. Создайте двусторонний тест OpenAI**
 
 ```typescript
 // tests/live/test-openai-roundtrip.ts
@@ -940,9 +940,9 @@ if (!text || text.length === 0) {
 console.log(`OpenAI roundtrip OK: "${text.substring(0, 50)}"`);
 ```
 
-- [ ] **Step 4: Add remaining scripts to package.json**
+- [ ] **Шаг 4. Добавьте оставшиеся сценарии в package.json**
 
-Add to `package.json` `scripts`:
+Добавьте к `package.json` `scripts`:
 ```json
 "test:fixtures:record": "GSD_FIXTURE_MODE=record node --experimental-strip-types tests/fixtures/record.ts",
 "test:live": "GSD_LIVE_TESTS=1 node --experimental-strip-types tests/live/run.ts",
@@ -951,12 +951,12 @@ Add to `package.json` `scripts`:
 "docker:build-builder": "docker build --target builder -t ghcr.io/gsd-build/gsd-ci-builder ."
 ```
 
-- [ ] **Step 5: Verify live tests skip without env var**
+- [ ] **Шаг 5. Убедитесь, что живые тесты пропускаются без переменной env var**
 
-Run: `npm run test:live`
-Expected: `Skipping live tests (set GSD_LIVE_TESTS=1 to enable)` and exit 0
+Пробег: `npm run test:live`
+Ожидается: `Skipping live tests (set GSD_LIVE_TESTS=1 to enable)` и выход 0.
 
-- [ ] **Step 6: Commit**
+- [ ] **Шаг 6: Зафиксировать**
 
 ```bash
 git add tests/live/ package.json
@@ -965,14 +965,14 @@ git commit -m "feat(ci): add live LLM test stubs and remaining npm scripts"
 
 ---
 
-## Chunk 5: GitHub Actions Workflows
+## Часть 5: Рабочие процессы действий GitHub
 
-### Task 7: Pipeline Workflow
+### Задача 7. Рабочий процесс конвейера
 
-**Files:**
-- Create: `.github/workflows/pipeline.yml`
+**Файлы:**
+- Создать: `.github/workflows/pipeline.yml`
 
-- [ ] **Step 1: Write the pipeline workflow**
+- [ ] **Шаг 1. Напишите рабочий процесс конвейера**
 
 ```yaml
 # .github/workflows/pipeline.yml
@@ -1176,12 +1176,12 @@ jobs:
           docker run --rm ghcr.io/gsd-build/gsd-ci-builder:latest rustc --version
 ```
 
-- [ ] **Step 2: Validate YAML syntax**
+- [ ] **Шаг 2. Проверка синтаксиса YAML**
 
-Run: `python3 -c "import yaml; yaml.safe_load(open('.github/workflows/pipeline.yml'))"`
-Expected: No errors
+Пробег: `python3 -c "import yaml; yaml.safe_load(open('.github/workflows/pipeline.yml'))"`
+Ожидается: нет ошибок
 
-- [ ] **Step 3: Commit**
+- [ ] **Шаг 3: Зафиксировать**
 
 ```bash
 git add .github/workflows/pipeline.yml
@@ -1190,12 +1190,12 @@ git commit -m "feat(ci): add three-stage promotion pipeline workflow"
 
 ---
 
-### Task 8: Dev Version Cleanup Workflow
+### Задача 8. Рабочий процесс очистки версии для разработчиков
 
-**Files:**
-- Create: `.github/workflows/cleanup-dev-versions.yml`
+**Файлы:**
+- Создать: `.github/workflows/cleanup-dev-versions.yml`
 
-- [ ] **Step 1: Write the cleanup workflow**
+- [ ] **Шаг 1. Напишите рабочий процесс очистки**
 
 ```yaml
 # .github/workflows/cleanup-dev-versions.yml
@@ -1262,12 +1262,12 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 ```
 
-- [ ] **Step 2: Validate YAML syntax**
+- [ ] **Шаг 2. Проверьте синтаксис YAML**
 
-Run: `python3 -c "import yaml; yaml.safe_load(open('.github/workflows/cleanup-dev-versions.yml'))"`
-Expected: No errors
+Пробег: `python3 -c "import yaml; yaml.safe_load(open('.github/workflows/cleanup-dev-versions.yml'))"`
+Ожидается: нет ошибок
 
-- [ ] **Step 3: Commit**
+- [ ] **Шаг 3: Зафиксировать**
 
 ```bash
 git add .github/workflows/cleanup-dev-versions.yml
@@ -1276,14 +1276,14 @@ git commit -m "feat(ci): add weekly dev version cleanup workflow"
 
 ---
 
-## Chunk 6: Recording Helper + Final Integration
+## Часть 6: Помощник по записи + окончательная интеграция
 
-### Task 9: Fixture Recording Helper
+### Задача 9: Помощник по записи приборов
 
-**Files:**
-- Create: `tests/fixtures/record.ts`
+**Файлы:**
+- Создать: `tests/fixtures/record.ts`
 
-- [ ] **Step 1: Create the recording helper**
+- [ ] **Шаг 1. Создайте помощника по записи**
 
 ```typescript
 // tests/fixtures/record.ts
@@ -1326,7 +1326,7 @@ console.log("agent session startup to intercept real API calls.");
 console.log("See tests/fixtures/provider.ts for the integration API.");
 ```
 
-- [ ] **Step 2: Commit**
+- [ ] **Шаг 2: Зафиксировать**
 
 ```bash
 git add tests/fixtures/record.ts
@@ -1335,11 +1335,11 @@ git commit -m "feat(ci): add fixture recording helper with usage instructions"
 
 ---
 
-### Task 10: Final Integration Verification
+### Задача 10: Окончательная проверка интеграции
 
-**Prerequisite:** All work should be on the `ci-cd` branch (created from `main` before starting Task 1).
+**Обязательное условие:** Вся работа должна выполняться в ветке `ci-cd` (созданной на основе `main` перед запуском задачи 1).
 
-- [ ] **Step 1: Run the full test suite**
+- [ ] **Шаг 1. Запустите полный набор тестов**
 
 ```bash
 npm run test:smoke
@@ -1347,12 +1347,12 @@ npm run test:fixtures
 npm run test:live
 ```
 
-Expected:
-- Smoke tests: 3 passed
-- Fixture tests: 1 passed
-- Live tests: Skipped (no `GSD_LIVE_TESTS=1`)
+Ожидается:
+- Дымовые испытания: 3 пройдены
+- Тесты крепления: 1 пройдено
+- Живые тесты: пропущены (нет `GSD_LIVE_TESTS=1`)
 
-- [ ] **Step 2: Validate all workflow YAML files**
+- [ ] **Шаг 2. Проверьте все файлы рабочего процесса YAML**
 
 ```bash
 python3 -c "
@@ -1363,42 +1363,42 @@ for f in glob.glob('.github/workflows/*.yml'):
 "
 ```
 
-Expected: All `.yml` files parse without errors
+Ожидается: все файлы `.yml` анализируются без ошибок.
 
-- [ ] **Step 3: Verify git status is clean**
+- [ ] **Шаг 3. Убедитесь, что статус git чистый**
 
-Run: `git status`
-Expected: Nothing to commit, working tree clean
+Пробег: `git status`
+Ожидается: ничего делать не нужно, рабочее дерево чистое.
 
-- [ ] **Step 4: Review commit history**
+- [ ] **Шаг 4. Просмотрите историю изменений**
 
-Run: `git log --oneline ci-cd ^main`
-Expected: ~10 commits, each self-contained and descriptive
+Пробег: `git log --oneline ci-cd ^main`
+Ожидается: ~10 коммитов, каждый из которых является самостоятельным и описательным.
 
 ---
 
-## Post-Implementation: GitHub Configuration (Manual)
+## После реализации: настройка GitHub (вручную)
 
-These steps require repo admin access and cannot be automated:
+Эти шаги требуют доступа администратора репо и не могут быть автоматизированы:
 
-1. **Create GitHub Environments:**
-   - `dev` — no protection rules
-   - `test` — no protection rules
-   - `prod` — add required reviewers (maintainer list)
+1. **Создайте среду GitHub:**
+   - `dev` — нет правил защиты
+   - `test` — нет правил защиты
+   - `prod` — добавить необходимых рецензентов (список сопровождающих)
 
-2. **Add secrets:**
-   - `NPM_TOKEN` → all environments
-   - `ANTHROPIC_API_KEY` → prod only
-   - `OPENAI_API_KEY` → prod only
+2. **Добавьте секреты:**
+   - `NPM_TOKEN` → все среды
+   - `ANTHROPIC_API_KEY` → только для производства
+   - `OPENAI_API_KEY` → только для производства
 
-3. **Add environment variable:**
-   - `RUN_LIVE_TESTS` → `false` by default on `prod` (set to `true` to enable)
+3. **Добавьте переменную среды:**
+   - `RUN_LIVE_TESTS` → `false` по умолчанию на `prod` (для включения установите `true`)
 
-4. **Enable GHCR:**
-   - Ensure GitHub Container Registry is enabled for the `gsd-build` org
+4. **Включить GHCR:**
+   – Убедитесь, что реестр контейнеров GitHub включен для организации `gsd-build`.
 
-5. **Test the pipeline end-to-end:**
-   - Merge a test PR to `main`
-   - Watch Dev stage publish to `@dev`
-   - Watch Test stage auto-promote to `@next`
-   - Manually approve Prod to promote to `@latest`
+5. **Протестируйте весь конвейер:**
+   - Объедините тест PR с `main`.
+   - Посмотрите публикацию этапа разработки на `@dev`.
+   - Посмотрите, как этап теста автоматически повышается до `@next`.
+   – Вручную утвердить продвижение продукта до `@latest`.

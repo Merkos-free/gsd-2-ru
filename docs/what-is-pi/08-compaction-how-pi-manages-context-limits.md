@@ -1,14 +1,14 @@
-# Compaction — How Pi Manages Context Limits
+# Сжатие — как Pi управляет ограничениями контекста
 
-LLMs have finite context windows. Pi's compaction system keeps conversations going beyond those limits.
+LLMs имеют ограниченное количество контекстных окон. Система уплотнения Pi позволяет разговорам выходить за эти рамки.
 
-### When Compaction Triggers
+### Когда срабатывает сжатие
 
-**Automatic:** When `contextTokens > contextWindow - reserveTokens` (default reserve: 16,384 tokens). Also triggers proactively as you approach the limit.
+**Автоматически:** При `contextTokens > contextWindow - reserveTokens` (резерв по умолчанию: 16 384 жетона). Также срабатывает заранее по мере приближения к пределу.
 
-**Manual:** `/compact [custom instructions]`
+**Вручную:** `/compact [custom instructions]`
 
-### How It Works
+### Как это работает
 
 ```
 Before compaction:
@@ -23,18 +23,18 @@ After compaction (new entry appended):
   What the LLM sees:  [system prompt] [summary] [kept messages...]
 ```
 
-1. Pi walks backward from the newest message, counting tokens until it reaches `keepRecentTokens` (default 20k)
-2. Everything before that point gets summarized by the LLM using a structured format
-3. A `CompactionEntry` is appended with the summary and a pointer to the first kept message
-4. On reload, the LLM sees: system prompt → summary → recent messages
+1. Пи идет назад от самого нового сообщения, считая токены, пока не достигнет `keepRecentTokens` (по умолчанию 20 тыс.)
+2. Все, что находится до этого момента, суммируется в LLM с использованием структурированного формата.
+3. К краткому описанию добавляется `CompactionEntry` и указатель на первое сохраненное сообщение.
+4. При перезагрузке LLM видит: системное приглашение → сводка → последние сообщения.
 
-### Split Turns
+### Разделенные повороты
 
-Sometimes a single turn (one user prompt + all its tool calls) exceeds the `keepRecentTokens` budget. Pi handles this by cutting mid-turn and generating two summaries: one for the history before the turn, and one for the early part of the split turn.
+Иногда один ход (одно приглашение пользователя + все вызовы инструментов) превышает бюджет `keepRecentTokens`. Pi решает эту проблему, вырезая середину хода и генерируя две сводки: одну для истории перед ходом и одну для ранней части разделенного хода.
 
-### The Summary Format
+### Формат сводки
 
-Both compaction and branch summarization produce structured summaries:
+И сжатие, и суммирование ветвей создают структурированные сводки:
 
 ```markdown
 ## Goal
@@ -69,11 +69,11 @@ path/to/changed.ts
 </modified-files>
 ```
 
-### Why This Matters
+### Почему это важно
 
-Compaction is lossy — information is lost in the summary. But the full history remains in the JSONL file. You can always use `/tree` to revisit the pre-compaction state. The tradeoff is: continue working with a summary of earlier context, or start fresh. Extensions can customize compaction to produce better summaries for your specific use case.
+Сжатие с потерями — в сводке теряется информация. Но полная история остается в файле JSONL. Вы всегда можете использовать `/tree`, чтобы вернуться к состоянию предварительного уплотнения. Компромисс таков: продолжить работу с кратким изложением предыдущего контекста или начать все заново. Расширения могут настраивать сжатие для получения более качественных сводок для вашего конкретного случая использования.
 
-**Settings:**
+**Настройки:**
 ```json
 {
   "compaction": {

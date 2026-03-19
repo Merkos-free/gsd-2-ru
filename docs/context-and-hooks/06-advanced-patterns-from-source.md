@@ -1,16 +1,16 @@
-# Advanced Patterns from Source
+# Расширенные шаблоны из исходного кода
 
-Production patterns extracted from the pi codebase, built-in extensions, and real extension examples. Each pattern shows the mechanism, the source of truth, and when to use it.
+Производственные шаблоны, извлеченные из базы кода pi, встроенных расширений и реальных примеров расширений. Каждый шаблон показывает механизм, источник истины и время его использования.
 
 ---
 
-## Pattern 1: Mode-Aware Tool Sets with Context Injection
+## Шаблон 1: наборы инструментов с учетом режима и внедрением контекста
 
-**Source:** `plan-mode/index.ts` — the built-in plan mode extension.
+**Источник:** `plan-mode/index.ts` — встроенное расширение режима планирования.
 
-This pattern combines tool set management, tool call blocking, context event filtering, and before_agent_start injection into a cohesive mode system.
+Этот шаблон сочетает в себе управление набором инструментов, блокировку вызовов инструментов, фильтрацию контекстных событий и внедрение before_agent_start в систему связного режима.
 
-### The Architecture
+### Архитектура
 
 ```
 /plan toggle → sets planModeEnabled
@@ -21,13 +21,13 @@ This pattern combines tool set management, tool call blocking, context event fil
   └─► agent_end                            # check plan output, offer execution
 ```
 
-### Key Insight: Defense in Depth
+### Ключевая идея: Глубокоэшелонированная защита
 
-The plan mode uses THREE layers of tool control:
+В режиме плана используется THREE уровней управления инструментом:
 
-1. **`setActiveTools`** — removes write tools from the active set entirely. The LLM doesn't even know they exist.
-2. **`tool_call` guard** — even for allowed tools like `bash`, blocks destructive commands via an allowlist.
-3. **`context` filter** — when exiting plan mode, removes stale plan mode context messages so they don't confuse the LLM in normal mode.
+1. **`setActiveTools`** — полностью удаляет инструменты записи из активного набора. LLM даже не знает об их существовании.
+2. **`tool_call` Guard** — даже для разрешенных инструментов, таких как `bash`, блокирует деструктивные команды через список разрешений.
+3. **Фильтр `context`** — при выходе из режима плана удаляет устаревшие контекстные сообщения режима плана, чтобы они не путали LLM в обычном режиме.
 
 ```typescript
 // Layer 1: Tool set
@@ -56,22 +56,22 @@ pi.on("context", async (event) => {
 });
 ```
 
-### Why This Matters
+### Почему это важно
 
-A naive implementation would just change the tool set. But:
-- `bash` with `rm -rf` is technically a "read-only" tool by name
-- Stale context messages from a previous mode can confuse the LLM
-- The LLM might try to work around restrictions if it sees the mode instructions but has the tools available
+Наивная реализация просто изменила бы набор инструментов. Но:
+- `bash` с `rm -rf` технически является инструментом «только для чтения» по названию.
+- Устаревшие контекстные сообщения из предыдущего режима могут сбить с толку LLM.
+- LLM может попытаться обойти ограничения, если он видит инструкции по режиму, но имеет доступные инструменты.
 
 ---
 
-## Pattern 2: Preset System with Dynamic Model + Tool + Prompt Configuration
+## Схема 2: предустановленная система с динамической моделью + инструментом + подсказкой конфигурации
 
-**Source:** `preset.ts` — the built-in preset extension.
+**Источник:** `preset.ts` — встроенное расширение пресета.
 
-This pattern shows how to build a full configuration management system that coordinates model, thinking level, tools, and system prompt from a single config file.
+Этот шаблон показывает, как создать полную систему управления конфигурацией, которая координирует модель, уровень мышления, инструменты и системные подсказки из одного файла конфигурации.
 
-### The Architecture
+### Архитектура
 
 ```
 presets.json → load on session_start
@@ -90,9 +90,9 @@ presets.json → load on session_start
   └─► append preset.instructions to system prompt
 ```
 
-### Key Insight: Deferred System Prompt Application
+### Ключевая информация: приложение с отложенным системным приглашением
 
-The preset doesn't modify the system prompt during `applyPreset`. It stores `activePreset` and lets `before_agent_start` read it:
+Предустановка не изменяет системное приглашение во время `applyPreset`. Он сохраняет `activePreset` и позволяет `before_agent_start` прочитать его:
 
 ```typescript
 // On apply — just store
@@ -109,18 +109,18 @@ pi.on("before_agent_start", async (event) => {
 });
 ```
 
-This is better than calling `agent.setSystemPrompt()` directly because:
-- `before_agent_start` fires on every prompt, keeping the system prompt current
-- The base system prompt is rebuilt by pi when tools change — a direct set would be overwritten
-- Other extensions can see and further modify the prompt in the chain
+Это лучше, чем прямой вызов `agent.setSystemPrompt()`, потому что:
+- `before_agent_start` срабатывает при каждом запросе, сохраняя актуальность системного запроса.
+- Подсказка базовой системы перестраивается с помощью pi при смене инструментов — прямой набор будет перезаписан.
+- Другие расширения могут видеть и изменять подсказку в цепочке.
 
 ---
 
-## Pattern 3: Progress Tracking with Widget + State Persistence
+## Шаблон 3: отслеживание прогресса с помощью виджета + сохранение состояния
 
-**Source:** `plan-mode/index.ts` — todo item tracking during plan execution.
+**Источник:** `plan-mode/index.ts` — отслеживание задач во время выполнения плана.
 
-### The Architecture
+### Архитектура
 
 ```
 Plan created (assistant message with "Plan:" section)
@@ -140,31 +140,31 @@ Session resume:
   → Rebuilds completion state
 ```
 
-### Key Insight: Dual State Reconstruction
+### Ключевая идея: реконструкция двойного государства
 
-On session resume, the extension does TWO things:
+При возобновлении сеанса расширение выполняет действия TWO:
 
-1. **Reads the persisted state** from `appendEntry`:
+1. **Читает сохраненное состояние** из `appendEntry`:
    ```typescript
    const planModeEntry = entries
      .filter(e => e.type === "custom" && e.customType === "plan-mode")
      .pop();
    ```
 
-2. **Re-scans assistant messages** for completion markers:
+2. **Повторно сканирует сообщения помощника** на наличие маркеров завершения:
    ```typescript
    // Only scan messages AFTER the last plan-mode-execute marker
    const allText = messages.map(getTextContent).join("\n");
    markCompletedSteps(allText, todoItems);
    ```
 
-This handles the case where the extension crashed or was reloaded mid-execution — the persisted state might be stale, but the messages are the source of truth.
+Это обрабатывает случай, когда расширение вышло из строя или было перезагружено в середине выполнения — сохраненное состояние может быть устаревшим, но сообщения являются источником истины.
 
 ---
 
-## Pattern 4: Dynamic Resource Injection
+## Шаблон 4: Динамическое внедрение ресурсов
 
-**Source:** `dynamic-resources/index.ts` — extension that ships its own skills and themes.
+**Источник:** `dynamic-resources/index.ts` — расширение со своими собственными навыками и темами.
 
 ```typescript
 import { dirname, join } from "node:path";
@@ -183,29 +183,29 @@ export default function (pi: ExtensionAPI) {
 }
 ```
 
-### How It Works Internally
+### Как это работает внутри
 
-After `session_start`, the runner calls `emitResourcesDiscover()`. The returned paths are processed through the `ResourceLoader`:
+После `session_start` бегун называет `emitResourcesDiscover()`. Возвращенные пути обрабатываются через `ResourceLoader`:
 
-1. Skills → loaded, added to system prompt's skill listing
-2. Prompts → loaded as prompt templates, available via `/templatename`
-3. Themes → loaded, available via `/theme` or `ctx.ui.setTheme()`
+1. Навыки → загружено, добавлено в список навыков в системной подсказке.
+2. Подсказки → загружаются как шаблоны подсказок, доступные через `/templatename`.
+3. Темы → загружены, доступны через `/theme` или `ctx.ui.setTheme()`.
 
-The system prompt is rebuilt after resources are extended, so new skills appear in the same prompt turn.
+Системная подсказка перестраивается после расширения ресурсов, поэтому новые навыки появляются в одном и том же ходу подсказки.
 
-### When to Use
+### Когда использовать
 
-- Extension packages that need custom skills (e.g., a deployment extension with a "deploy checklist" skill)
-- Theme packs distributed as extensions
-- Dynamic prompt templates that depend on the project context
+- Пакеты расширений, требующие специальных навыков (например, расширение развертывания с навыком «контрольный список развертывания»).
+- Пакеты тем распространяются как расширения.
+- Динамические шаблоны подсказок, которые зависят от контекста проекта.
 
 ---
 
-## Pattern 5: Claude Rules Integration
+## Шаблон 5: Интеграция правил Клода
 
-**Source:** `claude-rules.ts` — scanning `.claude/rules/` for per-project rules.
+**Источник:** `claude-rules.ts` — сканирование `.claude/rules/` для поиска правил для каждого проекта.
 
-### The Architecture
+### Архитектура
 
 ```
 session_start:
@@ -217,9 +217,9 @@ before_agent_start:
   → Agent uses read tool to load specific rules on demand
 ```
 
-### Key Insight: Listing, Not Loading
+### Ключевая информация: листинг, а не загрузка
 
-The extension does NOT load rule file contents into the system prompt. It lists the files:
+Расширение NOT загружает содержимое файла правил в системную подсказку. В нем перечислены файлы:
 
 ```typescript
 pi.on("before_agent_start", async (event) => {
@@ -238,17 +238,17 @@ When working on tasks related to these rules, use the read tool to load the rele
 });
 ```
 
-This is context-efficient: the system prompt grows by one line per rule file, not by the full contents of every rule. The LLM loads specific rules via `read` only when relevant.
+Это контекстно-эффективно: системное приглашение увеличивается на одну строку для каждого файла правил, а не на полное содержимое каждого правила. LLM загружает определенные правила через `read` только при необходимости.
 
 ---
 
-## Pattern 6: Remote Execution via Tool Wrapping
+## Шаблон 6: Удаленное выполнение с помощью упаковки инструментов
 
-**Source:** The SSH extension pattern and `createBashTool` with pluggable operations.
+**Источник:** Шаблон расширения SSH и `createBashTool` с подключаемыми операциями.
 
-### The Architecture
+### Архитектура
 
-Tools support pluggable `operations` that replace the underlying I/O:
+Инструменты поддерживают подключаемые модули `operations`, которые заменяют базовый ввод-вывод:
 
 ```typescript
 import { createBashTool } from "@mariozechner/pi-coding-agent";
@@ -269,9 +269,9 @@ pi.registerTool({
 });
 ```
 
-### The spawnHook Alternative
+### Альтернатива spawnHook
 
-For lighter customization (e.g., environment setup):
+Для более легкой настройки (например, настройки среды):
 
 ```typescript
 const bashTool = createBashTool(cwd, {
@@ -283,9 +283,9 @@ const bashTool = createBashTool(cwd, {
 });
 ```
 
-### User Bash Hook for `!` Commands
+### Пользовательский Bash Hook для команд `!`
 
-The `user_bash` event lets you intercept user-typed bash commands (not LLM-initiated ones):
+Событие `user_bash` позволяет перехватывать команды bash, вводимые пользователем (не инициированные LLM):
 
 ```typescript
 pi.on("user_bash", async (event) => {
@@ -300,13 +300,13 @@ pi.on("user_bash", async (event) => {
 
 ---
 
-## Pattern 7: Extension-Aware Compaction
+## Шаблон 7: Сжатие с учетом расширений
 
-**Source:** `session_before_compact` in agent-session.ts.
+**Источник:** `session_before_compact` в agent-session.ts.
 
-### Custom Compaction Summary
+### Сводка пользовательского сжатия
 
-Override the default LLM-generated summary:
+Переопределить сводку, созданную по умолчанию LLM:
 
 ```typescript
 pi.on("session_before_compact", async (event) => {
@@ -323,9 +323,9 @@ pi.on("session_before_compact", async (event) => {
 });
 ```
 
-### Compaction-Aware State
+### Состояние с учетом сжатия
 
-If your extension stores state in messages that might get compacted away, you need a reconstruction strategy:
+Если ваше расширение хранит состояние в сообщениях, которые могут быть сжаты, вам нужна стратегия реконструкции:
 
 ```typescript
 pi.on("session_start", async (_event, ctx) => {
@@ -346,9 +346,9 @@ pi.on("session_start", async (_event, ctx) => {
 
 ---
 
-## Pattern 8: The Complete Extension Initialization Sequence
+## Шаблон 8: Полная последовательность инициализации расширения
 
-From the source code, the full initialization order is:
+Из исходного кода полный порядок инициализации:
 
 ```
 1. Extension factory function runs
@@ -379,4 +379,4 @@ From the source code, the full initialization order is:
 8. Ready for first user prompt
 ```
 
-**Important timing:** During step 1, action methods (`sendMessage`, `setActiveTools`, etc.) will throw. You can only register handlers and tools during the factory function. Use `session_start` for anything that needs runtime access.
+**Важный момент:** На шаге 1 будут выдаваться методы действия (`sendMessage`, `setActiveTools` и т. д.). Регистрировать обработчики и инструменты можно только во время фабричной функции. Используйте `session_start` для всего, что требует доступа во время выполнения.

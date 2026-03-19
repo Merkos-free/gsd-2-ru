@@ -1,8 +1,8 @@
-# Overlays — Floating Modals and Panels
+# Наложения — плавающие модальные окна и панели
 
-Overlays render **on top of existing content** without clearing the screen. Essential for dialogs, side panels, and floating UI.
+Наложения отображаются **поверх существующего контента**, не очищая экран. Необходим для диалогов, боковых панелей и плавающей UI.
 
-### Basic Overlay
+### Базовое наложение
 
 ```typescript
 const result = await ctx.ui.custom<string | null>(
@@ -11,7 +11,7 @@ const result = await ctx.ui.custom<string | null>(
 );
 ```
 
-### Positioned Overlay
+### Позиционированное наложение
 
 ```typescript
 const result = await ctx.ui.custom<string | null>(
@@ -44,7 +44,7 @@ const result = await ctx.ui.custom<string | null>(
 );
 ```
 
-### Anchor Positions
+### Якорные позиции
 
 ```
   top-left      top-center      top-right
@@ -56,7 +56,7 @@ const result = await ctx.ui.custom<string | null>(
   bottom-left  bottom-center  bottom-right
 ```
 
-### Programmatic Visibility Control
+### Программный контроль видимости
 
 ```typescript
 let overlayHandle: OverlayHandle | null = null;
@@ -76,9 +76,9 @@ const result = await ctx.ui.custom<string | null>(
 );
 ```
 
-### Stacked Overlays
+### Сложенные наложения
 
-Multiple overlays can be shown simultaneously. They stack in order (newest on top). Each one's `done()` closes only that overlay:
+Несколько наложений могут отображаться одновременно. Они складываются по порядку (самые новые сверху). `done()` каждого из них закрывает только это наложение:
 
 ```typescript
 // Show three stacked overlays
@@ -90,9 +90,9 @@ const p3 = ctx.ui.custom(/* ... */, { overlay: true, overlayOptions: { offsetX: 
 // Closing p3 gives focus to p2, closing p2 gives focus to p1
 ```
 
-### ⚠️ Overlay Lifecycle Rule
+### ⚠️ Правило жизненного цикла наложения
 
-**Overlay components are disposed when closed. Never reuse references.**
+**Компоненты наложения удаляются в закрытом состоянии. Никогда не используйте ссылки повторно.**
 
 ```typescript
 // ❌ WRONG — stale reference

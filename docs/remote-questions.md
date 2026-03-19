@@ -1,71 +1,71 @@
-# Remote Questions
+# Удаленные вопросы
 
-Remote questions allow GSD to ask for user input via Slack, Discord, or Telegram when running in headless auto-mode. When GSD encounters a decision point that needs human input, it posts the question to your configured channel and polls for a response.
+Удаленные вопросы позволяют GSD запрашивать ввод пользователя через Slack, Discord или Telegram при работе в автономном автоматическом режиме. Когда GSD сталкивается с точкой принятия решения, требующей участия человека, он публикует вопрос в настроенном вами канале и опрашивает ответ.
 
-## Setup
+## Настройка
 
-### Discord
+### Дискорд
 
 ```
 /gsd remote discord
 ```
 
-The setup wizard:
-1. Prompts for your Discord bot token
-2. Validates the token against the Discord API
-3. Lists servers the bot belongs to (or lets you pick)
-4. Lists text channels in the selected server
-5. Sends a test message to confirm permissions
-6. Saves the configuration to `~/.gsd/preferences.md`
+Мастер настройки:
+1. Запрашивает токен вашего бота Discord.
+2. Проверяет токен на соответствие Discord API.
+3. Перечисляет серверы, которым принадлежит бот (или позволяет выбрать).
+4. Перечисляет текстовые каналы на выбранном сервере.
+5. Отправляет тестовое сообщение для подтверждения разрешений.
+6. Сохраняет конфигурацию в `~/.gsd/preferences.md`.
 
-**Bot requirements:**
-- A Discord bot application with a token (from [Discord Developer Portal](https://discord.com/developers/applications))
-- Bot must be invited to the target server with these permissions:
-  - Send Messages
-  - Read Message History
-  - Add Reactions
-  - View Channel
-- The `DISCORD_BOT_TOKEN` environment variable must be set (the setup wizard handles this)
+**Требования к боту:**
+- Приложение-бот Discord с токеном (с [Портала разработчиков Discord](https://discord.com/developers/applications))
+- Бота необходимо пригласить на целевой сервер со следующими разрешениями:
+  - Отправлять сообщения
+  - Прочитать историю сообщений
+  - Добавить реакции
+  - Просмотр канала
+- Необходимо установить переменную среды `DISCORD_BOT_TOKEN` (это делает мастер установки).
 
-### Slack
+### Слабость
 
 ```
 /gsd remote slack
 ```
 
-The setup wizard:
-1. Prompts for your Slack bot token (`xoxb-...`)
-2. Validates the token
-3. Lists channels the bot can access (with manual ID fallback)
-4. Sends a test message to confirm permissions
-5. Saves the configuration
+Мастер настройки:
+1. Запрашивает токен вашего бота Slack (`xoxb-...`).
+2. Проверяет токен
+3. Перечисляет каналы, к которым может получить доступ бот (с ручным возвратом к ID).
+4. Отправляет тестовое сообщение для подтверждения разрешений.
+5. Сохраняет конфигурацию.
 
-**Bot requirements:**
-- A Slack app with a bot token (from [Slack API](https://api.slack.com/apps))
-- Bot must be invited to the target channel
-- Typical scopes for public/private channels: `chat:write`, `reactions:read`, `reactions:write`, `channels:read`, `groups:read`, `channels:history`, `groups:history`
+**Требования к боту:**
+- Приложение Slack с токеном бота (из [Slack API](https://api.slack.com/apps))
+- Бота необходимо пригласить на целевой канал
+- Типичные области действия для государственных/частных каналов: `chat:write`, `reactions:read`, `reactions:write`, `channels:read`, `groups:read`, `channels:history`, `groups:history`
 
-### Telegram
+### Телеграм
 
 ```
 /gsd remote telegram
 ```
 
-The setup wizard:
-1. Prompts for your Telegram bot token (from [@BotFather](https://t.me/BotFather))
-2. Validates the token against the Telegram API
-3. Prompts for the chat ID (group or private chat)
-4. Sends a test message to confirm permissions
-5. Saves the configuration
+Мастер настройки:
+1. Запрашивает токен вашего бота Telegram (от [@BotFather](https://t.me/BotFather))
+2. Проверяет токен на соответствие Telegram API.
+3. Подсказки к чату ID (групповой или приватный чат)
+4. Отправляет тестовое сообщение для подтверждения разрешений.
+5. Сохраняет конфигурацию.
 
-**Bot requirements:**
-- A Telegram bot token from [@BotFather](https://t.me/BotFather)
-- Bot must be added to the target group chat (or use private chat with the bot)
-- The `TELEGRAM_BOT_TOKEN` environment variable must be set
+**Требования к боту:**
+- Токен Telegram-бота от [@BotFather](https://t.me/BotFather)
+- Бота необходимо добавить в чат целевой группы (или использовать приватный чат с ботом)
+- Необходимо установить переменную среды `TELEGRAM_BOT_TOKEN`.
 
-## Configuration
+## Конфигурация
 
-Remote questions are configured in `~/.gsd/preferences.md`:
+Удаленные вопросы настраиваются в `~/.gsd/preferences.md`:
 
 ```yaml
 remote_questions:
@@ -75,75 +75,75 @@ remote_questions:
   poll_interval_seconds: 5  # 2-30, default 5
 ```
 
-## How It Works
+## Как это работает
 
-1. GSD encounters a decision point during auto-mode
-2. The question is posted to your configured channel as a rich embed (Discord) or Block Kit message (Slack)
-3. GSD polls for a response at the configured interval
-4. You respond by:
-   - **Reacting** with a number emoji (1️⃣, 2️⃣, etc.) for single-question prompts
-   - **Replying** to the message with a number (`1`), comma-separated numbers (`1,3`), or free text
-5. GSD picks up the response and continues execution
-6. A ✅ reaction is added to the prompt message to confirm receipt
+1. GSD достигает точки принятия решения в автоматическом режиме.
+2. Вопрос публикуется на вашем настроенном канале в виде расширенного сообщения для встраивания (Discord) или сообщения Block Kit (Slack).
+3. GSD опрашивает ответ через настроенный интервал.
+4. Вы отвечаете:
+   - **Реакция** с помощью числовых смайлов (1️⃣, 2️⃣ и т. д.) для подсказок, состоящих из одного вопроса.
+   - **Ответ** на сообщение с указанием номера (`1`), номера, разделенного запятыми (`1,3`), или произвольного текста.
+5. GSD принимает ответ и продолжает выполнение.
+6. В оперативное сообщение добавляется реакция ✅ для подтверждения получения.
 
-### Response Formats
+### Форматы ответов
 
-**Single question:**
-- React with a number emoji (single-question prompts)
-- Reply with a number: `2`
-- Reply with free text (captured as a user note)
+**Один вопрос:**
+- Реагируйте с помощью числовых смайлов (подсказки из одного вопроса)
+- Ответьте номером: `2`.
+- Ответьте произвольным текстом (записанным в виде примечания пользователя).
 
-**Multiple questions:**
-- Reply with semicolons: `1;2;custom text`
-- Reply with newlines (one answer per line)
+**Несколько вопросов:**
+- Ответить через точку с запятой: `1;2;custom text`
+- Ответить переводами строк (один ответ на строку)
 
-### Timeouts
+### Тайм-ауты
 
-If no response is received within `timeout_minutes`, the prompt times out and GSD continues with a timeout result. The LLM handles timeouts according to the task context — typically by making a conservative default choice or pausing auto-mode.
+Если в течение `timeout_minutes` ответ не получен, время ожидания истекает, и GSD продолжается с результатом тайм-аута. LLM обрабатывает тайм-ауты в соответствии с контекстом задачи — обычно делая консервативный выбор по умолчанию или приостанавливая автоматический режим.
 
-## Commands
+## Команды
 
-| Command | Description |
+| Команда | Описание |
 |---------|-------------|
-| `/gsd remote` | Show remote questions menu and current status |
-| `/gsd remote slack` | Set up Slack integration |
-| `/gsd remote discord` | Set up Discord integration |
-| `/gsd remote status` | Show current configuration and last prompt status |
-| `/gsd remote disconnect` | Remove remote questions configuration |
+| `/gsd remote` | Показать меню удаленных вопросов и текущий статус |
+| `/gsd remote slack` | Настройте интеграцию со Slack |
+| `/gsd remote discord` | Настройте интеграцию с Discord |
+| `/gsd remote status` | Показать текущую конфигурацию и статус последнего запроса |
+| `/gsd remote disconnect` | Удалить конфигурацию удаленных вопросов |
 
-## Discord vs Slack Feature Comparison
+## Сравнение функций Discord и Slack
 
-| Feature | Discord | Slack |
+| Особенность | Раздор | слабый |
 |---------|---------|-------|
-| Rich message format | Embeds with fields | Block Kit |
-| Reaction-based answers | ✅ (single-question) | ✅ (single-question) |
-| Thread-based replies | Message replies | Thread replies |
-| Message URL in logs | ✅ | ✅ |
-| Answer acknowledgement | ✅ reaction on receipt | ✅ reaction on receipt |
-| Multi-question support | Text replies (semicolons/newlines) | Text replies (semicolons/newlines) |
-| Context source in prompt | ✅ (footer) | ✅ (context block) |
-| Server/channel picker | ✅ (interactive) | ✅ (interactive + manual fallback) |
-| Token validation | ✅ | ✅ |
-| Test message on setup | ✅ | ✅ |
+| Расширенный формат сообщений | Вставки с полями | Блок-комплект |
+| Ответы на основе реакций | ✅ (один вопрос) | ✅ (один вопрос) |
+| Ответы на основе тем | Ответы на сообщения | Ответы на темы |
+| Сообщение URL в журналах | ✅ | ✅ |
+| Подтверждение ответа | ✅ реакция при получении | ✅ реакция при получении |
+| Поддержка нескольких вопросов | Текстовые ответы (точки с запятой/новая строка) | Текстовые ответы (точки с запятой/новая строка) |
+| Источник контекста в строке | ✅ (нижний колонтитул) | ✅ (блок контекста) |
+| Выбор сервера/канала | ✅ (интерактивный) | ✅ (интерактивный + резервный режим вручную) |
+| Проверка токена | ✅ | ✅ |
+| Тестовое сообщение при настройке | ✅ | ✅ |
 
-## Troubleshooting
+## Устранение неполадок
 
-### "Remote auth failed"
-- Verify your bot token is correct and not expired
-- For Discord: ensure the bot is still in the server
-- For Slack: ensure the bot token starts with `xoxb-`
+### "Ошибка удаленной аутентификации"
+- Убедитесь, что ваш токен бота правильный и срок его действия не истек.
+- Для Discord: убедитесь, что бот все еще находится на сервере.
+- Для Slack: убедитесь, что токен бота начинается с `xoxb-`.
 
-### "Could not send to channel"
-- Verify the bot has Send Messages permission in the target channel
-- For Discord: check the bot's role permissions in Server Settings
-- For Slack: ensure the bot is invited to the channel (`/invite @botname`)
+### "Не удалось отправить на канал"
+- Убедитесь, что у бота есть разрешение на отправку сообщений в целевом канале.
+- Для Discord: проверьте права роли бота в настройках сервера.
+- Для Slack: убедитесь, что бот приглашен на канал (`/invite @botname`).
 
-### No response detected
-- Ensure you're **replying to** the prompt message (not posting a new message)
-- For reactions: only number emojis (1️⃣-5️⃣) on single-question prompts are detected
-- Check that `timeout_minutes` is long enough for your response time
+### Ответ не обнаружен
+– Убедитесь, что вы **отвечаете** на приглашение (а не публикуете новое сообщение).
+- Для реакций: распознаются только цифровые смайлы (1️⃣-5️⃣) в подсказках, состоящих из одного вопроса.
+– Убедитесь, что длина `timeout_minutes` достаточна для вашего времени ответа.
 
-### Channel ID format
-- **Slack:** 9-12 uppercase alphanumeric characters (e.g., `C0123456789`)
-- **Discord:** 17-20 digit numeric snowflake ID (e.g., `1234567890123456789`)
-- Enable Developer Mode in Discord (Settings → Advanced) to copy channel IDs
+### Формат канала ID
+– **Slack:** 9–12 буквенно-цифровых символов в верхнем регистре (например, `C0123456789`).
+- **Discord:** 17–20-значная цифровая снежинка ID (например, `1234567890123456789`)
+- Включите режим разработчика в Discord (Настройки → Дополнительно), чтобы скопировать канал IDs.

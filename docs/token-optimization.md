@@ -1,12 +1,12 @@
-# Token Optimization
+# Оптимизация токена
 
-*Introduced in v2.17.0*
+*Введено в версии 2.17.0*
 
-GSD 2.17 introduces a coordinated token optimization system that can reduce token usage by 40-60% without sacrificing output quality for most workloads. The system has three pillars: **token profiles**, **context compression**, and **complexity-based task routing**.
+В версии GSD 2.17 представлена скоординированная система оптимизации токенов, которая позволяет сократить использование токенов на 40–60 % без ущерба для качества вывода для большинства рабочих нагрузок. Система имеет три основных направления: **профили токенов**, **сжатие контекста** и **маршрутизация задач на основе сложности**.
 
-## Token Profiles
+## Профили токенов
 
-A token profile is a single preference that coordinates model selection, phase skipping, and context compression level. Set it in your preferences:
+Профиль токена — это единственное предпочтение, которое координирует выбор модели, пропуск фаз и уровень сжатия контекста. Установите его в своих настройках:
 
 ```yaml
 ---
@@ -15,82 +15,82 @@ token_profile: balanced
 ---
 ```
 
-Three profiles are available:
+Доступны три профиля:
 
-### `budget` — Maximum Savings (40-60% reduction)
+### `budget` — Максимальная экономия (скидка 40-60%)
 
-Optimized for cost-sensitive workflows. Uses cheaper models, skips optional phases, and compresses dispatch context to the minimum needed.
+Оптимизирован для экономичных рабочих процессов. Использует более дешевые модели, пропускает дополнительные этапы и сжимает контекст отправки до необходимого минимума.
 
-| Dimension | Setting |
+| Размерность | Настройка |
 |-----------|---------|
-| Planning model | Sonnet |
-| Execution model | Sonnet |
-| Simple task model | Haiku |
-| Completion model | Haiku |
-| Subagent model | Haiku |
-| Milestone research | **Skipped** |
-| Slice research | **Skipped** |
-| Roadmap reassessment | **Skipped** |
-| Context inline level | **Minimal** — drops decisions, requirements, extra templates |
+| Модель планирования | Сонет |
+| Модель исполнения | Сонет |
+| Простая модель задачи | Хайку |
+| Завершение модели | Хайку |
+| Модель субагента | Хайку |
+| Веховое исследование | **Пропущен** |
+| Срез исследования | **Пропущен** |
+| Переоценка дорожной карты | **Пропущен** |
+| Контекстный встроенный уровень | **Минимальный** — отсутствуют решения, требования, дополнительные шаблоны |
 
-Best for: prototyping, small projects, well-understood codebases, cost-conscious iteration.
+Лучше всего подходит для: прототипирования, небольших проектов, понятных кодовых баз, экономичных итераций.
 
-### `balanced` — Smart Defaults (default)
+### `balanced` — Умные настройки по умолчанию (по умолчанию)
 
-The default profile. Keeps the important phases, skips the ones with diminishing returns for most projects, and uses standard context compression.
+Профиль по умолчанию. Сохраняет важные этапы, пропускает те, которые имеют уменьшающуюся отдачу для большинства проектов, и использует стандартное сжатие контекста.
 
-| Dimension | Setting |
+| Размерность | Настройка |
 |-----------|---------|
-| Planning model | User's default |
-| Execution model | User's default |
-| Simple task model | User's default |
-| Completion model | User's default |
-| Subagent model | Sonnet |
-| Milestone research | Runs |
-| Slice research | **Skipped** |
-| Roadmap reassessment | Runs |
-| Context inline level | **Standard** — includes key context, drops low-signal extras |
+| Модель планирования | Пользовательские настройки по умолчанию |
+| Модель исполнения | Пользовательские настройки по умолчанию |
+| Простая модель задачи | Пользовательские настройки по умолчанию |
+| Завершение модели | Пользовательские настройки по умолчанию |
+| Модель субагента | Сонет |
+| Веховое исследование | Бежит |
+| Срез исследования | **Пропущен** |
+| Переоценка дорожной карты | Бежит |
+| Контекстный встроенный уровень | **Стандарт** — включает ключевой контекст, исключает дополнительные возможности с низким уровнем сигнала |
 
-Best for: most projects, day-to-day development.
+Лучше всего подходит для: большинства проектов, ежедневной разработки.
 
-### `quality` — Full Context (no compression)
+### `quality` — Полный контекст (без сжатия)
 
-Every phase runs. Every context artifact is inlined. No shortcuts.
+Каждая фаза проходит. Каждый артефакт контекста встроен. Никаких ярлыков.
 
-| Dimension | Setting |
+| Размерность | Настройка |
 |-----------|---------|
-| All models | User's configured defaults |
-| All phases | Run |
-| Context inline level | **Full** — everything inlined |
+| Все модели | Настроенные пользователем настройки по умолчанию |
+| Все этапы | Беги |
+| Контекстный встроенный уровень | **Полный** — все встроено |
 
-Best for: complex architectures, greenfield projects requiring deep research, critical production work.
+Лучше всего подходит для: сложных архитектур, новых проектов, требующих глубоких исследований, критически важных производственных работ.
 
-## Context Compression
+## Сжатие контекста
 
-Each token profile maps to an **inline level** that controls how much context is pre-loaded into dispatch prompts:
+Каждый профиль токена соответствует **встроенному уровню**, который контролирует, сколько контекста предварительно загружается в приглашения к отправке:
 
-| Profile | Inline Level | What's Included |
+| Профиль | Встроенный уровень | Что включено |
 |---------|-------------|-----------------|
-| `budget` | `minimal` | Task plan, essential prior summaries (truncated). Drops decisions register, requirements, UAT template, secrets manifest. |
-| `balanced` | `standard` | Task plan, prior summaries, slice plan, roadmap excerpt. Drops some supplementary templates. |
-| `quality` | `full` | Everything — all plans, summaries, decisions, requirements, templates, and root files. |
+| `budget` | `minimal` | План задач, основные предварительные сводки (в сокращении). Реестр решений, требования, шаблон UAT, секретный манифест. |
+| `balanced` | `standard` | План задач, предыдущие резюме, план фрагментов, отрывок из дорожной карты. Удаляет некоторые дополнительные шаблоны. |
+| `quality` | `full` | Все — все планы, сводки, решения, требования, шаблоны и корневые файлы. |
 
-### How Compression Works
+### Как работает сжатие
 
-Dispatch prompt builders accept an `inlineLevel` parameter. At each level, specific artifacts are gated:
+Разработчики подсказок об отправке принимают параметр `inlineLevel`. На каждом уровне заперты определенные артефакты:
 
-**Minimal level reductions:**
-- `buildExecuteTaskPrompt` — drops the decisions template, truncates prior summaries to the most recent one
-- `buildPlanMilestonePrompt` — drops `PROJECT.md`, `REQUIREMENTS.md`, decisions, and supplementary templates like `secrets-manifest`
-- `buildCompleteSlicePrompt` — drops requirements and UAT template inlining
-- `buildCompleteMilestonePrompt` — drops root GSD file inlining
-- `buildReassessRoadmapPrompt` — drops project, requirements, and decisions files
+**Минимальное снижение уровня:**
+- `buildExecuteTaskPrompt` — удаляет шаблон решений, усекает предыдущие сводки до самых последних.
+- `buildPlanMilestonePrompt` — отбрасывает `PROJECT.md`, `REQUIREMENTS.md`, решения и дополнительные шаблоны, такие как `secrets-manifest`.
+- `buildCompleteSlicePrompt` — отсутствуют требования и встраивание шаблона UAT.
+- `buildCompleteMilestonePrompt` — удаляет вставку корневого файла GSD
+- `buildReassessRoadmapPrompt` — удаляет файлы проекта, требований и решений.
 
-These are cumulative — `standard` drops a subset, `minimal` drops more. The `full` level preserves all context (the pre-2.17 behavior).
+Они суммируются: `standard` удаляет подмножество, `minimal` удаляет больше. Уровень `full` сохраняет весь контекст (поведение до версии 2.17).
 
-### Overriding Inline Level
+### Переопределение встроенного уровня
 
-The inline level is derived from your `token_profile`. To control phases independently of the profile, use the `phases` preference:
+Встроенный уровень получается из вашего `token_profile`. Чтобы управлять фазами независимо от профиля, используйте настройку `phases`:
 
 ```yaml
 ---
@@ -101,86 +101,86 @@ phases:
 ---
 ```
 
-Explicit `phases` settings always override the profile defaults.
+Явные настройки `phases` всегда переопределяют настройки профиля по умолчанию.
 
-## Complexity-Based Task Routing
+## Маршрутизация задач на основе сложности
 
-GSD automatically classifies each task by complexity and routes it to an appropriate model tier. This means simple documentation fixes don't burn expensive Opus tokens, while complex architectural work gets the reasoning power it needs.
+GSD автоматически классифицирует каждую задачу по сложности и направляет ее на соответствующий уровень модели. Это означает, что простые исправления документации не сжигают дорогие токены Opus, а сложные архитектурные работы получают необходимую силу рассуждения.
 
-### How Classification Works
+### Как работает классификация
 
-Tasks are classified by analyzing the task plan:
+Задачи классифицируются путем анализа плана задач:
 
-| Signal | Simple | Standard | Complex |
+| Сигнал | Простой | Стандарт | Комплекс |
 |--------|--------|----------|---------|
-| Step count | ≤ 3 | 4-7 | ≥ 8 |
-| File count | ≤ 3 | 4-7 | ≥ 8 |
-| Description length | < 500 chars | 500-2000 | > 2000 chars |
-| Code blocks | — | — | ≥ 5 |
-| Signal words | None | Any present | — |
+| Количество шагов | ≤ 3 | 4-7 | ≥ 8 |
+| Количество файлов | ≤ 3 | 4-7 | ≥ 8 |
+| Длина описания | < 500 chars | 500-2000 | > 2000 символов |
+| Кодовые блоки | — | — | ≥ 5 |
+| Сигнальные слова | Нет | Любой подарок | — |
 
-**Signal words** that prevent simple classification: `research`, `investigate`, `refactor`, `migrate`, `integrate`, `complex`, `architect`, `redesign`, `security`, `performance`, `concurrent`, `parallel`, `distributed`, `backward compat`, `migration`, `architecture`, `concurrency`, `compatibility`.
+**Сигнальные слова**, препятствующие простой классификации: `research`, `investigate`, `refactor`, `migrate`, `integrate`, `complex`, `architect`, `redesign`, `security`, `performance`, `concurrent`, `parallel`, `distributed`, `backward compat`, `migration`, `architecture`, `concurrency`, `compatibility`.
 
-Empty or malformed plans default to `standard` (conservative).
+Пустые или неправильно сформированные планы по умолчанию имеют значение `standard` (консервативный).
 
-### Unit Type Defaults
+### Тип юнита по умолчанию
 
-Non-task units have built-in tier assignments:
+Подразделения, не являющиеся задачами, имеют встроенные назначения уровней:
 
-| Unit Type | Default Tier |
+| Тип устройства | Уровень по умолчанию |
 |-----------|-------------|
-| `complete-slice`, `run-uat` | Light |
-| `research-*`, `plan-*`, `execute-task`, `complete-milestone` | Standard |
-| `replan-slice`, `reassess-roadmap` | Heavy |
-| `hook/*` | Light |
+| `complete-slice`, `run-uat` | Свет |
+| `research-*`, `plan-*`, `execute-task`, `complete-milestone` | Стандарт |
+| `replan-slice`, `reassess-roadmap` | Тяжелый |
+| `hook/*` | Свет |
 
-### Model Routing
+### Маршрутизация модели
 
-Each tier maps to a model configuration:
+Каждый уровень соответствует конфигурации модели:
 
-| Tier | Model Phase Key | Typical Model |
+| Уровень | Фазовый ключ модели | Типичная модель |
 |------|----------------|---------------|
-| Light | `completion` | Haiku (budget) / user default |
-| Standard | `execution` | Sonnet / user default |
-| Heavy | `execution` | Opus / user default |
+| Свет | `completion` | Haiku (бюджет) / по умолчанию пользователя |
+| Стандарт | `execution` | Сонет / пользователь по умолчанию |
+| Тяжелый | `execution` | Опус / пользователь по умолчанию |
 
-Simple tasks use the `execution_simple` model key when configured. This is set automatically by the `budget` profile to Haiku.
+При настройке простых задач используется ключ модели `execution_simple`. Это автоматически устанавливается профилем `budget` для Haiku.
 
-### Budget Pressure
+### Бюджетное давление
 
-When approaching your budget ceiling, the classifier automatically downgrades tiers:
+При приближении к потолку бюджета классификатор автоматически понижает уровни:
 
-| Budget Used | Effect |
+| Бюджет Б/у | Эффект |
 |------------|--------|
-| < 50% | No adjustment |
-| 50-75% | Standard → Light |
-| 75-90% | Standard → Light |
-| > 90% | Everything except Heavy → Light; Heavy → Standard |
+| < 50% | Без регулировки |
+| 50-75% | Стандарт → Легкий |
+| 75-90% | Стандарт → Легкий |
+| > 90% | Все, кроме Тяжелого → Легкого; Тяжелый → Стандартный |
 
-This graduated approach preserves model quality for the most complex work while progressively reducing cost as the ceiling approaches.
+Такой поэтапный подход сохраняет качество модели для самых сложных работ, одновременно постепенно снижая затраты по мере приближения к пределу.
 
-## Adaptive Learning (Routing History)
+## Адаптивное обучение (история маршрутизации)
 
-GSD tracks the success and failure of each tier assignment over time and adjusts future classifications accordingly. This is opt-in — it happens automatically and persists in `.gsd/routing-history.json`.
+GSD отслеживает успехи и неудачи каждого уровня назначения с течением времени и соответствующим образом корректирует будущие классификации. Это добровольное действие — оно происходит автоматически и сохраняется в `.gsd/routing-history.json`.
 
-### How It Works
+### Как это работает
 
-1. After each unit completes, the outcome (success/failure) is recorded against the unit type and tier used
-2. Outcomes are tracked per-pattern (e.g., `execute-task`, `execute-task:docs`) with a rolling window of the last 50 entries
-3. If a tier's failure rate exceeds 20% for a given pattern, future classifications for that pattern are bumped up one tier
-4. The system also accepts tag-specific patterns (e.g., `execute-task:test` vs `execute-task:frontend`) for more granular routing
+1. После завершения каждого подразделения результат (успех/неуспех) записывается в зависимости от типа и уровня используемого подразделения.
+2. Результаты отслеживаются для каждого шаблона (например, `execute-task`, `execute-task:docs`) с помощью скользящего окна последних 50 записей.
+3. Если частота отказов уровня превышает 20 % для данного шаблона, будущие классификации для этого шаблона повышаются на один уровень.
+4. Система также принимает шаблоны для конкретных тегов (например, `execute-task:test` вместо `execute-task:frontend`) для более детальной маршрутизации.
 
-### User Feedback
+### Отзывы пользователей
 
-GSD accepts manual feedback to accelerate learning:
+GSD принимает обратную связь вручную для ускорения обучения:
 
-- **"over"** — the model was overpowered for this task (encourages downgrading)
-- **"under"** — the model wasn't capable enough (encourages upgrading)
-- **"ok"** — correct assignment (no adjustment)
+- **"over"** — модель была перегружена для этой задачи (рекомендуется понизить версию)
+- **"недостаточно"** — модель недостаточно эффективна (рекомендуется обновить)
+- **"ок"** — правильное назначение (без корректировки)
 
-Feedback signals are weighted 2× compared to automatic outcomes.
+Сигналы обратной связи имеют двукратный вес по сравнению с автоматическими результатами.
 
-### Data Management
+### Управление данными
 
 ```bash
 # Routing history is stored per-project
@@ -190,11 +190,11 @@ Feedback signals are weighted 2× compared to automatic outcomes.
 # (happens via the routing-history module API)
 ```
 
-The feedback array is capped at 200 entries. Per-pattern outcome counts use a rolling window of 50 to prevent stale data from dominating.
+Массив отзывов ограничен 200 записями. При подсчете результатов по шаблону используется скользящее окно, равное 50, чтобы предотвратить доминирование устаревших данных.
 
-## Configuration Examples
+## Примеры конфигурации
 
-### Cost-Optimized Setup
+### Оптимизированная по затратам установка
 
 ```yaml
 ---
@@ -206,7 +206,7 @@ models:
 ---
 ```
 
-### Balanced with Custom Models
+### Сбалансировано пользовательскими моделями
 
 ```yaml
 ---
@@ -221,7 +221,7 @@ models:
 ---
 ```
 
-### Full Quality for Critical Work
+### Полное качество для критической работы
 
 ```yaml
 ---
@@ -233,9 +233,9 @@ models:
 ---
 ```
 
-### Per-Phase Overrides
+### Пофазные переопределения
 
-The `token_profile` sets defaults, but explicit preferences always win:
+`token_profile` устанавливает значения по умолчанию, но явные предпочтения всегда побеждают:
 
 ```yaml
 ---
@@ -248,7 +248,7 @@ models:
 ---
 ```
 
-## How the Pieces Fit Together
+## Как части соединяются друг с другом
 
 ```
 preferences.md
@@ -263,17 +263,17 @@ preferences.md
             └─ adaptive learning from routing-history.json
 ```
 
-The profile is resolved once and flows through the entire dispatch pipeline. Explicit preferences override profile defaults at every layer.
+Профиль разрешается один раз и проходит через весь конвейер отправки. Явные настройки переопределяют настройки профиля по умолчанию на каждом уровне.
 
-## Prompt Compression
+## Быстрое сжатие
 
-*Introduced in v2.29.0*
+*Введено в версии 2.29.0*
 
-GSD can apply deterministic prompt compression before falling back to section-boundary truncation. This preserves more information when context exceeds the budget.
+GSD может применять детерминированное оперативное сжатие перед возвратом к усечению границ раздела. Это сохраняет больше информации, когда контекст превышает бюджет.
 
-### Compression Strategy
+### Стратегия сжатия
 
-Set via preferences:
+Установить через настройки:
 
 ```yaml
 ---
@@ -282,18 +282,18 @@ compression_strategy: compress
 ---
 ```
 
-Two strategies are available:
+Доступны две стратегии:
 
-| Strategy | Behavior | Default For |
+| Стратегия | Поведение | По умолчанию для |
 |----------|----------|------------|
-| `truncate` | Drop entire sections at boundaries (pre-v2.29 behavior) | `quality` profile |
-| `compress` | Apply heuristic text compression first, then truncate if still over budget | `budget` and `balanced` profiles |
+| `truncate` | Удаление целых разделов по границам (поведение до версии 2.29) | `quality` профиль |
+| `compress` | Сначала примените эвристическое сжатие текста, а затем обрежьте его, если бюджет все еще превышает бюджет | Профили `budget` и `balanced` |
 
-Compression removes redundant whitespace, abbreviates verbose phrases, deduplicates repeated content, and removes low-information boilerplate — all deterministically with no LLM calls.
+Сжатие удаляет избыточные пробелы, сокращает многословные фразы, дедуплицирует повторяющийся контент и удаляет малоинформативный шаблон — все детерминировано, без вызовов LLM.
 
-### Context Selection
+### Выбор контекста
 
-Controls how files are inlined into prompts:
+Управляет тем, как файлы встраиваются в подсказки:
 
 ```yaml
 ---
@@ -302,19 +302,19 @@ context_selection: smart
 ---
 ```
 
-| Mode | Behavior | Default For |
+| Режим | Поведение | По умолчанию для |
 |------|----------|------------|
-| `full` | Inline entire files | `balanced` and `quality` profiles |
-| `smart` | Use TF-IDF semantic chunking for large files (>3KB), including only relevant portions | `budget` profile |
+| `full` | Встроенные целые файлы | Профили `balanced` и `quality` |
+| `smart` | Используйте семантическое разбиение TF-IDF для больших файлов (>3 КБ), включая только соответствующие части | `budget` профиль |
 
-### Structured Data Compression
+### Сжатие структурированных данных
 
-At `budget` and `balanced` inline levels, decisions and requirements are formatted in a compact notation that saves 30-50% tokens compared to full markdown tables.
+На встроенных уровнях `budget` и `balanced` решения и требования форматируются в компактной записи, что экономит 30–50 % токенов по сравнению с полными таблицами уценок.
 
-### Summary Distillation
+### Итоговая дистилляция
 
-When a slice has 3+ dependency summaries and the total exceeds the summary budget, GSD extracts essential structured data (provides, requires, key_files, key_decisions) and drops verbose prose sections before falling back to section-boundary truncation.
+Если срез имеет более 3 сводок зависимостей и общая сумма превышает сводный бюджет, GSD извлекает важные структурированные данные (предоставляет, требует, ключевые_файлы, ключевые_решения) и удаляет подробные разделы прозы, прежде чем вернуться к усечению границ раздела.
 
-### Cache Hit Rate Tracking
+### Отслеживание скорости попадания в кэш
 
-The metrics ledger now tracks `cacheHitRate` per unit (percentage of input tokens served from cache) and provides `aggregateCacheHitRate()` for session-wide cache performance.
+Реестр метрик теперь отслеживает `cacheHitRate` на единицу (процент входных токенов, обслуживаемых из кэша) и обеспечивает `aggregateCacheHitRate()` для производительности кэша на уровне сеанса.

@@ -1,54 +1,54 @@
-# Building Branded Apps on Top of Pi
+# Создание фирменных приложений на базе Pi
 
-This document covers the part that the extension docs, SDK docs, RPC docs, and package docs only imply when read together:
+Этот документ охватывает ту часть, которую документы расширения, документы SDK, документы RPC и документы пакетов подразумевают только при совместном прочтении:
 
-**How do you build your own product on top of pi** so users run **your** app, **your** command, and **your** UI rather than installing and managing pi directly?
+**Как создать свой собственный продукт на основе pi**, чтобы пользователи запускали **ваше** приложение, **вашу** команду и **ваш** UI, а не устанавливали и управляли pi напрямую?
 
-Examples:
-- a branded CLI like `gsd`
-- a desktop app that uses pi as its backend engine
-- a web or Electron app that uses pi sessions, tools, and event streaming
-- an internal company agent product built on pi primitives
+Примеры:
+- фирменный CLI, например `gsd`
+— настольное приложение, использующее число pi в качестве внутреннего движка.
+- веб-приложение или приложение Electron, использующее сеансы Pi, инструменты и потоковую передачу событий.
+- продукт внутреннего агента компании, построенный на примитивах Пи
 
-The short answer is:
+Краткий ответ:
 
-- **Yes, you can build your own branded app on top of pi**
-- **No, end users do not need to install pi globally** if you ship your own app that depends on pi packages
-- **No, you do not have to rely on `~/.gsd`** if you embed pi with custom paths and storage
-- **Yes, you can bundle your own extensions, prompts, themes, skills, and providers** inside your app
+- **Да, вы можете создать собственное фирменное приложение на основе pi**
+- **Нет, конечным пользователям не нужно устанавливать pi глобально**, если вы отправляете собственное приложение, зависящее от пакетов pi.
+- **Нет, вам не нужно полагаться на `~/.gsd`**, если вы встраиваете pi с настраиваемыми путями и хранилищем.
+- **Да, вы можете объединить свои собственные расширения, подсказки, темы, навыки и поставщиков** в свое приложение.
 
-The rest of this document explains the architecture choices, storage choices, packaging strategies, and practical tradeoffs.
+Оставшаяся часть этого документа объясняет выбор архитектуры, выбор хранилища, стратегии упаковки и практические компромиссы.
 
 ---
 
-## 19.1 The Three Ways to Use Pi as a Foundation
+## 19.1 Три способа использования числа Пи в качестве основы
 
-There are really three layers you can build on:
+На самом деле есть три слоя, на которых вы можете построить:
 
 1. **`@mariozechner/pi-coding-agent`**
-   - Highest-level embedding API
-   - Best when you want pi's session system, resource loading, tools, extension model, and coding-agent behaviors
-2. **Pi CLI in RPC mode**
-   - Best when you want process isolation or language-agnostic integration
+   - Встраивание самого высокого уровня API
+   - Лучше всего, если вам нужна система сеансов Pi, загрузка ресурсов, инструменты, модель расширения и поведение агента кодирования.
+2. **Пи CLI в режиме RPC**
+   - Лучше всего, если вам нужна изоляция процессов или языковая интеграция.
 3. **`@mariozechner/pi-agent-core`**
-   - Lower-level agent loop without the full pi coding-agent shell
-   - Best when you want more of the engine than the product surface
+   - Цикл агента нижнего уровня без полной оболочки агента кодирования pi.
+   - Лучше всего, если вам нужно больше от двигателя, чем от поверхности продукта.
 
-For most branded CLI or desktop app use cases, start with **`@mariozechner/pi-coding-agent`**.
+В большинстве случаев использования фирменных CLI или настольных приложений начинайте с **`@mariozechner/pi-coding-agent`**.
 
-### Rule of thumb
+### Эмпирическое правило
 
-- Want your own **CLI/TUI** with pi behavior under the hood -> use **SDK embedding** via `createAgentSession()`
-- Want your own app in a **different language** or want a **subprocess boundary** -> use **RPC mode**
-- Want a more generic **agent engine** and will build more infrastructure yourself -> use **`@mariozechner/pi-agent-core`**
+- Хотите свой собственный **CLI/TUI** с поведением числа "пи" -> используйте встраивание **SDK** через `createAgentSession()`
+– Хотите, чтобы ваше собственное приложение было на **другом языке** или вам нужна **граница подпроцесса** -> используйте режим **RPC**
+- Хотите более универсальный **агентный механизм** и создадите дополнительную инфраструктуру самостоятельно -> используйте **`@mariozechner/pi-agent-core`**
 
 ---
 
-## 19.2 The Biggest Misconception: Pi Does Not Require a Global `pi` Install
+## 19.2 Самое большое заблуждение: Pi не требует глобальной установки `pi`
 
-If you are building a product on top of pi, your users do **not** need to install `pi` globally with npm.
+Если вы создаете продукт на базе pi, вашим пользователям **не** нужно устанавливать `pi` глобально с помощью npm.
 
-You can ship your own app that depends on:
+Вы можете выпустить собственное приложение, которое зависит от:
 
 - `@mariozechner/pi-coding-agent`
 - `@mariozechner/pi-agent-core`
@@ -56,24 +56,24 @@ You can ship your own app that depends on:
 - `@mariozechner/pi-tui`
 - `@mariozechner/pi-web-ui`
 
-That means a branded command like:
+Это означает фирменную команду типа:
 
 ```bash
 gsd
 ```
 
-can be **your** executable, backed by pi internals, without asking users to separately install and run `pi`.
+может быть **вашим** исполняемым файлом, поддерживаемым внутренними компонентами pi, без необходимости просить пользователей отдельно устанавливать и запускать `pi`.
 
-### What this means in practice
+### Что это означает на практике
 
-Instead of telling users:
+Вместо того, чтобы сообщать пользователям:
 
 ```bash
 npm install -g @mariozechner/pi-coding-agent
 pi
 ```
 
-you can ship:
+вы можете отправить:
 
 ```bash
 npm install -g my-gsd
@@ -82,15 +82,15 @@ npm install -g my-gsd
 gsd
 ```
 
-And inside `gsd`, you import pi packages and create your own session, UI, storage, and resource loading behavior.
+А внутри `gsd` вы импортируете пакеты pi и создаете свой собственный сеанс, UI, хранилище и поведение загрузки ресурсов.
 
 ---
 
-## 19.3 The Second Biggest Misconception: `~/.gsd` Is a Default, Not a Requirement
+## 19.3 Второе самое большое заблуждение: `~/.gsd` — это значение по умолчанию, а не требование
 
-Pi CLI defaults to `~/.gsd/agent`, but embedded applications are not forced to use it.
+По умолчанию Pi CLI имеет значение `~/.gsd/agent`, но встроенные приложения не обязаны его использовать.
 
-When you use `createAgentSession()`, you can control:
+Используя `createAgentSession()`, вы можете управлять:
 
 - `agentDir`
 - `cwd`
@@ -100,173 +100,173 @@ When you use `createAgentSession()`, you can control:
 - `sessionManager`
 - `settingsManager`
 
-That means your app can store state under:
+Это означает, что ваше приложение может хранить состояние в:
 
 - `~/.gsd/agent`
 - `~/Library/Application Support/GSD`
 - `%APPDATA%/GSD`
-- an app-local portable directory
-- a project-local directory
+- переносимый каталог локального приложения
+- локальный каталог проекта
 
-instead of `~/.gsd`.
+вместо `~/.gsd`.
 
-### Things you can relocate
+### Вещи, которые можно переместить
 
-- auth and OAuth credentials
-- settings
-- models config
-- sessions
-- extensions
-- prompt templates
-- themes
-- AGENTS-style context files
+- учетные данные аутентификации и OAuth
+- настройки
+- конфиг модели
+- сеансы
+- расширения
+- шаблоны подсказок
+- темы
+- Контекстные файлы в стиле AGENTS.
 
-### Important nuance
+###Важный нюанс
 
-If you use the default resource loader and default managers, pi behaves like pi:
-- standard discovery
-- standard config locations
-- standard session directories
+Если вы используете загрузчик ресурсов и менеджеры по умолчанию, pi ведет себя как pi:
+- стандартное открытие
+- стандартные места конфигурации
+- стандартные каталоги сессий
 
-If you pass custom managers and loaders, pi becomes an engine inside **your** app.
+Если вы передадите специальные менеджеры и загрузчики, pi станет движком внутри **вашего** приложения.
 
 ---
 
-## 19.4 Choose an Architecture First
+## 19.4 Сначала выберите архитектуру
 
-Before writing code, decide which of these architectures you actually want.
+Прежде чем писать код, решите, какая из этих архитектур вам действительно нужна.
 
-### Architecture A: Branded Node CLI or TUI using the SDK
+### Архитектура A: Фирменный узел CLI или TUI с использованием SDK
 
-This is the most natural fit for tools like `gsd`.
+Это наиболее естественный вариант для таких инструментов, как `gsd`.
 
-You create your own executable and call `createAgentSession()` directly.
+Вы создаете свой собственный исполняемый файл и напрямую вызываете `createAgentSession()`.
 
-#### Good for
-- a branded terminal tool
-- a custom TUI
-- internal company coding agents
-- a CLI with pi sessions, tools, and extensions under the hood
+#### Хорошо для
+- фирменный терминальный инструмент
+- индивидуальный TUI
+- внутренние кодировщики компании
+- CLI с сеансами Пи, инструментами и расширениями под капотом
 
-#### Benefits
-- type-safe
-- no subprocess management
-- easy to customize storage and discovery
-- easiest way to remove dependency on `~/.gsd`
-- easiest way to bundle built-in resources
+#### Преимущества
+- типобезопасный
+- нет управления подпроцессами
+- легко настроить хранилище и обнаружение
+- самый простой способ убрать зависимость от `~/.gsd`
+- самый простой способ объединить встроенные ресурсы
 
-#### Typical stack
+#### Типичный стек
 - `@mariozechner/pi-coding-agent`
-- optionally `@mariozechner/pi-tui`
-- your own entrypoint and app directories
+- опционально `@mariozechner/pi-tui`
+- ваша собственная точка входа и каталоги приложений
 
 ---
 
-### Architecture B: Branded App + Pi RPC subprocess
+### Архитектура B: фирменное приложение + подпроцесс Pi RPC
 
-Here your app spawns pi as a subprocess and talks to it over JSON lines.
+Здесь ваше приложение порождает pi как подпроцесс и взаимодействует с ним по JSON строкам.
 
-#### Good for
-- non-Node host applications
-- desktop shells with a strict engine boundary
-- process isolation
-- integrations where restarting the engine independently is useful
+#### Хорошо для
+- хост-приложения, не относящиеся к Node
+- настольные оболочки со строгой границей движка
+- изоляция процесса
+- интеграции, где полезен перезапуск двигателя самостоятельно
 
-#### Benefits
-- language-agnostic
-- process isolation
-- JSON protocol is explicit and stream-friendly
+#### Преимущества
+- языковой агностик
+- изоляция процесса
+- Протокол JSON является явным и оптимизированным для потоковой передачи.
 
-#### Costs
-- you must manage subprocess lifecycle
-- some UI features are degraded compared to pi's native TUI
-- extension UI works through a request/response sub-protocol, not full TUI embedding
-
----
-
-### Architecture C: App built on `pi-agent-core` or `pi-web-ui`
-
-This is for cases where you want pi's model and agent infrastructure but not necessarily pi's full coding-agent product surface.
-
-#### Good for
-- browser apps
-- web chat products
-- custom artifact workflows
-- custom message types and renderers
-
-#### Benefits
-- lower-level control
-- more app-specific freedom
-- easier fit for non-terminal interfaces
-
-#### Costs
-- you build more yourself
-- fewer coding-agent-specific conveniences out of the box
+#### Затраты
+- вы должны управлять жизненным циклом подпроцесса
+- некоторые функции UI ухудшены по сравнению с собственными TUI для Pi.
+- расширение UI работает через подпротокол запроса/ответа, а не полное внедрение TUI
 
 ---
 
-## 19.5 SDK vs RPC vs Agent-Core
+### Архитектура C: приложение создано на базе `pi-agent-core` или `pi-web-ui`.
 
-Use this decision table.
+Это для случаев, когда вам нужна модель pi и инфраструктура агента, но не обязательно полная поверхность продукта pi-агента кодирования.
 
-| Goal | Best Starting Point |
+#### Хорошо для
+- браузерные приложения
+- продукты веб-чата
+- пользовательские рабочие процессы с артефактами
+- пользовательские типы сообщений и средства визуализации
+
+#### Преимущества
+- нижний уровень контроля
+- больше свободы для конкретных приложений
+- легче подходит для нетерминальных интерфейсов
+
+#### Затраты
+- вы строите больше сами
+- меньше удобств, специфичных для агента кодирования, из коробки.
+
+---
+
+## 19.5 SDK против RPC против Agent-Core
+
+Используйте эту таблицу решений.
+
+| Цель | Лучшая отправная точка |
 |------|---------------------|
-| Branded CLI like `gsd` | `@mariozechner/pi-coding-agent` SDK |
-| Branded TUI with coding tools | `@mariozechner/pi-coding-agent` SDK |
-| Desktop app with subprocess boundary | pi RPC mode |
-| Non-Node integration | pi RPC mode |
-| Browser chat app | `@mariozechner/pi-web-ui` + `@mariozechner/pi-agent-core` |
-| Generic agent engine with custom infrastructure | `@mariozechner/pi-agent-core` |
-| Want pi sessions/resources/extensions but app-owned directories | `@mariozechner/pi-coding-agent` SDK |
+| Фирменный CLI, как `gsd` | `@mariozechner/pi-coding-agent` SDK |
+| Фирменный TUI с инструментами для кодирования | `@mariozechner/pi-coding-agent` SDK |
+| Настольное приложение с границей подпроцесса | режим пи RPC |
+| Не-узловая интеграция | режим пи RPC |
+| Браузерное приложение для чата | `@mariozechner/pi-web-ui` + `@mariozechner/pi-agent-core` |
+| Универсальный агентский механизм с настраиваемой инфраструктурой | `@mariozechner/pi-agent-core` |
+| Хотите сеансы/ресурсы/расширения pi, но каталоги, принадлежащие приложениям | `@mariozechner/pi-coding-agent` SDK |
 
-### More detailed tradeoff matrix
+### Более подробная матрица компромиссов
 
-| Concern | SDK | RPC | agent-core |
+| Концерн | SDK | RPC | ядро агента |
 |--------|-----|-----|------------|
-| Type safety | Excellent | Weak at protocol boundary | Excellent |
-| Process isolation | No | Yes | No |
-| Language agnostic | No | Yes | No |
-| Full pi session/resource system | Yes | Yes | No |
-| App-owned storage | Yes | Partial / external orchestration | Yes |
-| Rich custom UI | Strong | Moderate | Strong |
-| Uses pi extension ecosystem easily | Yes | Yes | No, not directly |
-| Simplest branded CLI path | Yes | No | No |
+| Типовая безопасность | Отлично | Слабость на границе протокола | Отлично |
+| Изоляция процесса | Нет | Да | Нет |
+| Языковой агностик | Нет | Да | Нет |
+| Полная система сеансов/ресурсов Pi | Да | Да | Нет |
+| Хранилище, принадлежащее приложениям | Да | Частичная/внешняя оркестровка | Да |
+| Богатый заказ UI | Сильный | Умеренный | Сильный |
+| Легко использует экосистему расширений pi | Да | Да | Нет, не напрямую |
+| Самый простой фирменный путь CLI | Да | Нет | Нет |
 
 ---
 
-## 19.6 The Recommended Path for a Branded CLI Like `gsd`
+## 19.6 Рекомендуемый путь для фирменного CLI, подобного `gsd`
 
-If you want users to run:
+Если вы хотите, чтобы пользователи запускали:
 
 ```bash
 gsd
 ```
 
-and you want it to feel like your product rather than "pi but renamed," the default recommendation is:
+и вы хотите, чтобы он выглядел как ваш продукт, а не как «pi, но переименованный», рекомендация по умолчанию:
 
-1. Build a Node/TypeScript app
-2. Depend on `@mariozechner/pi-coding-agent`
-3. Create your own executable entrypoint
-4. Use `createAgentSession()` directly
-5. Set custom directories for config/auth/sessions
-6. Bundle your own extensions/prompts/themes/providers
-7. Expose only the commands and UX you want
+1. Создайте приложение Node/TypeScript.
+2. Зависит от `@mariozechner/pi-coding-agent`
+3. Создайте собственную исполняемую точку входа.
+4. Используйте `createAgentSession()` напрямую
+5. Установите собственные каталоги для config/auth/sessions.
+6. Создавайте собственные расширения/подсказки/темы/провайдеры.
+7. Предоставляйте только те команды и UX, которые вам нужны.
 
-That gives you the best control over:
-- branding
-- defaults
-- storage layout
-- startup behavior
-- extension loading
-- model/provider setup
+Это дает вам лучший контроль над:
+- брендинг
+- значения по умолчанию
+- планировка склада
+- поведение при запуске
+- загрузка расширений
+- настройка модели/провайдера
 
 ---
 
-## 19.7 App-Owned Storage Layout
+## 19.7 Схема хранилища, принадлежащего приложению
 
-A branded app should usually own its own storage hierarchy.
+Фирменное приложение обычно должно иметь собственную иерархию хранилища.
 
-Example:
+Пример:
 
 ```text
 ~/.gsd/
@@ -281,7 +281,7 @@ Example:
   sessions/
 ```
 
-Or on macOS:
+Или на macOS:
 
 ```text
 ~/Library/Application Support/GSD/
@@ -289,17 +289,17 @@ Or on macOS:
   sessions/
 ```
 
-### Why this matters
+### Почему это важно
 
-If your product uses `~/.gsd`, then:
-- it shares state with the user's pi installation
-- branding becomes muddy
-- support/debugging becomes more confusing
-- product boundaries become less clear
+Если в вашем продукте используется `~/.gsd`, то:
+- он разделяет состояние с установкой pi пользователя
+- брендинг становится мутным
+- поддержка/отладка становится более запутанной
+- границы продукта становятся менее четкими
 
-Use app-specific directories unless you intentionally want interoperability with a user's pi environment.
+Используйте каталоги для конкретных приложений, если только вы намеренно не хотите, чтобы они взаимодействовали со средой pi пользователя.
 
-### Minimal example
+### Минимальный пример
 
 ```typescript
 import path from "node:path";
@@ -331,27 +331,27 @@ const { session } = await createAgentSession({
 });
 ```
 
-This is the core pattern for “my app uses pi, but not as global pi.”
+Это основной шаблон «мое приложение использует число Пи, но не как глобальное число Пи».
 
 ---
 
-## 19.8 Bundling Resources Inside Your App
+## 19.8 Объединение ресурсов внутри вашего приложения
 
-This is another place where people often assume they must rely on discovery from `~/.gsd` or `.gsd/`.
+Это еще одно место, где люди часто полагают, что им придется полагаться на открытия из `~/.gsd` или `.gsd/`.
 
-You do not.
+Вы этого не делаете.
 
-Your app can bundle:
-- extensions
-- prompts
-- themes
-- skills
-- AGENTS-style context
-- provider registrations
+Ваше приложение может включать в себя:
+- расширения
+- подсказывает
+- темы
+- навыки
+- Контекст в стиле AGENTS
+- регистрация провайдеров
 
-inside your own package or app bundle.
+внутри вашего собственного пакета или пакета приложений.
 
-### Strategy 1: Use custom paths with `DefaultResourceLoader`
+### Стратегия 1. Используйте собственные пути с `DefaultResourceLoader`
 
 ```typescript
 import { DefaultResourceLoader } from "@mariozechner/pi-coding-agent";
@@ -367,7 +367,7 @@ const loader = new DefaultResourceLoader({
 await loader.reload();
 ```
 
-### Strategy 2: Use inline extension factories
+### Стратегия 2. Используйте встроенные фабрики расширений
 
 ```typescript
 const loader = new DefaultResourceLoader({
@@ -384,7 +384,7 @@ const loader = new DefaultResourceLoader({
 });
 ```
 
-### Strategy 3: Override discovered resources entirely
+### Стратегия 3: полностью переопределить обнаруженные ресурсы
 
 ```typescript
 const loader = new DefaultResourceLoader({
@@ -397,63 +397,63 @@ const loader = new DefaultResourceLoader({
 });
 ```
 
-### Why this matters
+### Почему это важно
 
-For a branded product, it is often better to think in terms of:
-- **bundled built-ins shipped by your app**
-- optional plugin support later
+Для фирменного продукта часто лучше думать с точки зрения:
+- **Встроенные модули, поставляемые в комплекте с вашим приложением**
+- дополнительная поддержка плагинов позже
 
-rather than:
-- user-managed global pi resources first
+а не:
+- в первую очередь глобальные ресурсы pi, управляемые пользователем
 
 ---
 
-## 19.9 Discovery vs Bundling
+## 19.9 Открытие против объединения
 
-These are different product strategies.
+Это разные продуктовые стратегии.
 
-### Discovery-driven product
-You intentionally load from:
+### Продукт, основанный на открытиях
+Вы намеренно загружаете из:
 - `~/.gsd/agent/...`
 - `.gsd/...`
-- installed pi packages
+- установлены пакеты pi
 
-#### Good when
-- your product is basically pi with additions
-- you want compatibility with existing pi user workflows
+#### Хорошо, когда
+- ваш продукт по сути представляет собой число Пи с дополнениями
+- вам нужна совместимость с существующими рабочими процессами пользователей pi
 
-### Bundled-app product
-You intentionally ship your own resources and avoid implicit user-level discovery.
+### Приложение в комплекте
+Вы намеренно отправляете свои собственные ресурсы и избегаете неявного обнаружения на уровне пользователя.
 
-#### Good when
-- you want strong branding
-- you want predictable behavior
-- you want supportability and reproducibility
-- you do not want random user extensions affecting behavior
+#### Хорошо, когда
+- вам нужен сильный брендинг
+- вы хотите предсказуемого поведения
+- вам нужна поддерживаемость и воспроизводимость
+- вы не хотите, чтобы случайные пользовательские расширения влияли на поведение
 
-### Recommendation
-For a branded tool like `gsd`, default to **bundled-app product** behavior.
+### Рекомендация
+Для фирменного инструмента, такого как `gsd`, по умолчанию используется поведение **входящего в комплект приложения**.
 
-If you later add plugin support, make it explicit.
+Если позже вы добавите поддержку плагинов, сделайте это явным образом.
 
 ---
 
-## 19.10 Using Pi Packages Internally vs Externally
+## 19.10 Использование пакетов Pi внутри и снаружи
 
-Pi packages are a sharing mechanism for extensions, prompts, skills, and themes.
+Пакеты Pi — это механизм совместного использования расширений, подсказок, навыков и тем.
 
-But when you are building your own app, there are two separate questions:
+Но когда вы создаете собственное приложение, возникает два отдельных вопроса:
 
-1. **Should your app itself be distributed as a pi package?**
-2. **Should your app internally use pi-package-style resource organization?**
+1. **Должно ли ваше приложение распространяться как пакет pi?**
+2. **Должно ли ваше приложение использовать внутреннюю организацию ресурсов в стиле pi-пакета?**
 
-### Usually, for a branded app:
-- **No** on #1
-- **Maybe** on #2
+### Обычно для фирменного приложения:
+- **Нет** на №1
+- **Может быть** на #2
 
-If your users run your app directly, your app is usually a normal Node package, binary, or desktop app, not a pi package.
+Если ваши пользователи запускают ваше приложение напрямую, ваше приложение обычно представляет собой обычный пакет Node, двоичное или настольное приложение, а не пакет pi.
 
-But internally, you may still organize resources in a pi-friendly structure:
+Но внутри вы все равно можете организовать ресурсы в пи-дружественной структуре:
 
 ```text
 src/
@@ -464,189 +464,189 @@ resources/
   skills/
 ```
 
-and load them through your resource loader.
+и загрузите их через загрузчик ресурсов.
 
-### When pi packages still matter
-Pi packages are still useful when:
-- you want optional add-ons
-- you want to reuse existing pi ecosystem resources
-- you want third parties to extend your app through pi-compatible bundles
+### Когда пакеты pi все еще имеют значение
+Пакеты Pi по-прежнему полезны, когда:
+- вам нужны дополнительные дополнения
+- вы хотите повторно использовать существующие ресурсы экосистемы pi
+- вы хотите, чтобы третьи лица расширяли ваше приложение с помощью pi-совместимых пакетов
 
 ---
 
-## 19.11 RPC Mode for Branded Apps
+## 19.11 Режим RPC для фирменных приложений
 
-RPC mode is the right answer when your product wants pi as a subprocess engine.
+Режим RPC — правильный ответ, когда вашему продукту требуется число Пи в качестве механизма подпроцесса.
 
-Start it with:
+Начните с:
 
 ```bash
 pi --mode rpc
 ```
 
-or programmatically by calling `runRpcMode(session)` in your own Node process.
+или программно, вызвав `runRpcMode(session)` в вашем собственном процессе Node.
 
-### RPC is good for
-- non-Node clients
-- desktop shells in other runtimes
-- separate engine process architecture
-- explicit JSON protocol boundaries
+### RPC подходит для
+- клиенты, не являющиеся узлами
+- оболочки рабочего стола в других средах выполнения
+- отдельная архитектура процессов двигателя
+- явные границы протокола JSON
 
-### What RPC gives you
-- prompt / steer / follow_up / abort
-- model selection
-- state inspection
-- session operations
-- bash execution
-- event streaming
-- extension UI request/response protocol
+### Что дает вам RPC
+- подсказка/управление/следование/прерывание
+- выбор модели
+- государственная инспекция
+- сеансовые операции
+- bash-выполнение
+- трансляция событий
+- расширение UI протокола запроса/ответа
 
-### Important limitation
-RPC is not the same thing as embedding pi's full native TUI.
+### Важное ограничение
+RPC — это не то же самое, что встраивание полного исходного числа числа pi TUI.
 
-Some extension UI methods degrade in RPC mode.
+Некоторые методы расширения UI ухудшаются в режиме RPC.
 
-#### Dialogs still work
+#### Диалоги все еще работают
 - `select`
 - `confirm`
 - `input`
 - `editor`
 
-#### Fire-and-forget UI signals still work
-- notifications
-- status
-- widgets
-- title
-- editor text setting
+#### Сигналы «выстрелил и забыл» UI по-прежнему работают.
+- уведомления
+- статус
+- виджеты
+- титул
+- настройка текста редактора
 
-#### Some richer TUI behaviors do not map cleanly
-- full `custom()` component workflows
-- some footer/header/editor replacement behavior
-- some theme-specific TUI behavior
+#### Некоторые более сложные варианты поведения TUI не отображаются четко
+- полные рабочие процессы компонентов `custom()`
+- некоторое поведение замены нижнего колонтитула/заголовка/редактора
+- некоторое поведение TUI, специфичное для темы
 
-If your branded app needs a deeply custom UI, SDK embedding or direct app-level UI integration is usually better.
-
----
-
-## 19.12 Extension UI in RPC Mode
-
-One subtle but important point: **extensions with user interaction are still possible in RPC mode**, but through a protocol, not by directly rendering pi TUI components.
-
-The client receives `extension_ui_request` messages and must answer with `extension_ui_response` for blocking dialogs.
-
-This means you can build your own frontend and still support many extension-driven workflows.
-
-### But know the boundary
-RPC mode supports:
-- interaction patterns
-- not full TUI component identity
-
-If your extension assumes pi's exact terminal UI surface, it may need adaptation.
+Если вашему фирменному приложению требуется глубоко настраиваемое внедрение UI, SDK или прямая интеграция UI на уровне приложения, обычно лучше.
 
 ---
 
-## 19.13 Web and Browser Apps
+## 19.12 Внутренний номер UI в режиме RPC
 
-If your app is a web app or browser-hosted UI, look closely at:
+Один тонкий, но важный момент: **расширения с взаимодействием с пользователем по-прежнему возможны в режиме RPC**, но через протокол, а не путем прямой визуализации компонентов pi TUI.
+
+Клиент получает сообщения `extension_ui_request` и должен ответить `extension_ui_response` для блокировки диалогов.
+
+Это означает, что вы можете создать свой собственный интерфейс и при этом поддерживать множество рабочих процессов, основанных на расширениях.
+
+### Но знай границу
+Режим RPC поддерживает:
+- шаблоны взаимодействия
+- не полная идентичность компонента TUI
+
+Если ваше расширение предполагает точную поверхность терминала UI числа Пи, возможно, ему потребуется адаптация.
+
+---
+
+## 19.13 Веб-приложения и браузерные приложения
+
+Если ваше приложение представляет собой веб-приложение или размещено в браузере UI, обратите внимание на:
 
 - `@mariozechner/pi-agent-core`
 - `@mariozechner/pi-web-ui`
 
-`pi-web-ui` already provides:
-- chat UI
-- session storage
-- provider key storage
-- attachments
-- artifacts
-- model selection
-- settings dialogs
-- renderers and tool renderers
+`pi-web-ui` уже содержит:
+- чат UI
+- хранилище сеансов
+- хранилище ключей провайдера
+- вложения
+- артефакты
+- выбор модели
+- диалоги настроек
+- рендереры и рендереры инструментов
 
-This is effectively a starter kit for a branded web app using pi-related primitives.
+По сути, это стартовый набор для фирменного веб-приложения, использующего примитивы, связанные с числом «пи».
 
-### Use pi-web-ui when
-- you want a browser or Electron-friendly UI surface
-- you want a ready-made chat shell
-- you do not specifically want pi's TUI
+### Используйте pi-web-ui, когда
+- вам нужен браузер или электронно-дружественная поверхность UI
+- вам нужна готовая оболочка чата
+- вам специально не нужно число Пи TUI
 
-### Use pi-coding-agent SDK when
-- you want coding-agent-specific resource loading, sessions, extensions, and coding tool behaviors
-- your app is terminal-first or Node-first
-
----
-
-## 19.14 Branding Boundaries: What Still Feels Like Pi?
-
-This matters if you are building a white-labeled or branded product.
-
-### If you spawn the pi CLI directly
-Your product is closer to “pi as a subprocess.”
-That is fine, but many pi-level assumptions remain nearby.
-
-### If you embed `@mariozechner/pi-coding-agent`
-You can hide most pi branding and product surface decisions.
-You keep the coding-agent infrastructure but own the app UX.
-
-### If you use `@mariozechner/pi-agent-core`
-You are even lower-level. Pi becomes more of a library source than a user-visible product.
-
-### Practical recommendation
-If branding matters, do not treat the pi CLI binary as your product surface unless you truly want pi semantics exposed.
-
-Use the SDK or lower-level packages and build your own interface.
+### Используйте агент pi-кодирования SDK, когда
+- вам нужна загрузка ресурсов, сеансов, расширений и поведения инструментов кодирования, специфичная для агента кодирования.
+- ваше приложение ориентировано на терминал или узел.
 
 ---
 
-## 19.15 Session Strategy for a Branded App
+## 19.14 Границы брендинга: что еще напоминает Пи?
 
-Decide whether your app wants:
+Это важно, если вы создаете продукт с белой маркировкой или фирменный продукт.
 
-- **persistent sessions** with app-owned storage
-- **ephemeral sessions** only
-- **project-local sessions**
-- **branching session history** exposed to users
+### Если вы создаёте пи CLI напрямую
+Ваш продукт ближе к «пи как подпроцессу».
+Это нормально, но многие предположения на уровне пи остаются рядом.
 
-### Persistent app-owned sessions
-Most natural for a CLI or desktop app.
+### Если вставить `@mariozechner/pi-coding-agent`
+Вы можете скрыть большинство решений по брендингу и внешнему виду продукта.
+Вы сохраняете инфраструктуру агента кодирования, но владеете приложением UX.
+
+### Если вы используете `@mariozechner/pi-agent-core`
+У тебя еще более низкий уровень. Pi становится скорее источником библиотеки, чем продуктом, видимым пользователю.
+
+###Практическая рекомендация
+Если брендинг имеет значение, не рассматривайте двоичный файл pi CLI как поверхность вашего продукта, если вы действительно не хотите, чтобы семантика числа pi была раскрыта.
+
+Используйте SDK или пакеты более низкого уровня и создайте свой собственный интерфейс.
+
+---
+
+## 19.15 Стратегия сеанса для фирменного приложения
+
+Решите, хочет ли ваше приложение:
+
+- **постоянные сеансы** с хранилищем, принадлежащим приложению.
+- **только кратковременные сеансы**
+- **локальные сеансы проекта**
+- **история сеансов ветвления** доступна пользователям
+
+### Постоянные сеансы, принадлежащие приложениям
+Наиболее естественно для CLI или настольного приложения.
 
 ```typescript
 const sessionManager = SessionManager.create(process.cwd(), sessionsDir);
 ```
 
-### Ephemeral mode
-Useful for task-runner or automation workflows.
+### Эфемерный режим
+Полезно для управления задачами или автоматизации рабочих процессов.
 
 ```typescript
 const sessionManager = SessionManager.inMemory();
 ```
 
-### Important question
-Do you want your app to share session files with pi itself?
+### Важный вопрос
+Вы хотите, чтобы ваше приложение делилось файлами сеанса с самим pi?
 
-Usually the answer should be **no** unless interoperability is an explicit feature.
+Обычно ответ должен быть **нет**, если только совместимость не является явной особенностью.
 
 ---
 
-## 19.16 Settings Strategy for a Branded App
+## 19.16 Стратегия настроек фирменного приложения
 
-You should decide whether settings are:
+Вам следует решить, являются ли настройки:
 
-- file-backed
-- in-memory
-- app-global
-- project-local
-- user-editable
-- controlled only by your product UI
+- файловый
+- в памяти
+- глобальное приложение
+- локальный проект
+- редактируемый пользователем
+- контролируется только вашим продуктом UI
 
-### App-owned settings
+### Настройки приложения
 
 ```typescript
 const settingsManager = SettingsManager.create(projectCwd, agentDir);
 ```
 
-with `agentDir` pointing into your app-owned config directory.
+с `agentDir`, указывающим на каталог конфигурации вашего приложения.
 
-### Fully controlled settings
+### Полностью контролируемые настройки
 
 ```typescript
 const settingsManager = SettingsManager.inMemory({
@@ -655,42 +655,42 @@ const settingsManager = SettingsManager.inMemory({
 });
 ```
 
-Use in-memory settings when you want the host app to own the config model entirely.
+Используйте настройки в памяти, если хотите, чтобы ведущее приложение полностью владело моделью конфигурации.
 
 ---
 
-## 19.17 Provider and Auth Strategy
+## 19.17 Поставщик и стратегия аутентификации
 
-A branded app should decide whether users:
-- bring their own API keys
-- use OAuth through pi provider support
-- connect to your proxy/backend
-- use your own registered providers
+Фирменное приложение должно решать, будут ли пользователи:
+- принести свои ключи API
+- используйте OAuth через поддержку провайдера pi
+- подключитесь к вашему прокси/бэкэнду
+- используйте собственных зарегистрированных провайдеров
 
-### App-owned auth paths
-Use custom `AuthStorage` paths.
+### Пути аутентификации, принадлежащие приложениям
+Используйте собственные пути `AuthStorage`.
 
 ```typescript
 const authStorage = AuthStorage.create("/path/to/gsd/auth.json");
 ```
 
-### App-owned model config
-Use your own `models.json` location or register providers dynamically.
+### Конфигурация модели, принадлежащей приложению
+Используйте свое собственное местоположение `models.json` или динамически регистрируйте поставщиков.
 
 ```typescript
 const modelRegistry = new ModelRegistry(authStorage, "/path/to/gsd/models.json");
 ```
 
-### Custom provider strategy
-If your app talks to a proxy or company backend, register providers from your app or bundled extensions.
+### Стратегия индивидуального поставщика
+Если ваше приложение взаимодействует с прокси-сервером или серверной частью компании, зарегистрируйте поставщиков из вашего приложения или связанных расширений.
 
-That keeps the app experience aligned with your branding and infrastructure.
+Благодаря этому работа приложения будет соответствовать вашему брендингу и инфраструктуре.
 
 ---
 
-## 19.18 Building a Branded `gsd` CLI: Recommended Shape
+## 19.18 Создание фирменного `gsd` CLI: рекомендуемая форма
 
-A practical architecture looks like this:
+Практическая архитектура выглядит так:
 
 ```text
 my-gsd/
@@ -708,27 +708,27 @@ my-gsd/
     skills/
 ```
 
-### In `cli.ts`
-- parse your app flags
-- compute app directories
-- create auth/model/settings/session managers
-- create resource loader
-- create agent session
-- run your own mode (custom TUI, print mode, or RPC bridge)
+### В `cli.ts`
+- анализировать флаги вашего приложения
+- вычислять каталоги приложений
+- создать менеджеры аутентификации/модели/настроек/сессий
+- создать загрузчик ресурсов
+- создать сеанс агента
+- запустите свой собственный режим (пользовательский TUI, режим печати или мост RPC)
 
-### In `resource-loader.ts`
-- load bundled resources
-- optionally disable ambient pi discovery
-- add your branded system prompt and context files
+### В `resource-loader.ts`
+- загрузка связанных ресурсов
+- опционально отключить обнаружение окружающего пи
+- добавьте фирменные системные подсказки и контекстные файлы
 
-### In bundled extensions
-- add your commands
-- register your custom tools
-- control your app-specific behaviors
+### В комплекте расширений
+- добавьте свои команды
+- зарегистрировать свои собственные инструменты
+- контролировать поведение вашего приложения
 
 ---
 
-## 19.19 Minimal SDK Skeleton for a Branded CLI
+## 19.19 Минимальный скелет SDK для фирменного CLI
 
 ```typescript
 import path from "node:path";
@@ -783,82 +783,82 @@ session.subscribe((event) => {
 await session.prompt("Help me understand this repo.");
 ```
 
-This is not yet a full product, but it is the correct starting shape for one.
+Это еще не полноценный продукт, но это правильная стартовая форма для него.
 
 ---
 
-## 19.20 When to Reuse Pi's Interactive Mode
+## 19.20 Когда повторно использовать интерактивный режим Pi
 
-The SDK exports `InteractiveMode`, `runPrintMode`, and `runRpcMode`.
+Модель SDK экспортирует `InteractiveMode`, `runPrintMode` и `runRpcMode`.
 
-These are useful if you want to reuse existing pi surfaces while changing the surrounding setup.
+Это полезно, если вы хотите повторно использовать существующие поверхности Пи при изменении окружающих настроек.
 
-### Reuse `InteractiveMode` when
-- you want pi's TUI mostly intact
-- but with app-owned storage, extensions, defaults, and resources
+### Повторно используйте `InteractiveMode`, когда
+- вы хотите, чтобы число Пи TUI было практически нетронутым
+- но с хранилищем, расширениями, настройками по умолчанию и ресурсами, принадлежащими приложению.
 
-### Do not reuse it when
-- you want a strongly branded UI
-- you want different commands or layout metaphors
-- you want your app to feel fundamentally different from pi
+### Не используйте его повторно, когда
+- вам нужен бренд UI
+- вам нужны другие команды или метафоры макета
+- вы хотите, чтобы ваше приложение фундаментально отличалось от pi
 
-For a white-labeled product, `InteractiveMode` is a good prototyping step, not always the final product surface.
-
----
-
-## 19.21 What to Avoid in a Branded Product
-
-### Avoid accidental dependence on ambient user state
-If your app silently loads from a user's `~/.gsd`, you may get:
-- surprising extensions
-- strange prompts
-- odd themes
-- hard-to-debug behavior differences
-
-### Avoid mixing branding and storage casually
-If your app is called `gsd`, but state lives in `~/.gsd`, users will notice.
-
-### Avoid choosing RPC just because it sounds generic
-If your app is already Node/TypeScript, SDK embedding is usually simpler and more powerful.
-
-### Avoid exposing every pi concept unless you want to
-A branded product should choose what the user sees.
-You do not need to expose:
-- all slash commands
-- all extension loading paths
-- all package concepts
-- all theme/customization behaviors
+Для продукта с белой маркировкой `InteractiveMode` — хороший этап прототипирования, а не всегда конечная поверхность продукта.
 
 ---
 
-## 19.22 Suggested Product Postures
+## 19.21 Чего следует избегать в фирменном продукте
 
-### Posture A: “Pi-compatible branded shell”
-- Uses pi concepts openly
-- Supports pi packages and pi-style discovery
-- Good for power users
+### Избегайте случайной зависимости от внешнего состояния пользователя
+Если ваше приложение автоматически загружается с `~/.gsd` пользователя, вы можете получить:
+- удивительные расширения
+- странные подсказки
+- странные темы
+- трудно отлаживаемые различия в поведении
 
-### Posture B: “Branded app powered by pi”
-- Uses pi internally
-- App-owned directories and resources
-- Explicit plugins only
-- Good for productized tools like `gsd`
+### Не допускайте случайного смешения брендинга и хранения
+Если ваше приложение называется `gsd`, но состояние находится в `~/.gsd`, пользователи это заметят.
 
-### Posture C: “Custom agent product using pi primitives”
-- Uses `pi-agent-core` or selective libraries
-- Pi itself is mostly invisible
-- Good for SaaS or browser products
+### Не выбирайте RPC только потому, что это звучит банально
+Если ваше приложение уже использует Node/TypeScript, встраивание SDK обычно проще и эффективнее.
 
-For most branded command-line products, posture **B** is the best fit.
+### Избегайте раскрытия каждой концепции числа Пи, если вы этого не хотите
+Брендированный продукт должен выбирать то, что видит пользователь.
+Вам не нужно выставлять:
+- все слэш-команды
+- все пути загрузки расширений
+- все концепции пакетов
+- все варианты поведения тем/настройки
 
 ---
 
-## 19.23 Recommended Documentation Reading Order for This Use Case
+## 19.22 Рекомендуемые положения продукта
 
-If you are building a branded app on top of pi, read in this order:
+### Позиция А: «Фирменная оболочка, совместимая с Pi»
+- Открыто использует концепции числа Пи.
+- Поддерживает пакеты pi и обнаружение в стиле pi.
+- Подходит для опытных пользователей
+
+### Позиция Б: «Фирменное приложение на базе pi»
+- Использует число Пи внутри себя
+- Каталоги и ресурсы, принадлежащие приложениям.
+- Только явные плагины
+- Подходит для серийных инструментов, таких как `gsd`.
+
+### Позиция C: «Продукт специального агента с использованием примитивов Пи»
+- Использует `pi-agent-core` или выборочные библиотеки.
+- Сам Пи по большей части невидим
+- Подходит для SaaS-продуктов или браузерных продуктов.
+
+Для большинства фирменных продуктов командной строки лучше всего подходит позиция **B**.
+
+---
+
+## 19.23 Рекомендуемый порядок чтения документации для этого варианта использования
+
+Если вы создаете фирменное приложение на базе pi, читайте в следующем порядке:
 
 1. `what-is-pi/14-the-sdk-rpc-embedding-pi.md`
-2. this file
+2. этот файл
 3. `extending-pi/19-packaging-distribution.md`
 4. `extending-pi/04-extension-locations-discovery.md`
 5. `extending-pi/05-extension-structure-styles.md`
@@ -867,7 +867,7 @@ If you are building a branded app on top of pi, read in this order:
 8. `pi-ui-tui/03-entry-points-how-ui-gets-on-screen.md`
 9. `pi-ui-tui/22-quick-reference-all-ui-apis.md`
 
-Then read the source package docs for exact API details:
+Затем прочитайте документацию исходного пакета для получения точных сведений о API:
 - `packages/coding-agent/docs/sdk.md`
 - `packages/coding-agent/docs/rpc.md`
 - `packages/coding-agent/docs/extensions.md`
@@ -876,21 +876,21 @@ Then read the source package docs for exact API details:
 
 ---
 
-## 19.24 Bottom Line
+## 19.24 Итог
 
-If your goal is:
+Если ваша цель:
 
-> “I want users to download and run `gsd`, and have it use pi internally without requiring a separate pi install or `~/.gsd` setup.”
+> «Я хочу, чтобы пользователи загрузили и запустили `gsd`, и чтобы он использовал pi внутри себя, не требуя отдельной установки pi или настройки `~/.gsd`».
 
-Then the answer is:
+Тогда ответ:
 
-- **Yes, that is a supported architecture**
-- **Use the SDK first unless you have a strong reason to choose RPC**
-- **Use app-owned storage directories**
-- **Bundle your own resources instead of relying on global discovery**
-- **Use pi packages as an ecosystem mechanism, not as a requirement for your app's internal structure**
-- **Treat pi as a foundation layer, not necessarily the product surface**
+- **Да, это поддерживаемая архитектура**
+- **Сначала используйте SDK, если у вас нет веской причины выбрать RPC**
+- **Использовать каталоги хранения, принадлежащие приложениям**.
+- **Объедините свои собственные ресурсы, а не полагайтесь на глобальные открытия**
+- **Используйте пакеты pi как механизм экосистемы, а не как требование внутренней структуры вашего приложения**
+- **Рассматривайте число pi как основной слой, а не обязательно как поверхность изделия**
 
-That is the difference between:
-- “using pi as a user tool”
-- and “building your own product on top of pi.”
+В этом разница между:
+- «использование числа Пи в качестве пользовательского инструмента»
+— и «создание собственного продукта на основе числа Пи».

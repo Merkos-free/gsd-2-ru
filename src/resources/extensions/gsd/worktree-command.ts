@@ -116,13 +116,13 @@ async function worktreeHandler(
   if (trimmed === "") {
     ctx.ui.notify(
       [
-        "Usage:",
-        `  /${alias} <name>        — create and switch into a new worktree`,
-        `  /${alias} switch <name> — switch into an existing worktree`,
-        `  /${alias} return        — switch back to the main project tree`,
-        `  /${alias} list          — list all worktrees`,
-        `  /${alias} merge [name] [target] — merge worktree into target branch (auto-detects when inside a worktree)`,
-        `  /${alias} remove <name|all> — remove a worktree (or all) and its branch`,
+        "Использование:",
+        `  /${alias} <name>        — создать новый worktree и переключиться в него`,
+        `  /${alias} switch <name> — переключиться в существующий worktree`,
+        `  /${alias} return        — вернуться в основное дерево проекта`,
+        `  /${alias} list          — показать все worktree`,
+        `  /${alias} merge [name] [target] — слить worktree в целевую ветку (если вы уже в worktree, имя определяется автоматически)`,
+        `  /${alias} remove <name|all> — удалить worktree (или все) и его ветку`,
       ].join("\n"),
       "info",
     );
@@ -142,7 +142,7 @@ async function worktreeHandler(
   if (trimmed.startsWith("switch ") || trimmed.startsWith("create ")) {
     const name = trimmed.replace(/^(?:switch|create)\s+/, "").trim();
     if (!name) {
-      ctx.ui.notify(`Usage: /${alias} ${trimmed.split(" ")[0]} <name>`, "warning");
+      ctx.ui.notify(`Использование: /${alias} ${trimmed.split(" ")[0]} <name>`, "warning");
       return;
     }
     // create and switch both do the same thing: switch if exists, create if not
@@ -164,7 +164,7 @@ async function worktreeHandler(
     if (mergeArgs.length === 0) {
       // Bare "/worktree merge" — only valid when inside a worktree
       if (!activeWt) {
-        ctx.ui.notify(`Usage: /${alias} merge <name> [target]`, "warning");
+        ctx.ui.notify(`Использование: /${alias} merge <name> [target]`, "warning");
         return;
       }
       await handleMerge(mainBase, activeWt, ctx, pi, undefined);
@@ -185,7 +185,7 @@ async function worktreeHandler(
       // e.g. "/worktree merge main" while inside worktree "new"
       await handleMerge(mainBase, activeWt, ctx, pi, name);
     } else {
-      ctx.ui.notify(`Worktree "${name}" not found. Run /${alias} list to see available worktrees.`, "warning");
+      ctx.ui.notify(`Worktree "${name}" не найден. Выполните /${alias} list, чтобы увидеть доступные worktree.`, "warning");
     }
     return;
   }
@@ -200,7 +200,7 @@ async function worktreeHandler(
     }
 
     if (!name) {
-      ctx.ui.notify(`Usage: /${alias} remove <name|all>`, "warning");
+      ctx.ui.notify(`Использование: /${alias} remove <name|all>`, "warning");
       return;
     }
 
@@ -210,14 +210,14 @@ async function worktreeHandler(
 
   const RESERVED = ["list", "return", "switch", "create", "merge", "remove"];
   if (RESERVED.includes(trimmed)) {
-    ctx.ui.notify(`Usage: /${alias} ${trimmed}${trimmed === "list" || trimmed === "return" ? "" : " <name>"}`, "warning");
+    ctx.ui.notify(`Использование: /${alias} ${trimmed}${trimmed === "list" || trimmed === "return" ? "" : " <name>"}`, "warning");
     return;
   }
 
   const mainBase = originalCwd ?? basePath;
   const nameOnly = trimmed.split(/\s+/)[0]!;
   if (trimmed !== nameOnly) {
-    ctx.ui.notify(`Unknown command. Did you mean /${alias} switch ${nameOnly}?`, "warning");
+    ctx.ui.notify(`Неизвестная команда. Возможно, вы имели в виду /${alias} switch ${nameOnly}?`, "warning");
     return;
   }
 
@@ -243,7 +243,7 @@ export function registerWorktreeCommand(pi: ExtensionAPI): void {
   }
 
   pi.registerCommand("worktree", {
-    description: "Git worktrees (also /wt): /worktree <name> | list | merge | remove",
+    description: "Git worktree (также /wt): /worktree <name> | list | merge | remove",
     getArgumentCompletions: worktreeCompletions,
 
     async handler(args: string, ctx: ExtensionCommandContext) {
@@ -253,7 +253,7 @@ export function registerWorktreeCommand(pi: ExtensionAPI): void {
 
   // /wt alias — same handler, same completions
   pi.registerCommand("wt", {
-    description: "Alias for /worktree",
+    description: "Псевдоним для /worktree",
     getArgumentCompletions: worktreeCompletions,
     async handler(args: string, ctx: ExtensionCommandContext) {
       await worktreeHandler(args, ctx, pi, "wt");
@@ -334,15 +334,15 @@ async function handleCreate(
       // confirmLabel = Continue (safe default, on the left / first)
       // declineLabel = Start fresh (destructive, on the right)
       const keepExisting = await showConfirm(ctx, {
-        title: "Worktree Setup",
+        title: "Настройка Worktree",
         message: [
-          `This worktree inherited existing GSD milestones from the main branch.`,
+          `Этот worktree унаследовал существующие milestones GSD из основной ветки.`,
           ``,
-          `  Continue — keep milestones and pick up where main left off`,
-          `  Start fresh — clear milestones so /gsd auto starts a new project`,
+          `  Продолжить — оставить milestones и продолжить с места, где остановилась main`,
+          `  Начать заново — очистить milestones, чтобы /gsd auto начал новый проект`,
         ].join("\n"),
-        confirmLabel: "Continue",
-        declineLabel: "Start fresh",
+        confirmLabel: "Продолжить",
+        declineLabel: "Начать заново",
       });
       if (!keepExisting) {
         clearGSDPlans(info.path);
@@ -351,28 +351,28 @@ async function handleCreate(
     }
 
     const commitNote = commitMsg
-      ? `  ${CLR.muted("Auto-committed on previous branch before switching.")}`
+      ? `  ${CLR.muted("Перед переключением изменения в предыдущей ветке были автоматически закоммичены.")}`
       : "";
     const freshNote = clearedPlans
-      ? `  ${CLR.ok("✓")} Cleared milestones — ${CLR.hint("/gsd auto")} will start fresh.`
+      ? `  ${CLR.ok("✓")} Milestones очищены — ${CLR.hint("/gsd auto")} начнёт с чистого листа.`
       : "";
     ctx.ui.notify(
       [
-        `${CLR.ok("✓")} Worktree ${CLR.name(name)} created and activated.`,
+        `${CLR.ok("✓")} Worktree ${CLR.name(name)} создан и активирован.`,
         "",
         `  ${CLR.label("path")}     ${CLR.path(info.path)}`,
         `  ${CLR.label("branch")}   ${CLR.branch(info.branch)}`,
         commitNote,
         freshNote,
         "",
-        `  ${CLR.hint(`/worktree merge ${name}`)}  ${CLR.muted("merge back when done")}`,
-        `  ${CLR.hint("/worktree return")}${" ".repeat(Math.max(1, name.length - 2))}  ${CLR.muted("switch back to main tree")}`,
+        `  ${CLR.hint(`/worktree merge ${name}`)}  ${CLR.muted("выполнить merge обратно после завершения")}`,
+        `  ${CLR.hint("/worktree return")}${" ".repeat(Math.max(1, name.length - 2))}  ${CLR.muted("вернуться в основное дерево")}`,
       ].filter(Boolean).join("\n"),
       "info",
     );
   } catch (error) {
     const msg = getErrorMessage(error);
-    ctx.ui.notify(`Failed to create worktree: ${msg}`, "error");
+    ctx.ui.notify(`Не удалось создать worktree: ${msg}`, "error");
   }
 }
 
@@ -387,7 +387,7 @@ async function handleSwitch(
 
     if (!existsSync(wtPath)) {
       ctx.ui.notify(
-        `Worktree "${name}" not found. Run /worktree list to see available worktrees.`,
+        `Worktree "${name}" не найден. Выполните /worktree list, чтобы увидеть доступные worktree.`,
         "warning",
       );
       return;
@@ -404,29 +404,29 @@ async function handleSwitch(
     nudgeGitBranchCache(prevCwd);
 
     const commitNote = commitMsg
-      ? `  ${CLR.muted("Auto-committed on previous branch before switching.")}`
+      ? `  ${CLR.muted("Перед переключением изменения в предыдущей ветке были автоматически закоммичены.")}`
       : "";
     ctx.ui.notify(
       [
-        `${CLR.ok("✓")} Switched to worktree ${CLR.name(name)}.`,
+        `${CLR.ok("✓")} Переключено на worktree ${CLR.name(name)}.`,
         "",
         `  ${CLR.label("path")}     ${CLR.path(wtPath)}`,
         `  ${CLR.label("branch")}   ${CLR.branch(worktreeBranchName(name))}`,
         commitNote,
         "",
-        `  ${CLR.hint("/worktree return")}  ${CLR.muted("switch back to main tree")}`,
+        `  ${CLR.hint("/worktree return")}  ${CLR.muted("вернуться в основное дерево")}`,
       ].filter(Boolean).join("\n"),
       "info",
     );
   } catch (error) {
     const msg = getErrorMessage(error);
-    ctx.ui.notify(`Failed to switch to worktree: ${msg}`, "error");
+    ctx.ui.notify(`Не удалось переключиться на worktree: ${msg}`, "error");
   }
 }
 
 async function handleReturn(ctx: ExtensionCommandContext): Promise<void> {
   if (!originalCwd) {
-    ctx.ui.notify("Already in the main project tree.", "info");
+    ctx.ui.notify("Вы уже в основном дереве проекта.", "info");
     return;
   }
 
@@ -441,11 +441,11 @@ async function handleReturn(ctx: ExtensionCommandContext): Promise<void> {
   nudgeGitBranchCache(prevCwd);
 
   const commitNote = commitMsg
-    ? `  ${CLR.muted("Auto-committed on worktree branch before returning.")}`
+    ? `  ${CLR.muted("Перед возвратом изменения в ветке worktree были автоматически закоммичены.")}`
     : "";
   ctx.ui.notify(
     [
-      `${CLR.ok("✓")} Returned to main project tree.`,
+      `${CLR.ok("✓")} Возврат в основное дерево проекта выполнен.`,
       "",
       `  ${CLR.label("path")}  ${CLR.path(returnTo)}`,
       commitNote,
@@ -500,12 +500,12 @@ async function handleList(
     const worktrees = listWorktrees(mainBase);
 
     if (worktrees.length === 0) {
-      ctx.ui.notify("No GSD worktrees found. Create one with /worktree <name>.", "info");
+      ctx.ui.notify("Worktree GSD не найдены. Создайте их командой /worktree <name>.", "info");
       return;
     }
 
     const cwd = process.cwd();
-    const lines = [CLR.header("GSD Worktrees"), ""];
+    const lines = [CLR.header("GSD Worktree"), ""];
     for (const wt of worktrees) {
       const isCurrent = cwd === wt.path
         || (existsSync(cwd) && existsSync(wt.path)
@@ -513,9 +513,9 @@ async function handleList(
 
       const styledName = isCurrent ? CLR.nameActive(wt.name) : CLR.name(wt.name);
       const badge = isCurrent
-        ? `  ${CLR.ok("● active")}`
+        ? `  ${CLR.ok("● активен")}`
         : !wt.exists
-          ? `  ${CLR.warn("✗ missing")}`
+          ? `  ${CLR.warn("✗ отсутствует")}`
           : "";
       lines.push(`  ${styledName}${badge}`);
       lines.push(`    ${CLR.label("branch")}  ${CLR.branch(wt.branch)}`);
@@ -530,7 +530,7 @@ async function handleList(
     ctx.ui.notify(lines.join("\n"), "info");
   } catch (error) {
     const msg = getErrorMessage(error);
-    ctx.ui.notify(`Failed to list worktrees: ${msg}`, "error");
+    ctx.ui.notify(`Не удалось показать список worktree: ${msg}`, "error");
   }
 }
 
@@ -549,7 +549,7 @@ async function handleMerge(
     const worktrees = listWorktrees(basePath);
     const wt = worktrees.find(w => w.name === name);
     if (!wt) {
-      ctx.ui.notify(`Worktree "${name}" not found. Run /worktree list to see available worktrees.`, "warning");
+      ctx.ui.notify(`Worktree "${name}" не найден. Выполните /worktree list, чтобы увидеть доступные worktree.`, "warning");
       return;
     }
 
@@ -562,7 +562,7 @@ async function handleMerge(
 
     const totalChanges = diffSummary.added.length + diffSummary.modified.length + diffSummary.removed.length;
     if (totalChanges === 0 && !commitLog.trim()) {
-      ctx.ui.notify(`Worktree ${CLR.name(name)} has no changes to merge.`, "info");
+      ctx.ui.notify(`В worktree ${CLR.name(name)} нет изменений для merge.`, "info");
       return;
     }
 
@@ -595,28 +595,28 @@ async function handleMerge(
     const previewLines = [
       `Merge ${CLR.name(name)} → ${CLR.branch(mainBranch)}`,
       "",
-      `  ${totalChanges} file${totalChanges === 1 ? "" : "s"} changed, ${CLR.ok(`+${totalAdded}`)} ${RED}-${totalRemoved}${RESET} lines ${CLR.muted(`(${codeChanges} code, ${gsdChanges} GSD)`)}`,
+      `  Изменено ${totalChanges} file${totalChanges === 1 ? "" : "s"}, ${CLR.ok(`+${totalAdded}`)} ${RED}-${totalRemoved}${RESET} строк ${CLR.muted(`(${codeChanges} code, ${gsdChanges} GSD)`)}`,
     ];
 
     const appendFileList = (label: string, files: string[], prefix: string, limit = 10) => {
       if (files.length === 0) return;
       previewLines.push("", `  ${label}:`);
       for (const f of files.slice(0, limit)) previewLines.push(formatFileLine(prefix, f));
-      if (files.length > limit) previewLines.push(`    … and ${files.length - limit} more`);
+      if (files.length > limit) previewLines.push(`    … и ещё ${files.length - limit}`);
     };
 
-    appendFileList("Added", diffSummary.added, "+");
-    appendFileList("Modified", diffSummary.modified, "~");
-    appendFileList("Removed", diffSummary.removed, "-");
+    appendFileList("Добавлено", diffSummary.added, "+");
+    appendFileList("Изменено", diffSummary.modified, "~");
+    appendFileList("Удалено", diffSummary.removed, "-");
 
     const confirmed = await showConfirm(ctx, {
-      title: "Worktree Merge",
+      title: "Слияние Worktree",
       message: previewLines.join("\n"),
-      confirmLabel: "Merge",
-      declineLabel: "Cancel",
+      confirmLabel: "Слить",
+      declineLabel: "Отмена",
     });
     if (!confirmed) {
-      ctx.ui.notify("Merge cancelled.", "info");
+      ctx.ui.notify("Merge отменён.", "info");
       return;
     }
 
@@ -657,13 +657,13 @@ async function handleMerge(
         } catch { /* already clean */ }
 
         ctx.ui.notify(
-          `${CLR.muted("Deterministic merge hit conflicts — falling back to LLM-guided merge.")}`,
+          `${CLR.muted("Детерминированный merge столкнулся с конфликтами — выполняется переход к merge с помощью LLM.")}`,
           "warning",
         );
         // Fall through to LLM dispatch below
       } else {
         // Non-conflict error — surface it directly, don't fall back
-        ctx.ui.notify(`Failed to merge: ${mergeMsg}`, "error");
+        ctx.ui.notify(`Не удалось выполнить merge: ${mergeMsg}`, "error");
         return;
       }
     }
@@ -700,12 +700,12 @@ async function handleMerge(
     );
 
     ctx.ui.notify(
-      `${CLR.ok("✓")} Merge helper started for ${CLR.name(name)} ${CLR.muted(`(${codeChanges} code + ${gsdChanges} GSD artifact change${totalChanges === 1 ? "" : "s"})`)}`,
+      `${CLR.ok("✓")} Помощник merge запущен для ${CLR.name(name)} ${CLR.muted(`(${codeChanges} code + ${gsdChanges} GSD artifact change${totalChanges === 1 ? "" : "s"})`)}`,
       "info",
     );
   } catch (error) {
     const msg = getErrorMessage(error);
-    ctx.ui.notify(`Failed to start merge: ${msg}`, "error");
+    ctx.ui.notify(`Не удалось запустить merge: ${msg}`, "error");
   }
 }
 
@@ -721,18 +721,18 @@ async function handleRemove(
     const worktrees = listWorktrees(mainBase);
     const wt = worktrees.find(w => w.name === name);
     if (!wt) {
-      ctx.ui.notify(`Worktree "${name}" not found. Run /worktree list to see available worktrees.`, "warning");
+      ctx.ui.notify(`Worktree "${name}" не найден. Выполните /worktree list, чтобы увидеть доступные worktree.`, "warning");
       return;
     }
 
     const confirmed = await showConfirm(ctx, {
-      title: "Remove Worktree",
-      message: `Remove worktree ${CLR.name(name)} and delete branch ${CLR.branch(wt.branch)}?`,
-      confirmLabel: "Remove",
-      declineLabel: "Cancel",
+      title: "Удаление Worktree",
+      message: `Удалить worktree ${CLR.name(name)} и ветку ${CLR.branch(wt.branch)}?`,
+      confirmLabel: "Удалить",
+      declineLabel: "Отмена",
     });
     if (!confirmed) {
-      ctx.ui.notify("Cancelled.", "info");
+      ctx.ui.notify("Отменено.", "info");
       return;
     }
 
@@ -745,10 +745,10 @@ async function handleRemove(
       originalCwd = null;
     }
 
-    ctx.ui.notify(`${CLR.ok("✓")} Worktree ${CLR.name(name)} removed ${CLR.muted("(branch deleted)")}.`, "info");
+    ctx.ui.notify(`${CLR.ok("✓")} Worktree ${CLR.name(name)} удалён ${CLR.muted("(ветка удалена)")}.`, "info");
   } catch (error) {
     const msg = getErrorMessage(error);
-    ctx.ui.notify(`Failed to remove worktree: ${msg}`, "error");
+    ctx.ui.notify(`Не удалось удалить worktree: ${msg}`, "error");
   }
 }
 
@@ -761,19 +761,19 @@ async function handleRemoveAll(
     const worktrees = listWorktrees(mainBase);
 
     if (worktrees.length === 0) {
-      ctx.ui.notify("No worktrees to remove.", "info");
+      ctx.ui.notify("Нет worktree для удаления.", "info");
       return;
     }
 
     const names = worktrees.map(w => w.name);
     const confirmed = await showConfirm(ctx, {
-      title: "Remove All Worktrees",
-      message: `Remove ${worktrees.length} worktree${worktrees.length === 1 ? "" : "s"} and delete their branches?\n\n${names.map(n => `  • ${CLR.name(n)}`).join("\n")}`,
-      confirmLabel: "Remove all",
-      declineLabel: "Cancel",
+      title: "Удаление всех Worktree",
+      message: `Удалить ${worktrees.length} worktree${worktrees.length === 1 ? "" : "s"} и их ветки?\n\n${names.map(n => `  • ${CLR.name(n)}`).join("\n")}`,
+      confirmLabel: "Удалить все",
+      declineLabel: "Отмена",
     });
     if (!confirmed) {
-      ctx.ui.notify("Cancelled.", "info");
+      ctx.ui.notify("Отменено.", "info");
       return;
     }
 
@@ -797,11 +797,11 @@ async function handleRemoveAll(
     }
 
     const lines: string[] = [];
-    if (removed.length > 0) lines.push(`${CLR.ok("✓")} Removed: ${removed.map(n => CLR.name(n)).join(", ")}`);
-    if (failed.length > 0) lines.push(`${CLR.warn("✗")} Failed: ${failed.map(n => CLR.name(n)).join(", ")}`);
+    if (removed.length > 0) lines.push(`${CLR.ok("✓")} Удалено: ${removed.map(n => CLR.name(n)).join(", ")}`);
+    if (failed.length > 0) lines.push(`${CLR.warn("✗")} Ошибка: ${failed.map(n => CLR.name(n)).join(", ")}`);
     ctx.ui.notify(lines.join("\n"), failed.length > 0 ? "warning" : "info");
   } catch (error) {
     const msg = getErrorMessage(error);
-    ctx.ui.notify(`Failed to remove worktrees: ${msg}`, "error");
+    ctx.ui.notify(`Не удалось удалить worktree: ${msg}`, "error");
   }
 }

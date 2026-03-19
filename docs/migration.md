@@ -1,8 +1,8 @@
-# Migration from v1
+# Миграция с v1
 
-If you have projects with `.planning` directories from the original Get Shit Done (v1), you can migrate them to GSD-2's `.gsd` format.
+Если у вас есть проекты с каталогами `.planning` из исходной версии Get Shit Done (v1), вы можете перенести их в формат `.gsd` GSD-2.
 
-## Running the Migration
+## Запуск миграции
 
 ```bash
 # From within the project directory
@@ -12,37 +12,37 @@ If you have projects with `.planning` directories from the original Get Shit Don
 /gsd migrate ~/projects/my-old-project
 ```
 
-## What Gets Migrated
+## Что переносится
 
-The migration tool:
+Инструмент миграции:
 
-- Parses your old `PROJECT.md`, `ROADMAP.md`, `REQUIREMENTS.md`, phase directories, plans, summaries, and research
-- Maps phases → slices, plans → tasks, milestones → milestones
-- Preserves completion state (`[x]` phases stay done, summaries carry over)
-- Consolidates research files into the new structure
-- Shows a preview before writing anything
-- Optionally runs an agent-driven review of the output for quality assurance
+- Анализирует ваши старые `PROJECT.md`, `ROADMAP.md`, `REQUIREMENTS.md`, каталоги этапов, планы, резюме и исследования.
+- Карты фаз → срезы, планы → задачи, этапы → этапы
+- Сохраняет состояние завершения (этапы `[x]` остаются выполненными, сводные данные переносятся)
+- Объединяет файлы исследований в новую структуру.
+- Показывает предварительный просмотр, прежде чем писать что-либо
+- Опционально запускает агентскую проверку выходных данных для обеспечения качества.
 
-## Supported Formats
+## Поддерживаемые форматы
 
-The migration handles various v1 format variations:
+Миграция обрабатывает различные варианты формата v1:
 
-- Milestone-sectioned roadmaps with `<details>` blocks
-- Bold phase entries
-- Bullet-format requirements
-- Decimal phase numbering
-- Duplicate phase numbers across milestones
+- Дорожные карты, разделенные на этапы с блоками `<details>`
+- Записи фаз жирным шрифтом
+- Требования к формату маркеров
+- Десятичная нумерация фаз
+- Дублирование номеров этапов на разных этапах
 
-## Requirements
+## Требования
 
-Migration works best with a `ROADMAP.md` file for milestone structure. Without one, milestones are inferred from the `phases/` directory.
+Миграция лучше всего работает с файлом `ROADMAP.md` для структуры этапов. Без него этапы выводятся из каталога `phases/`.
 
-## Post-Migration
+## После миграции
 
-After migrating, verify the output with:
+После миграции проверьте вывод с помощью:
 
 ```
 /gsd doctor
 ```
 
-This checks `.gsd/` integrity and flags any structural issues.
+При этом проверяется целостность `.gsd/` и отмечаются любые структурные проблемы.

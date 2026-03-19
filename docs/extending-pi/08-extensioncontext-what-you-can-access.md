@@ -1,11 +1,11 @@
-# ExtensionContext — What You Can Access
+# ExtensionContext — к чему вы можете получить доступ
 
 
-Every event handler receives `ctx: ExtensionContext`. This is your window into pi's runtime state.
+Каждый обработчик событий получает `ctx: ExtensionContext`. Это ваше окно в состояние выполнения pi.
 
-### ctx.ui — User Interaction
+### ctx.ui — взаимодействие с пользователем
 
-The primary way to interact with the user. See [Section 12: Custom UI](#12-custom-ui--visual-components) for full details.
+Основной способ взаимодействия с пользователем. Подробную информацию см. в [Раздел 12: Пользовательский UI](#12-custom-ui--visual-components).
 
 ```typescript
 // Dialogs (blocking, wait for user response)
@@ -25,15 +25,15 @@ ctx.ui.setWorkingMessage("Thinking...");  // Working message during streaming
 
 ### ctx.hasUI
 
-`false` in print mode (`-p`) and JSON mode. `true` in interactive and RPC mode. Always check before calling dialog methods in non-interactive contexts.
+`false` в режиме печати (`-p`) и JSON. `true` в интерактивном режиме и RPC. Всегда проверяйте перед вызовом методов диалога в неинтерактивном контексте.
 
 ### ctx.cwd
 
-Current working directory (string).
+Текущий рабочий каталог (строка).
 
-### ctx.sessionManager — Session State
+### ctx.sessionManager — Состояние сеанса
 
-Read-only access to the session:
+Доступ к сессии только для чтения:
 
 ```typescript
 ctx.sessionManager.getEntries()       // All entries in session
@@ -45,19 +45,19 @@ ctx.sessionManager.getLabel(entryId)  // Get label on entry
 
 ### ctx.modelRegistry / ctx.model
 
-Access to available models and the current model.
+Доступ к доступным моделям и текущей модели.
 
 ### ctx.isIdle() / ctx.abort() / ctx.hasPendingMessages()
 
-Control flow helpers for checking agent state.
+Помощники потока управления для проверки состояния агента.
 
 ### ctx.shutdown()
 
-Request graceful shutdown. Deferred until agent is idle. Emits `session_shutdown` before exiting.
+Запросите плавное завершение работы. Отложено до тех пор, пока агент не освободится. Перед выходом издает `session_shutdown`.
 
 ### ctx.getContextUsage()
 
-Returns current context token usage. Useful for triggering compaction or showing stats.
+Возвращает текущее использование токена контекста. Полезно для запуска сжатия или отображения статистики.
 
 ```typescript
 const usage = ctx.getContextUsage();
@@ -66,9 +66,9 @@ if (usage && usage.tokens > 100_000) {
 }
 ```
 
-### ctx.compact(options?)
+### ctx.compact(варианты?)
 
-Trigger compaction programmatically:
+Запустите сжатие программно:
 
 ```typescript
 ctx.compact({
@@ -80,6 +80,6 @@ ctx.compact({
 
 ### ctx.getSystemPrompt()
 
-Returns the current effective system prompt (including any `before_agent_start` modifications).
+Возвращает текущее действующее системное приглашение (включая любые изменения `before_agent_start`).
 
 ---

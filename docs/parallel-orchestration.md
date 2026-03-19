@@ -1,12 +1,12 @@
-# Parallel Milestone Orchestration
+# Параллельная оркестровка этапов
 
-Run multiple milestones simultaneously in isolated git worktrees. Each milestone gets its own worker process, its own branch, and its own context window — while a coordinator tracks progress, enforces budgets, and keeps everything in sync.
+Запускайте несколько этапов одновременно в изолированных рабочих деревьях git. У каждой вехи есть собственный рабочий процесс, собственная ветка и собственное контекстное окно, а координатор отслеживает прогресс, обеспечивает соблюдение бюджетов и синхронизирует все.
 
-> **Status:** Behind `parallel.enabled: false` by default. Opt-in only — zero impact to existing users.
+> **Статус:** По умолчанию за `parallel.enabled: false`. Только согласие — нулевое влияние на существующих пользователей.
 
-## Quick Start
+## Быстрый старт
 
-1. Enable parallel mode in your preferences:
+1. Включите параллельный режим в настройках:
 
 ```yaml
 ---
@@ -16,29 +16,29 @@ parallel:
 ---
 ```
 
-2. Start parallel execution:
+2. Запустите параллельное выполнение:
 
 ```
 /gsd parallel start
 ```
 
-GSD scans your milestones, checks dependencies and file overlap, shows an eligibility report, and spawns workers for eligible milestones.
+GSD сканирует ваши вехи, проверяет зависимости и перекрытие файлов, отображает отчет о приемлемости и создает рабочих для подходящих вех.
 
-3. Monitor progress:
+3. Отслеживайте прогресс:
 
 ```
 /gsd parallel status
 ```
 
-4. Stop when done:
+4. Остановитесь, когда закончите:
 
 ```
 /gsd parallel stop
 ```
 
-## How It Works
+## Как это работает
 
-### Architecture
+### Архитектура
 
 ```
 ┌─────────────────────────────────────────────────────────┐
@@ -65,38 +65,38 @@ GSD scans your milestones, checks dependencies and file overlap, shows an eligib
 └─────────────────────────────────────────────────────────┘
 ```
 
-### Worker Isolation
+### Изоляция работников
 
-Each worker is a separate `gsd` process with complete isolation:
+Каждый рабочий — это отдельный процесс `gsd` с полной изоляцией:
 
-| Resource | Isolation Method |
+| Ресурс | Метод изоляции |
 |----------|-----------------|
-| **Filesystem** | Git worktree — each worker has its own checkout |
-| **Git branch** | `milestone/<MID>` — one branch per milestone |
-| **State derivation** | `GSD_MILESTONE_LOCK` env var — `deriveState()` only sees the assigned milestone |
-| **Context window** | Separate process — each worker has its own agent sessions |
-| **Metrics** | Each worktree has its own `.gsd/metrics.json` |
-| **Crash recovery** | Each worktree has its own `.gsd/auto.lock` |
+| **Файловая система** | Рабочее дерево Git — у каждого рабочего есть своя проверка |
+| **Ветка Git** | `milestone/<MID>` — одна ветка на каждую веху |
+| **Вывод состояния** | `GSD_MILESTONE_LOCK` env var — `deriveState()` видит только назначенную веху |
+| **Контекстное окно** | Отдельный процесс — у каждого воркера свои сеансы агента |
+| **Показатели** | Каждое рабочее дерево имеет свой собственный `.gsd/metrics.json` |
+| **Восстановление после сбоя** | Каждое рабочее дерево имеет свой собственный `.gsd/auto.lock` |
 
-### Coordination
+### Координация
 
-Workers and the coordinator communicate through file-based IPC:
+Рабочие и координатор общаются через файл IPC:
 
-- **Session status files** (`.gsd/parallel/<MID>.status.json`) — workers write heartbeats, the coordinator reads them
-- **Signal files** (`.gsd/parallel/<MID>.signal.json`) — coordinator writes signals, workers consume them
-- **Atomic writes** — write-to-temp + rename prevents partial reads
+- **Файлы состояния сеанса** (`.gsd/parallel/<MID>.status.json`) — работники записывают пульс, координатор их читает.
+- **Файлы сигналов** (`.gsd/parallel/<MID>.signal.json`) — координатор записывает сигналы, работники их потребляют.
+- **Атомарные записи** — запись во временную память + переименование предотвращает частичное чтение.
 
-## Eligibility Analysis
+## Анализ приемлемости
 
-Before starting parallel execution, GSD checks which milestones can safely run concurrently.
+Прежде чем начать параллельное выполнение, GSD проверяет, какие этапы могут безопасно выполняться одновременно.
 
-### Rules
+### Правила
 
-1. **Not complete** — Finished milestones are skipped
-2. **Dependencies satisfied** — All `dependsOn` entries must have status `complete`
-3. **File overlap check** — Milestones touching the same files get a warning (but are still eligible)
+1. **Не завершено** — завершенные этапы пропускаются.
+2. **Зависимости удовлетворены** — все записи `dependsOn` должны иметь статус `complete`.
+3. **Проверка перекрытия файлов**. Вехи, затрагивающие одни и те же файлы, получают предупреждение (но по-прежнему имеют право на выполнение).
 
-### Example Report
+### Пример отчета
 
 ```
 # Parallel Eligibility Report
@@ -122,11 +122,11 @@ Before starting parallel execution, GSD checks which milestones can safely run c
   - `src/middleware.ts`
 ```
 
-File overlaps are warnings, not blockers. Both milestones work in separate worktrees, so they won't interfere at the filesystem level. Conflicts are detected and resolved during merge.
+Перекрытия файлов — это предупреждения, а не блокировщики. Обе вехи работают в отдельных рабочих деревьях, поэтому они не будут мешать на уровне файловой системы. Конфликты обнаруживаются и разрешаются во время слияния.
 
-## Configuration
+## Конфигурация
 
-Add to `~/.gsd/preferences.md` or `.gsd/preferences.md`:
+Добавьте к `~/.gsd/preferences.md` или `.gsd/preferences.md`:
 
 ```yaml
 ---
@@ -139,34 +139,34 @@ parallel:
 ---
 ```
 
-### Configuration Reference
+### Справочник по конфигурации
 
-| Key | Type | Default | Description |
+| Ключ | Тип | По умолчанию | Описание |
 |-----|------|---------|-------------|
-| `enabled` | boolean | `false` | Master toggle. Must be `true` for `/gsd parallel` commands to work. |
-| `max_workers` | number (1-4) | `2` | Maximum concurrent worker processes. Higher values use more memory and API budget. |
-| `budget_ceiling` | number | none | Aggregate cost ceiling in USD across all workers. When reached, no new units are dispatched. |
-| `merge_strategy` | `"per-slice"` or `"per-milestone"` | `"per-milestone"` | When worktree changes merge back to main. Per-milestone waits for the full milestone to complete. |
-| `auto_merge` | `"auto"`, `"confirm"`, `"manual"` | `"confirm"` | How merge-back is handled. `confirm` prompts before merging. `manual` requires explicit `/gsd parallel merge`. |
+| `enabled` | логическое | `false` | Мастер переключения. Должно быть `true`, чтобы команды `/gsd parallel` работали. |
+| `max_workers` | номер (1-4) | `2` | Максимальное количество параллельных рабочих процессов. Более высокие значения используют больше памяти и бюджета API. |
+| `budget_ceiling` | номер | нет | Совокупный потолок затрат составляет USD для всех работников. При достижении новые единицы не отправляются. |
+| `merge_strategy` | `"per-slice"` или `"per-milestone"` | `"per-milestone"` | Когда изменения рабочего дерева сливаются с основным. Для каждой вехи ожидается завершение полной вехи. |
+| `auto_merge` | `"auto"`, `"confirm"`, `"manual"` | `"confirm"` | Как обрабатывается обратное слияние. Перед слиянием появится запрос `confirm`. `manual` требует явного `/gsd parallel merge`. |
 
-## Commands
+## Команды
 
-| Command | Description |
+| Команда | Описание |
 |---------|-------------|
-| `/gsd parallel start` | Analyze eligibility, confirm, and start workers |
-| `/gsd parallel status` | Show all workers with state, units completed, and cost |
-| `/gsd parallel stop` | Stop all workers (sends SIGTERM) |
-| `/gsd parallel stop M002` | Stop a specific milestone's worker |
-| `/gsd parallel pause` | Pause all workers (finish current unit, then wait) |
-| `/gsd parallel pause M002` | Pause a specific worker |
-| `/gsd parallel resume` | Resume all paused workers |
-| `/gsd parallel resume M002` | Resume a specific worker |
-| `/gsd parallel merge` | Merge all completed milestones back to main |
-| `/gsd parallel merge M002` | Merge a specific milestone back to main |
+| `/gsd parallel start` | Проанализируйте право на участие, подтвердите и начните работу |
+| `/gsd parallel status` | Показать всех рабочих с указанием состояния, завершенных юнитов и стоимости |
+| `/gsd parallel stop` | Остановить всех рабочих (отправляет SIGTERM) |
+| `/gsd parallel stop M002` | Остановить работника определенной вехи |
+| `/gsd parallel pause` | Приостановить всех рабочих (завершить текущий модуль, затем подождать) |
+| `/gsd parallel pause M002` | Приостановить конкретного работника |
+| `/gsd parallel resume` | Возобновить работу всех приостановленных работников |
+| `/gsd parallel resume M002` | Резюме конкретного работника |
+| `/gsd parallel merge` | Объединить все выполненные этапы обратно на главную |
+| `/gsd parallel merge M002` | Объединить определенную веху обратно в главную |
 
-## Signal Lifecycle
+## Жизненный цикл сигнала
 
-The coordinator communicates with workers through signals:
+Координатор общается с работниками посредством сигналов:
 
 ```
 Coordinator                    Worker
@@ -187,23 +187,23 @@ Coordinator                    Worker
     │                            └── process exits
 ```
 
-Workers check for signals between units (in `handleAgentEnd`). The coordinator also sends `SIGTERM` for immediate response on stop.
+Рабочие проверяют сигналы между подразделениями (в `handleAgentEnd`). Координатор также отправляет `SIGTERM` для немедленного ответа при остановке.
 
-## Merge Reconciliation
+## Согласование слиянием
 
-When milestones complete, their worktree changes need to merge back to main.
+По завершении вех изменения их рабочего дерева должны быть снова объединены с основным.
 
-### Merge Order
+### Объединить заказ
 
-- **Sequential** (default): Milestones merge in ID order (M001 before M002)
-- **By-completion**: Milestones merge in the order they finish
+- **Последовательно** (по умолчанию): вехи объединяются в порядке ID (M001 до M002).
+- **По завершению**: этапы объединяются в порядке их завершения.
 
-### Conflict Handling
+### Разрешение конфликтов
 
-1. `.gsd/` state files (STATE.md, metrics.json, etc.) — **auto-resolved** by accepting the milestone branch version
-2. Code conflicts — **stop and report**. The merge halts, showing which files conflict. Resolve manually and retry with `/gsd parallel merge <MID>`.
+1. Файлы состояния `.gsd/` (STATE.md, metrics.json и т. д.) — **автоматически разрешаются** путем принятия версии вехи.
+2. Конфликты кода — **остановитесь и сообщите**. Слияние останавливается, показывая, какие файлы конфликтуют. Решите проблему вручную и повторите попытку, нажав `/gsd parallel merge <MID>`.
 
-### Example
+### Пример
 
 ```
 /gsd parallel merge
@@ -217,47 +217,47 @@ When milestones complete, their worktree changes need to merge back to main.
   Resolve conflicts manually and run `/gsd parallel merge M003` to retry.
 ```
 
-## Budget Management
+## Управление бюджетом
 
-When `budget_ceiling` is set, the coordinator tracks aggregate cost across all workers:
+Если установлено значение `budget_ceiling`, координатор отслеживает совокупные затраты по всем работникам:
 
-- Cost is summed from each worker's session status
-- When the ceiling is reached, the coordinator signals workers to stop
-- Each worker also respects the project-level `budget_ceiling` preference independently
+- Стоимость суммируется из статуса сеанса каждого работника.
+- При достижении потолка координатор подает сигнал работникам остановиться.
+- Каждый работник также самостоятельно соблюдает предпочтение `budget_ceiling` уровня проекта.
 
-## Health Monitoring
+## Мониторинг здоровья
 
-### Doctor Integration
+### Интеграция врача
 
-`/gsd doctor` detects parallel session issues:
+`/gsd doctor` обнаруживает проблемы с параллельным сеансом:
 
-- **Stale parallel sessions** — Worker process died without cleanup. Doctor finds `.gsd/parallel/*.status.json` files with dead PIDs or expired heartbeats and removes them.
+- **Устаревшие параллельные сеансы** — Рабочий процесс завершился без очистки. Доктор находит файлы `.gsd/parallel/*.status.json` с мертвыми PIDs или просроченными пульсами и удаляет их.
 
-Run `/gsd doctor --fix` to clean up automatically.
+Запустите `/gsd doctor --fix` для автоматической очистки.
 
-### Stale Detection
+### Обнаружение устаревших данных
 
-Sessions are considered stale when:
-- The worker PID is no longer running (checked via `process.kill(pid, 0)`)
-- The last heartbeat is older than 30 seconds
+Сессии считаются устаревшими, если:
+- Рабочий PID больше не работает (проверено через `process.kill(pid, 0)`)
+- Последнее сердцебиение старше 30 секунд.
 
-The coordinator runs stale detection during `refreshWorkerStatuses()` and automatically removes dead sessions.
+Координатор запускает обнаружение устаревших сеансов во время `refreshWorkerStatuses()` и автоматически удаляет мертвые сеансы.
 
-## Safety Model
+## Модель безопасности
 
-| Safety Layer | Protection |
+| Уровень безопасности | Защита |
 |-------------|------------|
-| **Feature flag** | `parallel.enabled: false` by default — existing users unaffected |
-| **Eligibility analysis** | Dependency and file overlap checks before starting |
-| **Worker isolation** | Separate processes, worktrees, branches, context windows |
-| **`GSD_MILESTONE_LOCK`** | Each worker only sees its milestone in state derivation |
-| **`GSD_PARALLEL_WORKER`** | Workers cannot spawn nested parallel sessions |
-| **Budget ceiling** | Aggregate cost enforcement across all workers |
-| **Signal-based shutdown** | Graceful stop via file signals + SIGTERM |
-| **Doctor integration** | Detects and cleans up orphaned sessions |
-| **Conflict-aware merge** | Stops on code conflicts, auto-resolves `.gsd/` state conflicts |
+| **Флаг функции** | `parallel.enabled: false` по умолчанию — существующие пользователи не затронуты |
+| **Анализ приемлемости** | Проверка зависимостей и перекрытия файлов перед запуском |
+| **Изоляция работников** | Отдельные процессы, рабочие деревья, ветки, контекстные окна |
+| **`GSD_MILESTONE_LOCK`** | Каждый рабочий видит лишь свою веху в становлении государства |
+| **`GSD_PARALLEL_WORKER`** | Workers не могут создавать вложенные параллельные сеансы |
+| **Потолок бюджета** | Обеспечение совокупных затрат для всех работников |
+| **Отключение по сигналу** | Плавная остановка с помощью файловых сигналов + SIGTERM |
+| **Интеграция врачей** | Обнаруживает и очищает потерянные сеансы |
+| **Слияние с учетом конфликтов** | Останавливается при конфликтах кода, автоматически разрешает конфликты состояний `.gsd/` |
 
-## File Layout
+## Макет файла
 
 ```
 .gsd/
@@ -278,32 +278,32 @@ The coordinator runs stale detection during `refreshWorkerStatuses()` and automa
 └── ...
 ```
 
-Both `.gsd/parallel/` and `.gsd/worktrees/` are gitignored — they're runtime-only coordination files that never get committed.
+И `.gsd/parallel/`, и `.gsd/worktrees/` игнорируются git — это файлы координации только во время выполнения, которые никогда не фиксируются.
 
-## Troubleshooting
+## Устранение неполадок
 
-### "Parallel mode is not enabled"
+### "Параллельный режим не включен"
 
-Set `parallel.enabled: true` in your preferences file.
+Установите `parallel.enabled: true` в файле настроек.
 
-### "No milestones are eligible for parallel execution"
+### «Ни одна контрольная точка не может выполняться параллельно»
 
-All milestones are either complete or blocked by dependencies. Check `/gsd queue` to see milestone status and dependency chains.
+Все вехи либо завершены, либо заблокированы зависимостями. Нажмите `/gsd queue`, чтобы увидеть статус вехи и цепочки зависимостей.
 
-### Worker crashed — how to recover
+### Worker упал — как восстановить
 
-Workers now persist their state to disk automatically. If a worker process dies, the coordinator detects the dead PID via heartbeat expiry and marks the worker as crashed. On restart, the worker picks up from disk state — crash recovery, worktree re-entry, and completed-unit tracking carry over from the crashed session.
+Теперь рабочие процессы автоматически сохраняют свое состояние на диске. Если рабочий процесс завершается, координатор обнаруживает мертвый PID по истечении контрольного сигнала и помечает рабочий процесс как сбойный. При перезапуске рабочий процесс выходит из состояния диска — восстановление после сбоя, повторный вход в рабочее дерево и перенос отслеживания завершенных модулей из сбойного сеанса.
 
-1. Run `/gsd doctor --fix` to clean up stale sessions
-2. Run `/gsd parallel status` to see current state
-3. Re-run `/gsd parallel start` to spawn new workers for remaining milestones
+1. Запустите `/gsd doctor --fix`, чтобы очистить устаревшие сеансы.
+2. Запустите `/gsd parallel status`, чтобы увидеть текущее состояние.
+3. Перезапустите `/gsd parallel start`, чтобы создать новых рабочих для оставшихся этапов.
 
-### Merge conflicts after parallel completion
+### Конфликты слияния после параллельного завершения
 
-1. Run `/gsd parallel merge` to see which milestones have conflicts
-2. Resolve conflicts in the worktree at `.gsd/worktrees/<MID>/`
-3. Retry with `/gsd parallel merge <MID>`
+1. Запустите `/gsd parallel merge`, чтобы увидеть, какие вехи конфликтуют.
+2. Устраните конфликты в рабочем дереве на `.gsd/worktrees/<MID>/`.
+3. Повторите попытку, нажав `/gsd parallel merge <MID>`.
 
-### Workers seem stuck
+### Кажется, рабочие застряли
 
-Check if budget ceiling was reached: `/gsd parallel status` shows per-worker costs. Increase `parallel.budget_ceiling` or remove it to continue.
+Проверьте, достигнут ли потолок бюджета: `/gsd parallel status` показывает затраты на одного работника. Увеличьте `parallel.budget_ceiling` или удалите его, чтобы продолжить.

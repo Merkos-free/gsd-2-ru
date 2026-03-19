@@ -1,14 +1,14 @@
-# Context Injection Patterns
+# Шаблоны внедрения контекста
 
-Practical recipes for injecting, filtering, transforming, and managing context through pi's hook system. Each pattern includes when to use it, which hook to use, and the exact implementation.
+Практические рецепты внедрения, фильтрации, преобразования и управления контекстом с помощью системы перехватчиков pi. В каждом шаблоне указано, когда его использовать, какой крючок использовать и точную реализацию.
 
 ---
 
-## Pattern 1: Per-Prompt System Prompt Modification
+## Шаблон 1: Изменение системных подсказок для каждой подсказки
 
-**Use when:** You want to change the LLM's behavior for the entire agent run based on some condition.
+**Используйте, когда:** Вы хотите изменить поведение LLM для всего запуска агента на основе какого-либо условия.
 
-**Hook:** `before_agent_start`
+**Крюк:** `before_agent_start`
 
 ```typescript
 let debugMode = false;
@@ -35,15 +35,15 @@ pi.on("before_agent_start", async (event) => {
 });
 ```
 
-**Why `before_agent_start` and not `context`:** The system prompt is separate from the message array. `context` can only modify messages, not the system prompt.
+**Почему `before_agent_start`, а не `context`:** Системное приглашение отделено от массива сообщений. `context` может изменять только сообщения, но не системные подсказки.
 
 ---
 
-## Pattern 2: Invisible Context Injection
+## Шаблон 2: невидимое внедрение контекста
 
-**Use when:** You need the LLM to know something without the user seeing it in the chat.
+**Используйте, когда:** вам нужно нажать LLM, чтобы узнать что-то так, чтобы пользователь не увидел это в чате.
 
-**Hook:** `before_agent_start` with `display: false`
+**Крючок:** `before_agent_start` с `display: false`
 
 ```typescript
 pi.on("before_agent_start", async (event, ctx) => {
@@ -61,15 +61,15 @@ pi.on("before_agent_start", async (event, ctx) => {
 });
 ```
 
-**Important:** `display: false` hides from UI only. The LLM always receives custom messages as `user` role content. There is no way to inject LLM-invisible metadata through `sendMessage` or `before_agent_start`.
+**Важно!** `display: false` скрывается только от UI. LLM всегда получает специальные сообщения в качестве содержимого роли `user`. Невозможно внедрить невидимые для LLM метаданные через `sendMessage` или `before_agent_start`.
 
 ---
 
-## Pattern 3: Conditional Context Filtering
+## Шаблон 3: Условная контекстная фильтрация
 
-**Use when:** Some messages in the history are no longer relevant and waste context tokens.
+**Используйте, когда:** Некоторые сообщения в истории больше не актуальны и тратят токены контекста.
 
-**Hook:** `context`
+**Крюк:** `context`
 
 ```typescript
 pi.on("context", async (event) => {
@@ -91,15 +91,15 @@ pi.on("context", async (event) => {
 });
 ```
 
-**Why `context` and not `before_agent_start`:** `context` fires every turn and can see the full message array including tool results from earlier turns. `before_agent_start` fires once and can only inject — it can't filter existing messages.
+**Почему `context`, а не `before_agent_start`:** `context` срабатывает каждый ход и может видеть полный массив сообщений, включая результаты работы инструмента на предыдущих ходах. `before_agent_start` срабатывает один раз и может только внедрить — он не может фильтровать существующие сообщения.
 
 ---
 
-## Pattern 4: Dynamic Context Injection Per Turn
+## Шаблон 4: Динамическое внедрение контекста за ход
 
-**Use when:** You want to add context that changes between turns (e.g., current file state, running process output).
+**Используйте, когда:** вы хотите добавить контекст, который меняется между ходами (например, текущее состояние файла, выходные данные запущенного процесса).
 
-**Hook:** `context`
+**Крюк:** `context`
 
 ```typescript
 pi.on("context", async (event, ctx) => {
@@ -118,15 +118,15 @@ pi.on("context", async (event, ctx) => {
 });
 ```
 
-**Caution:** Messages injected in `context` are NOT persisted to the session. They exist only for the LLM call. Next turn, you'll need to inject again. This is actually useful — it means the context is always fresh.
+**Внимание!** Сообщения, добавленные в `context`, сохраняются в сеансе NOT. Они существуют только для вызова LLM. На следующем ходу вам нужно будет сделать инъекцию снова. Это на самом деле полезно — значит, контекст всегда свежий.
 
 ---
 
-## Pattern 5: Deferred Context (Next Turn)
+## Шаблон 5: Отложенный контекст (следующий ход)
 
-**Use when:** You want to attach context to the user's next prompt without interrupting the current conversation.
+**Используйте, когда:** вы хотите прикрепить контекст к следующему запросу пользователя, не прерывая текущий разговор.
 
-**Mechanism:** `pi.sendMessage` with `deliverAs: "nextTurn"`
+**Механизм:** `pi.sendMessage` с `deliverAs: "nextTurn"`
 
 ```typescript
 // Queue context for the next user prompt
@@ -140,15 +140,15 @@ pi.sendMessage(
 );
 ```
 
-**How it works internally:** The message is stored in `_pendingNextTurnMessages` and injected into the `messages` array when the next `agent.prompt()` is called, after the user message. Unlike `context` hook injection, these messages ARE persisted to the session.
+**Как это работает внутри:** Сообщение сохраняется в `_pendingNextTurnMessages` и вводится в массив `messages` при вызове следующего `agent.prompt()` после сообщения пользователя. В отличие от внедрения перехватчика `context`, эти сообщения ARE сохраняются в сеансе.
 
 ---
 
-## Pattern 6: Context Window Management
+## Шаблон 6: Управление контекстными окнами
 
-**Use when:** You're approaching the context limit and need to intelligently prune.
+**Используйте, когда:** Вы приближаетесь к пределу контекста и вам необходимо разумно сократить его.
 
-**Hook:** `context`
+**Крюк:** `context`
 
 ```typescript
 pi.on("context", async (event, ctx) => {
@@ -176,11 +176,11 @@ pi.on("context", async (event, ctx) => {
 
 ---
 
-## Pattern 7: Steering with Context
+## Шаблон 7: Управление контекстом
 
-**Use when:** You want to redirect the agent mid-run with additional context.
+**Используйте, когда:** вы хотите перенаправить агента в процессе работы с дополнительным контекстом.
 
-**Mechanism:** `pi.sendMessage` with `deliverAs: "steer"`
+**Механизм:** `pi.sendMessage` с `deliverAs: "steer"`
 
 ```typescript
 // During an agent run, inject a steering message
@@ -194,15 +194,15 @@ pi.sendMessage(
 );
 ```
 
-**What happens:** The current tool call finishes, remaining queued tool calls are skipped (they get error results saying "Skipped due to queued user message"), and the steering message becomes input for the next turn.
+**Что происходит:** Текущий вызов инструмента завершается, оставшиеся вызовы инструмента в очереди пропускаются (они получают результаты об ошибке «Пропущено из-за сообщения пользователя в очереди»), а сообщение управления становится входным для следующего поворота.
 
 ---
 
-## Pattern 8: Follow-Up Context After Completion
+## Шаблон 8: Последующий контекст после завершения
 
-**Use when:** You want to trigger another LLM turn after the agent finishes, with additional context.
+**Используйте, когда:** вы хотите запустить еще один ход LLM после завершения работы агента с дополнительным контекстом.
 
-**Mechanism:** `pi.sendMessage` with `deliverAs: "followUp"`
+**Механизм:** `pi.sendMessage` с `deliverAs: "followUp"`
 
 ```typescript
 pi.on("agent_end", async (event, ctx) => {
@@ -226,11 +226,11 @@ pi.on("agent_end", async (event, ctx) => {
 
 ---
 
-## Pattern 9: Tool-Scoped Context via promptGuidelines
+## Шаблон 9: Контекст на уровне инструмента через promptGuidelines
 
-**Use when:** You want context that only appears when specific tools are active.
+**Используйте, когда:** вам нужен контекст, который появляется только тогда, когда активны определенные инструменты.
 
-**Mechanism:** `promptGuidelines` on tool registration
+**Механизм:** `promptGuidelines` при регистрации инструмента.
 
 ```typescript
 pi.registerTool({
@@ -248,15 +248,15 @@ pi.registerTool({
 });
 ```
 
-**Behavior:** The `promptGuidelines` are added to the "Guidelines" section of the system prompt ONLY when the `deploy` tool is in the active tool set. If the tool is disabled via `pi.setActiveTools(...)`, the guidelines disappear.
+**Поведение:** `promptGuidelines` добавляются в раздел «Направляющие» системной подсказки ONLY, когда инструмент `deploy` находится в активном наборе инструментов. Если инструмент отключен с помощью `pi.setActiveTools(...)`, направляющие исчезнут.
 
 ---
 
-## Pattern 10: Persistent State as Context
+## Шаблон 10: Постоянное состояние как контекст
 
-**Use when:** You need state that survives session resume AND is visible to the LLM.
+**Используйте, когда:** Вам нужно состояние, при котором после возобновления сеанса AND будет видно LLM.
 
-**Mechanism:** Tool result `details` + `session_start` reconstruction + `before_agent_start` injection
+**Механизм:** Результат инструмента `details` + `session_start` реконструкция + `before_agent_start` инъекция
 
 ```typescript
 let projectFacts: string[] = [];
@@ -300,15 +300,15 @@ pi.on("before_agent_start", async (event) => {
 });
 ```
 
-**Why this works for branching:** State lives in tool result `details`, so when the user forks from an earlier point, `session_start` reconstructs from `getBranch()` (the current path), not the full history. Old branches' facts don't leak into new branches.
+**Почему это работает для ветвления:** Состояние находится в результате инструмента `details`, поэтому, когда пользователь разветвляется от более ранней точки, `session_start` восстанавливается из `getBranch()` (текущий путь), а не из всей истории. Факты из старых веток не просачиваются в новые ветки.
 
 ---
 
-## Pattern 11: Input Preprocessing / Macros
+## Шаблон 11: Предварительная обработка ввода/макросы
 
-**Use when:** You want custom syntax that expands before the LLM sees it.
+**Используйте, когда:** вам нужен собственный синтаксис, который раскрывается до того, как его увидит LLM.
 
-**Hook:** `input`
+**Крюк:** `input`
 
 ```typescript
 pi.on("input", async (event) => {
@@ -331,11 +331,11 @@ pi.on("input", async (event) => {
 
 ---
 
-## Pattern 12: Context-Aware Tool Blocking
+## Шаблон 12: Блокировка контекстно-зависимых инструментов
 
-**Use when:** You want to prevent certain tool usage based on conversation context.
+**Используйте, когда:** вы хотите запретить использование определенных инструментов в зависимости от контекста разговора.
 
-**Hook:** `tool_call` with `context` awareness
+**Хук:** `tool_call` с учетом `context`
 
 ```typescript
 let inPlanMode = false;
@@ -361,9 +361,9 @@ pi.on("tool_call", async (event, ctx) => {
 
 ---
 
-## Anti-Patterns
+## Антипаттерны
 
-### ❌ Don't: Modify system prompt in `context`
+### ❌ Не следует: изменять системную подсказку в `context`.
 
 ```typescript
 // WRONG — context event can only modify messages, not the system prompt
@@ -373,7 +373,7 @@ pi.on("context", async (event, ctx) => {
 });
 ```
 
-### ❌ Don't: Rely on `display: false` for security
+### ❌ Не следует: полагайтесь на `display: false` для обеспечения безопасности.
 
 ```typescript
 // WRONG — display: false only hides from UI, LLM still sees it
@@ -386,7 +386,7 @@ pi.on("before_agent_start", async () => ({
 }));
 ```
 
-### ❌ Don't: Use `context` for one-time injection
+### ❌ Не следует: используйте `context` для однократной инъекции.
 
 ```typescript
 // WRONG — context fires every turn, so this injects repeatedly
@@ -400,9 +400,9 @@ pi.on("context", async (event) => {
 // Problem: after compaction or session restore, injected resets to false
 ```
 
-Use `before_agent_start` with `message` for one-time per-prompt injection instead.
+Вместо этого используйте `before_agent_start` с `message` для однократной инъекции для каждого запроса.
 
-### ❌ Don't: Use `getEntries()` for branch-aware state
+### ❌ Не следует: используйте `getEntries()` для состояния ветвления.
 
 ```typescript
 // WRONG — getEntries() returns ALL entries including dead branches

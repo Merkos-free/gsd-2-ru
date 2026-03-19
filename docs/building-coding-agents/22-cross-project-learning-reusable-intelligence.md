@@ -1,30 +1,30 @@
-# Cross-Project Learning & Reusable Intelligence
+# Межпроектное обучение и многоразовый интеллект
 
-### What Transfers Well
+### Что хорошо переносится
 
-| Type | Transferability | Example |
+| Тип | Возможность передачи | Пример |
 |------|----------------|---------|
-| **Problem-solving patterns** (abstract) | ✅ High | "When implementing OAuth, these are the common pitfalls and the architecture that avoids them" |
-| **Code templates & scaffolding** | ✅ With adaptation | Proven auth module structure, tested payment integration pattern |
-| **Learned pitfalls** | ✅ High | "When integrating Stripe, these edge cases around webhooks most implementations miss" |
-| **Project-specific conventions** | ❌ Does not transfer | Architectural decisions are contextual |
-| **Domain logic** | ❌ Does not transfer | Business rules are project-specific |
+| **Схемы решения проблем** (аннотация) | ✅ Высокий | «При реализации OAuth описаны распространенные ошибки и архитектура, позволяющая их избежать» |
+| **Шаблоны кода и строительные леса** | ✅ С адаптацией | Проверенная структура модуля авторизации, проверенный шаблон интеграции платежей |
+| **Узнали подводные камни** | ✅ Высокий | «При интеграции Stripe эти крайние случаи, связанные с веб-перехватчиками, пропускаются большинством реализаций» |
+| **Соглашения, специфичные для проекта** | ❌ Не переносится | Архитектурные решения контекстуальны |
+| **Логика предметной области** | ❌ Не переносится | Бизнес-правила зависят от проекта |
 
-### The Optimal Architecture: A Pattern Library
+### Оптимальная архитектура: библиотека шаблонов
 
-Each pattern includes:
-- Description of the problem it solves
-- The approach and tradeoffs
-- Common pitfalls
-- Verification tests
-- Reference implementation
+Каждый узор включает в себя:
+- Описание проблемы, которую он решает.
+- Подход и компромиссы
+- Распространенные подводные камни
+- Проверочные испытания
+- Эталонная реализация
 
-### Growth Through Extraction, Not Manual Curation
+### Рост посредством извлечения, а не ручного лечения
 
-When a task completes with high quality (first-attempt success, no subsequent modifications, clean review), flag it as a **candidate for pattern extraction.** A dedicated pass determines whether the solution embodies a generalizable pattern.
+Когда задача выполнена с высоким качеством (успех с первой попытки, отсутствие последующих модификаций, чистая проверка), пометьте ее как **кандидата на извлечение шаблона**. Выделенный проход определяет, воплощает ли решение обобщаемый шаблон.
 
-### The Critical Constraint
+### Критическое ограничение
 
-Patterns should be **descriptive, not prescriptive** — "here's an approach that has worked well, with these tradeoffs" not "always do it this way." Grok adds an overfitting guard: require **3+ project examples** before promoting to reusable.
+Шаблоны должны быть **описательными, а не предписывающими**: «вот подход, который хорошо себя зарекомендовал, с этими компромиссами», а не «всегда делайте так». Грок добавляет защиту от переоснащения: требуется **+3 примера проекта**, прежде чем переходить к повторному использованию.
 
 ---

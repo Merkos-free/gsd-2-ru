@@ -1,30 +1,30 @@
-# Hook Reference
+# Ссылка на крючок
 
-Complete behavioral specification of every hook in pi's extension system. Covers timing, chaining semantics, return shapes, and edge cases not in the extending-pi docs.
-
----
-
-## Hook Categories
-
-1. **Input hooks** — intercept user input before the agent
-2. **Agent lifecycle hooks** — control the agent loop boundary
-3. **Per-turn hooks** — fire on every LLM call within an agent run
-4. **Tool hooks** — intercept individual tool executions
-5. **Session hooks** — respond to session lifecycle changes
-6. **Model hooks** — respond to model changes
-7. **Resource hooks** — provide dynamic resources at startup
+Полная спецификация поведения каждого хука в системе расширения pi. Охватывает время, семантику цепочки, формы возврата и крайние случаи, которых нет в документации по расширению Pi.
 
 ---
 
-## 1. Input Hooks
+## Категории крючков
+
+1. **Перехватчики ввода** — перехватывают ввод пользователя до того, как агент
+2. **Перехватчики жизненного цикла агента** — контролируйте границы цикла агента.
+3. **Пошаговые перехваты** — срабатывание при каждом вызове LLM в рамках сеанса агента.
+4. **Перехваты инструментов** — перехват выполнения отдельных инструментов.
+5. **Перехватчики сеансов** — реагирование на изменения жизненного цикла сеанса.
+6. **Привязка модели** — реакция на изменения модели.
+7. **Перехватчики ресурсов** — предоставление динамических ресурсов при запуске.
+
+---
+
+## 1. Хуки ввода
 
 ### `input`
 
-**When:** User submits text (Enter in editor, RPC message, or `pi.sendUserMessage` from an extension with `source: "extension"`).
+**Когда:** Пользователь отправляет текст (введите в редакторе, введите сообщение RPC или `pi.sendUserMessage` из расширения с помощью `source: "extension"`).
 
-**Before:** Skill expansion, template expansion, command check (extension commands are checked before `input` fires, but built-in commands are checked after).
+**До:** Расширение навыков, расширение шаблонов, проверка команд (команды расширения проверяются до срабатывания `input`, а встроенные команды проверяются после).
 
-**Chaining:** Sequential through all extensions. Each handler sees the text output of the previous handler's `transform`. First `handled` stops the chain and the pipeline.
+**Цепочка:** последовательно для всех расширений. Каждый обработчик видит текстовый вывод `transform` предыдущего обработчика. Сначала `handled` останавливает цепь и трубопровод.
 
 ```typescript
 pi.on("input", async (event, ctx) => {
@@ -44,24 +44,24 @@ pi.on("input", async (event, ctx) => {
 });
 ```
 
-**Edge cases:**
-- Extension commands (`/mycommand`) are checked **before** `input` fires. If it matches, `input` never fires.
-- Built-in commands (`/new`, `/model`, etc.) are checked **after** `input` transforms. So `input` can transform text into a built-in command, or transform a built-in command into something else.
-- Images can be replaced via `transform`. Omitting `images` in the transform result preserves the original images.
+** Краевые случаи: **
+- Команды расширения (`/mycommand`) проверяются **до** срабатывания `input`. Если оно соответствует, `input` никогда не сработает.
+- Встроенные команды (`/new`, `/model` и т. д.) проверяются **после** преобразований `input`. Таким образом, `input` может преобразовать текст во встроенную команду или преобразовать встроенную команду во что-то другое.
+- Изображения можно заменить с помощью `transform`. Если пропустить `images` в результате преобразования, исходные изображения будут сохранены.
 
 ---
 
-## 2. Agent Lifecycle Hooks
+## 2. Перехватчики жизненного цикла агента
 
 ### `before_agent_start`
 
-**When:** After input processing, skill/template expansion, and the user message is constructed — but before `agent.prompt()` is called.
+**Когда:** После обработки ввода, расширения навыка/шаблона и создания пользовательского сообщения, но до вызова `agent.prompt()`.
 
-**Fires:** Once per user prompt. Does NOT fire on subsequent turns within the same agent run.
+**Срабатывает**: один раз по запросу пользователя. Срабатывает ли NOT в последующих ходах одного и того же агента.
 
-**Chaining:**
-- **System prompt:** Chains. Extension A modifies `event.systemPrompt`, Extension B sees that modified version. If no extension returns a `systemPrompt`, the base prompt is used (resetting any previous turn's modifications).
-- **Messages:** Accumulate. All `message` results are collected into an array. Each becomes a separate `CustomMessage` with `role: "custom"` injected after the user message.
+**Цепочка:**
+- **Системная подсказка:** Цепи. Расширение A изменяет `event.systemPrompt`, расширение B видит эту измененную версию. Если ни одно расширение не возвращает `systemPrompt`, используется базовая подсказка (сбрасывая все изменения предыдущего хода).
+- **Сообщения:** Накапливаются. Все результаты `message` собираются в массив. Каждый из них становится отдельным номером `CustomMessage`, а `role: "custom"` добавляется после сообщения пользователя.
 
 ```typescript
 pi.on("before_agent_start", async (event, ctx) => {
@@ -84,15 +84,15 @@ pi.on("before_agent_start", async (event, ctx) => {
 });
 ```
 
-**Critical detail:** The `display` field controls whether the message shows in the TUI chat log. The LLM **always** sees the message content regardless of `display`. All custom messages become `user` role messages in `convertToLlm`.
+**Важная информация.** Поле `display` определяет, будет ли сообщение отображаться в журнале чата TUI. LLM **всегда** видит содержимое сообщения независимо от `display`. Все пользовательские сообщения становятся сообщениями роли `user` в `convertToLlm`.
 
-**Error handling:** If a handler throws, the error is captured and reported via `emitError`. Other handlers still run. The pipeline is not stopped.
+**Обработка ошибок.** Если обработчик выдает ошибку, ошибка фиксируется и сообщается через `emitError`. Другие обработчики все еще работают. Трубопровод не остановлен.
 
 ### `agent_start`
 
-**When:** The agent loop begins (after `before_agent_start`, after `agent.prompt()` is called).
+**Когда:** Начинается цикл агента (после `before_agent_start`, после вызова `agent.prompt()`).
 
-**Fires:** Once per agent run. Informational only — no return value.
+**Срабатывает**: один раз для каждого запуска агента. Только для информации — без возвращаемого значения.
 
 ```typescript
 pi.on("agent_start", async (event, ctx) => {
@@ -103,9 +103,9 @@ pi.on("agent_start", async (event, ctx) => {
 
 ### `agent_end`
 
-**When:** The agent loop finishes (all turns complete, no more tool calls, no queued messages).
+**Когда:** Цикл агента завершается (все ходы завершены, больше нет вызовов инструментов и сообщений в очереди).
 
-**Fires:** Once per agent run.
+**Срабатывает**: один раз для каждого запуска агента.
 
 ```typescript
 pi.on("agent_end", async (event, ctx) => {
@@ -114,15 +114,15 @@ pi.on("agent_end", async (event, ctx) => {
 });
 ```
 
-**Subtlety:** `event.messages` contains only the NEW messages from this agent run, not the full conversation history. Use `ctx.sessionManager.getBranch()` for the full history.
+**Тонкость:** `event.messages` содержит только сообщения NEW от этого агента, а не полную историю разговоров. Используйте `ctx.sessionManager.getBranch()` для просмотра полной истории.
 
 ---
 
-## 3. Per-Turn Hooks
+## 3. Поворотные крючки
 
 ### `turn_start`
 
-**When:** Each turn within the agent loop begins (before the LLM call).
+**Когда:** начинается каждый ход в цикле агента (до вызова LLM).
 
 ```typescript
 pi.on("turn_start", async (event, ctx) => {
@@ -133,11 +133,11 @@ pi.on("turn_start", async (event, ctx) => {
 
 ### `context`
 
-**When:** Before each LLM call, after the turn starts. This is the last chance to modify what the LLM sees.
+**Когда:** Перед каждым вызовом LLM, после начала хода. Это последний шанс изменить то, что видит LLM.
 
-**Fires:** Every turn. If the LLM calls 3 tools and loops back, `context` fires 4 times (once for initial call + once per loop-back).
+**Пожары:** На каждом ходу. Если LLM вызывает 3 инструмента и возвращается назад, `context` срабатывает 4 раза (один раз для первоначального вызова + один раз для каждого обратного цикла).
 
-**Chaining:** Sequential. Each handler receives the output of the previous. First handler gets a `structuredClone` deep copy of the agent's message array.
+**Цепочка:** Последовательная. Каждый обработчик получает выходные данные предыдущего. Первый обработчик получает глубокую копию массива сообщений агента размером `structuredClone`.
 
 ```typescript
 pi.on("context", async (event, ctx) => {
@@ -154,21 +154,21 @@ pi.on("context", async (event, ctx) => {
 });
 ```
 
-**What `event.messages` contains:**
-- All roles: `user`, `assistant`, `toolResult`, `custom`, `bashExecution`, `compactionSummary`, `branchSummary`
-- The user message from the current prompt
-- Custom messages injected by `before_agent_start`
-- Tool results from earlier turns in this agent run
-- Steering/follow-up messages that became turn inputs
-- Historical messages from the session (including compaction summaries)
+**Что содержит `event.messages`:**
+- Все роли: `user`, `assistant`, `toolResult`, `custom`, `bashExecution`, `compactionSummary`, `branchSummary`
+- Сообщение пользователя из текущего приглашения
+- Пользовательские сообщения, добавленные `before_agent_start`
+- Результаты работы инструмента в результате предыдущих ходов этого запуска агента.
+- Сообщения рулевого управления/последующие действия, которые стали сигналами поворота.
+- Исторические сообщения сеанса (включая сводки уплотнения)
 
-**What it does NOT contain:**
-- The system prompt (use `before_agent_start` for that)
-- Tool definitions (use `pi.setActiveTools()` for that)
+**Что содержит NOT:**
+- Системное приглашение (для этого используйте `before_agent_start`)
+- Определения инструментов (для этого используйте `pi.setActiveTools()`)
 
 ### `turn_end`
 
-**When:** After the LLM responds and all tool calls for this turn complete.
+**Когда:** После того, как LLM ответит и все вызовы инструментов для этого поворота будут завершены.
 
 ```typescript
 pi.on("turn_end", async (event, ctx) => {
@@ -180,7 +180,7 @@ pi.on("turn_end", async (event, ctx) => {
 
 ### `message_start` / `message_update` / `message_end`
 
-**When:** Message lifecycle events. `update` only fires for assistant messages during streaming (token-by-token).
+**Когда:** События жизненного цикла сообщения. `update` срабатывает только для сообщений помощника во время потоковой передачи (по токену).
 
 ```typescript
 pi.on("message_start", async (event, ctx) => {
@@ -200,13 +200,13 @@ pi.on("message_end", async (event, ctx) => {
 
 ---
 
-## 4. Tool Hooks
+## 4. Крючки для инструментов
 
 ### `tool_call`
 
-**When:** After the LLM requests a tool call, before it executes.
+**Когда:** После того, как LLM запрашивает вызов инструмента, перед его выполнением.
 
-**Chaining:** Sequential. If any handler returns `{ block: true }`, execution stops immediately. The block reason becomes an Error that is caught and returned as the tool result with `isError: true`.
+**Цепочка:** Последовательная. Если какой-либо обработчик возвращает `{ block: true }`, выполнение немедленно прекращается. Причиной блокировки становится ошибка, которая фиксируется и возвращается как результат работы инструмента с помощью `isError: true`.
 
 ```typescript
 pi.on("tool_call", async (event, ctx) => {
@@ -221,7 +221,7 @@ pi.on("tool_call", async (event, ctx) => {
 });
 ```
 
-**Type narrowing:**
+**Сужение типа:**
 ```typescript
 import { isToolCallEventType } from "@mariozechner/pi-coding-agent";
 
@@ -242,7 +242,7 @@ pi.on("tool_call", async (event, ctx) => {
 
 ### `tool_execution_start` / `tool_execution_update` / `tool_execution_end`
 
-Informational events during tool execution. No return values.
+Информационные события во время работы инструмента. Нет возвращаемых значений.
 
 ```typescript
 pi.on("tool_execution_start", async (event) => {
@@ -260,9 +260,9 @@ pi.on("tool_execution_end", async (event) => {
 
 ### `tool_result`
 
-**When:** After a tool finishes executing, before the result is returned to the agent loop.
+**Когда:** после завершения работы инструмента, прежде чем результат будет возвращен в цикл агента.
 
-**Chaining:** Sequential. Each handler can modify the result. Modifications accumulate across handlers. All handlers see the evolving `currentEvent` with content/details/isError updated by previous handlers.
+**Цепочка:** Последовательная. Каждый обработчик может изменить результат. Изменения накапливаются в обработчиках. Все обработчики видят развивающийся `currentEvent` с содержимым/подробными сведениями/isError, обновленными предыдущими обработчиками.
 
 ```typescript
 pi.on("tool_result", async (event, ctx) => {
@@ -283,17 +283,17 @@ pi.on("tool_result", async (event, ctx) => {
 });
 ```
 
-**Also fires for errors:** If tool execution throws, `tool_result` still fires with `isError: true` and the error message as content. Extensions can modify even error results.
+**Также срабатывает при ошибках:** Если выполнение инструмента дает сбой, `tool_result` по-прежнему срабатывает с `isError: true` и сообщением об ошибке в качестве содержимого. Расширения могут изменять даже результаты ошибок.
 
 ---
 
-## 5. Session Hooks
+## 5. Перехватчики сеансов
 
 ### `session_start`
 
-**When:** Initial session load (startup) and after session switch/fork. Also fires after `/reload`.
+**Когда:** Начальная загрузка сеанса (запуск) и после переключения/разветвления сеанса. Также срабатывает после `/reload`.
 
-**Use for:** State restoration from session entries, initial setup.
+**Используется для:** восстановления состояния из записей сеанса, начальной настройки.
 
 ```typescript
 pi.on("session_start", async (_event, ctx) => {
@@ -308,7 +308,7 @@ pi.on("session_start", async (_event, ctx) => {
 
 ### `session_before_switch` / `session_switch`
 
-**When:** Before/after `/new` or `/resume`.
+**Когда:** До/после `/new` или `/resume`.
 
 ```typescript
 pi.on("session_before_switch", async (event) => {
@@ -320,7 +320,7 @@ pi.on("session_before_switch", async (event) => {
 
 ### `session_before_fork` / `session_fork`
 
-**When:** Before/after `/fork`.
+**Когда:** До/после `/fork`.
 
 ```typescript
 pi.on("session_before_fork", async (event) => {
@@ -333,7 +333,7 @@ pi.on("session_before_fork", async (event) => {
 
 ### `session_before_compact` / `session_compact`
 
-**When:** Before/after compaction (manual or auto).
+**Когда:** До/после уплотнения (ручного или автоматического).
 
 ```typescript
 pi.on("session_before_compact", async (event) => {
@@ -356,7 +356,7 @@ pi.on("session_before_compact", async (event) => {
 
 ### `session_before_tree` / `session_tree`
 
-**When:** Before/after `/tree` navigation.
+**Когда:** до/после навигации по `/tree`.
 
 ```typescript
 pi.on("session_before_tree", async (event) => {
@@ -374,7 +374,7 @@ pi.on("session_before_tree", async (event) => {
 
 ### `session_shutdown`
 
-**When:** Process exit (Ctrl+C, Ctrl+D, SIGTERM, `ctx.shutdown()`).
+**Когда:** Выход из процесса (Ctrl+C, Ctrl+D, SIGTERM, `ctx.shutdown()`).
 
 ```typescript
 pi.on("session_shutdown", async (_event, ctx) => {
@@ -385,11 +385,11 @@ pi.on("session_shutdown", async (_event, ctx) => {
 
 ---
 
-## 6. Model Hooks
+## 6. Крючки для моделей
 
 ### `model_select`
 
-**When:** Model changes via `/model`, Ctrl+P cycling, or session restore.
+**Когда:** Модель меняется с помощью `/model`, циклического нажатия клавиш Ctrl+P или восстановления сеанса.
 
 ```typescript
 pi.on("model_select", async (event, ctx) => {
@@ -401,13 +401,13 @@ pi.on("model_select", async (event, ctx) => {
 
 ---
 
-## 7. Resource Hooks
+## 7. Хуки ресурсов
 
 ### `resources_discover`
 
-**When:** At startup and after `/reload`. Lets extensions provide additional skill, prompt template, and theme paths.
+**Когда:** При запуске и после `/reload`. Позволяет расширениям предоставлять дополнительные навыки, шаблон подсказки и пути к темам.
 
-**Not documented in extending-pi docs.** This is how extensions ship their own resources.
+**Не описано в документации по расширению-pi.** Именно так расширения доставляют свои собственные ресурсы.
 
 ```typescript
 pi.on("resources_discover", async (event, ctx) => {
@@ -422,15 +422,15 @@ pi.on("resources_discover", async (event, ctx) => {
 });
 ```
 
-**Behavior:** Returned paths are loaded by the resource loader and integrated into the system prompt (skills) and available commands (prompts/themes). The system prompt is rebuilt after resources are extended.
+**Поведение:** Возвращенные пути загружаются загрузчиком ресурсов и интегрируются в системную подсказку (навыки) и доступные команды (подсказки/темы). Системное приглашение перестраивается после расширения ресурсов.
 
 ---
 
-## 8. User Bash Hooks
+## 8. Пользовательские хуки Bash
 
 ### `user_bash`
 
-**When:** User executes a command via `!` or `!!` prefix in the editor.
+**Когда:** Пользователь выполняет команду с префиксом `!` или `!!` в редакторе.
 
 ```typescript
 pi.on("user_bash", async (event, ctx) => {
@@ -452,14 +452,14 @@ pi.on("user_bash", async (event, ctx) => {
 
 ---
 
-## Execution Order Across Extensions
+## Порядок выполнения в расширениях
 
-All hooks iterate through extensions in **load order** (project-local first, then global, then explicitly configured via `-e`). Within each extension, handlers for the same event run in registration order.
+Все перехватчики перебирают расширения в **порядке загрузки** (сначала локально проекта, затем глобально, затем явно настраивается с помощью `-e`). Внутри каждого расширения обработчики одного и того же события выполняются в порядке регистрации.
 
-For hooks that chain (e.g., `context`, `before_agent_start.systemPrompt`, `input`, `tool_result`):
-- Extension A's handler runs first, Extension B sees A's output
-- Load order determines priority
+Для крючков, образующих цепочку (например, `context`, `before_agent_start.systemPrompt`, `input`, `tool_result`):
+- Сначала запускается обработчик расширения A, расширение B видит выходные данные A.
+- Порядок загрузки определяет приоритет
 
-For hooks that short-circuit (e.g., `tool_call` with `block`, `input` with `handled`, session `cancel`):
-- First extension to return the short-circuit value wins
-- Remaining handlers are skipped
+Для перехватчиков, вызывающих короткое замыкание (например, `tool_call` с `block`, `input` с `handled`, сеанс `cancel`):
+- Выигрывает первое расширение, возвращающее значение короткого замыкания.
+- Остальные обработчики пропускаются.

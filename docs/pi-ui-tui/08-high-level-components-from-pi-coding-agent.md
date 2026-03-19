@@ -1,8 +1,8 @@
-# High-Level Components from pi-coding-agent
+# Компоненты высокого уровня из pi-coding-agent
 
-### DynamicBorder
+### Динамическая граница
 
-A horizontal border line with themed color. Use for framing dialogs.
+Горизонтальная граница с тематическим цветом. Используйте для создания диалогов.
 
 ```typescript
 import { DynamicBorder } from "@mariozechner/pi-coding-agent";
@@ -11,9 +11,9 @@ import { DynamicBorder } from "@mariozechner/pi-coding-agent";
 const border = new DynamicBorder((s: string) => theme.fg("accent", s));
 ```
 
-### BorderedLoader
+### Бордередлоадер
 
-Spinner with cancel support. Shows a message and an animated spinner while async work runs.
+Спиннер с поддержкой отмены. Показывает сообщение и анимированный счетчик во время асинхронной работы.
 
 ```typescript
 import { BorderedLoader } from "@mariozechner/pi-coding-agent";
@@ -31,9 +31,9 @@ const result = await ctx.ui.custom<string | null>((tui, theme, _kb, done) => {
 });
 ```
 
-### CustomEditor
+### Пользовательский редактор
 
-Base class for custom editors that replace the input. Provides app keybindings (escape to abort, ctrl+d, model switching) automatically.
+Базовый класс для пользовательских редакторов, заменяющих ввод. Автоматически обеспечивает связывание клавиш приложения (Escape для прерывания, ctrl+d, переключение модели).
 
 ```typescript
 import { CustomEditor } from "@mariozechner/pi-coding-agent";

@@ -49,8 +49,8 @@ export function writeUpdateCache(cache: UpdateCheckCache, cachePath: string = CA
 
 function printUpdateBanner(current: string, latest: string): void {
   process.stderr.write(
-    `  ${chalk.yellow('Update available:')} ${chalk.dim(`v${current}`)} → ${chalk.bold(`v${latest}`)}\n` +
-    `  ${chalk.dim('Run')} npm update -g gsd-pi ${chalk.dim('or')} /gsd update ${chalk.dim('to upgrade')}\n\n`,
+    `  ${chalk.yellow('Доступно обновление:')} ${chalk.dim(`v${current}`)} → ${chalk.bold(`v${latest}`)}\n` +
+    `  ${chalk.dim('Выполните')} npm update -g gsd-pi ${chalk.dim('или')} /gsd update ${chalk.dim('для обновления')}\n\n`,
   )
 }
 
@@ -159,8 +159,8 @@ export async function checkAndPromptForUpdates(options: UpdateCheckOptions = {})
 
   // Update available — show interactive prompt
   // Measure visible (ANSI-free) width to size the box, then render with chalk.
-  const midContent = `  ${chalk.bold('Update available!')} ${chalk.dim(`v${currentVersion}`)} → ${chalk.bold.green(`v${latestVersion}`)}  `
-  const midVisible = `  Update available! v${currentVersion} → v${latestVersion}  `
+  const midContent = `  ${chalk.bold('Доступно обновление!')} ${chalk.dim(`v${currentVersion}`)} → ${chalk.bold.green(`v${latestVersion}`)}  `
+  const midVisible = `  Доступно обновление! v${currentVersion} → v${latestVersion}  `
   const innerWidth = midVisible.length
   const top = '╔' + '═'.repeat(innerWidth) + '╗'
   const bot = '╚' + '═'.repeat(innerWidth) + '╝'
@@ -178,8 +178,8 @@ export async function checkAndPromptForUpdates(options: UpdateCheckOptions = {})
 
   const choice = await new Promise<string>((resolve) => {
     process.stderr.write(
-      `  ${chalk.bold('[1]')} Update now   ${chalk.dim(`npm install -g ${NPM_PACKAGE_NAME}@latest`)}\n` +
-      `  ${chalk.bold('[2]')} Skip\n\n`,
+      `  ${chalk.bold('[1]')} Обновить сейчас   ${chalk.dim(`npm install -g ${NPM_PACKAGE_NAME}@latest`)}\n` +
+      `  ${chalk.bold('[2]')} Пропустить\n\n`,
     )
 
     // Default to skip if the user doesn't respond within PROMPT_TIMEOUT_MS
@@ -189,7 +189,7 @@ export async function checkAndPromptForUpdates(options: UpdateCheckOptions = {})
       resolve('2')
     }, PROMPT_TIMEOUT_MS)
 
-    rl.question(`  ${chalk.bold('Choose [1/2]:')} `, (answer) => {
+    rl.question(`  ${chalk.bold('Выберите [1/2]:')} `, (answer) => {
       clearTimeout(timer)
       resolve(answer.trim())
     })
@@ -204,16 +204,16 @@ export async function checkAndPromptForUpdates(options: UpdateCheckOptions = {})
   process.stdin.pause()
 
   if (choice === '1') {
-    process.stderr.write(`\n  ${chalk.dim('Running:')} npm install -g ${NPM_PACKAGE_NAME}@latest\n\n`)
+    process.stderr.write(`\n  ${chalk.dim('Выполняется:')} npm install -g ${NPM_PACKAGE_NAME}@latest\n\n`)
     try {
       execSync(`npm install -g ${NPM_PACKAGE_NAME}@latest`, { stdio: 'inherit' })
-      process.stderr.write(`\n  ${chalk.green.bold(`✓ Updated to v${latestVersion}`)}\n\n`)
+      process.stderr.write(`\n  ${chalk.green.bold(`✓ Обновлено до v${latestVersion}`)}\n\n`)
       return true
     } catch {
-      process.stderr.write(`\n  ${chalk.yellow(`Update failed. You can run: npm install -g ${NPM_PACKAGE_NAME}@latest`)}\n\n`)
+      process.stderr.write(`\n  ${chalk.yellow(`Обновление не удалось. Вы можете выполнить: npm install -g ${NPM_PACKAGE_NAME}@latest`)}\n\n`)
     }
   } else {
-    process.stderr.write(`  ${chalk.dim('Skipped. Run')} gsd update ${chalk.dim('anytime to upgrade.')}\n\n`)
+    process.stderr.write(`  ${chalk.dim('Пропущено. Выполните')} gsd update ${chalk.dim('в любой момент для обновления.')}\n\n`)
   }
 
   return false

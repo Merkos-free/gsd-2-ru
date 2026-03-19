@@ -1,6 +1,6 @@
-# Building a Complete Component — Step by Step
+# Создание полноценного компонента — шаг за шагом
 
-Let's build a real component: an interactive todo list displayed via a command.
+Давайте создадим реальный компонент: интерактивный список задач, отображаемый с помощью команды.
 
 ```typescript
 import type { ExtensionAPI, Theme } from "@mariozechner/pi-coding-agent";

@@ -1,31 +1,31 @@
-# Evolution Across Project Scale
+# Эволюция в масштабе проекта
 
-### Phase Transitions (All 4 Models Converge)
+### Фазовые переходы (все 4 модели сходятся)
 
-#### 0–1k LOC: The Monolithic Phase
-- Everything fits in one context window
-- Agent reads entire codebase, makes globally coherent decisions
-- Orchestrator is simple, manifest barely needed
-- **This is where most demos live**
+#### 0–1k LOC: Монолитная фаза
+- Все умещается в одном контекстном окне
+- Агент читает всю кодовую базу, принимает глобально согласованные решения.
+- Оркестратор прост, манифест практически не нужен.
+- **Здесь обитает большинство демо**
 
-#### 1k–10k LOC: The Modular Phase
-- Codebase no longer fits in one context window
-- **What breaks first: consistency** — agent sees fragments that gradually diverge
-- Requirements: modular context assembly, manifest as essential map, interface contracts, convention enforcement (linting, formatting)
+#### 1–10 тыс. LOC: Модульная фаза
+- Кодовая база больше не помещается в одно контекстное окно.
+- **Что ломается в первую очередь: последовательность** — агент видит фрагменты, которые постепенно расходятся.
+- Требования: модульная сборка контекста, манифест в виде основной карты, контракты интерфейса, соблюдение соглашений (линтинг, форматирование).
 
-#### 10k–50k LOC: The Architectural Phase
-- Relationships between components become non-obvious
-- Changing one thing might affect ten others through indirect dependencies
-- **What breaks:** planning quality — planner can't understand full system
-- Requirements: dependency-aware context assembly, impact analysis before execution, more conservative/incremental plans
+#### 10–50 тыс. LOC: Архитектурный этап
+- Отношения между компонентами становятся неочевидными
+- Изменение одной вещи может повлиять на десять других через косвенные зависимости.
+– **Что не так**: качество планирования: планировщик не может понять всю систему.
+- Требования: сборка контекста с учетом зависимостей, анализ воздействия перед выполнением, более консервативные/поэтапные планы.
 
-#### 50k–100k+ LOC: The Organizational Phase
-- System of systems — no single agent context can reason about the whole thing
-- **What breaks:** integration — interactions between components become so numerous that integration testing becomes the bottleneck
-- Requirements: hierarchical planning (system-level planner → component-level agents), continuous integration verification, possibly distributed orchestrator, hierarchy of manifests
+#### 50–100 тыс.+ LOC: Организационный этап
+- Система систем — ни один контекст отдельного агента не может рассуждать обо всем этом.
+- **Что мешает** интеграция: взаимодействия между компонентами становятся настолько многочисленными, что интеграционное тестирование становится узким местом.
+- Требования: иерархическое планирование (планировщик на уровне системы → агенты на уровне компонентов), проверка непрерывной интеграции, возможно, распределенный оркестратор, иерархия манифестов.
 
-### The Meta-Insight
+### Мета-озарение
 
-> The architecture of your agentic system should **mirror the architecture of the software it's building.** Microservices projects need a more distributed orchestrator. Monolithic projects can use a simpler one.
+> Архитектура вашей агентной системы должна **отражать архитектуру программного обеспечения, которое она создает.** Проекты микросервисов нуждаются в более распределенном оркестраторе. В монолитных проектах можно использовать более простой.
 
 ---

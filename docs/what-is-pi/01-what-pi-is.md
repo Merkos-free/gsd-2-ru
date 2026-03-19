@@ -1,16 +1,16 @@
-# What Pi Is
+# Что такое Пи
 
-Pi is a **terminal-native coding agent harness**. It sits between you and an LLM, giving the model tools to read, write, edit, and execute code on your machine, while giving you a rich terminal UI with session management, branching, and a deep customization system.
+Pi — это **нативный для терминала кодирующий агент**. Он находится между вами и LLM, предоставляя инструменты модели для чтения, записи, редактирования и выполнения кода на вашем компьютере, а также многофункциональный терминал UI с управлением сеансами, ветвлением и системой глубокой настройки.
 
-**What it is not:**
-- It's not a thin wrapper around an API — it has a full session system, branching, compaction, and event architecture
-- It's not a locked-down product — nearly everything can be replaced, extended, or overridden via TypeScript extensions
-- It's not tied to one model — it supports 20+ providers and you can switch models mid-conversation
+**Чем это не является:**
+- Это не тонкая оболочка вокруг API - у него есть полноценная система сеансов, архитектура ветвления, сжатия и событий.
+- Это не заблокированный продукт — почти все можно заменить, расширить или переопределить с помощью расширений TypeScript.
+- Он не привязан к одной модели — поддерживает более 20 провайдеров, и вы можете переключать модели во время разговора.
 
-**The one-liner:** Pi is a minimal, aggressively extensible coding agent that runs in your terminal, works with any major LLM provider, and lets you adapt it to your workflow instead of adapting to it.
+**Однострочник:** Pi — это минимальный, агрессивно расширяемый агент кодирования, который запускается на вашем терминале, работает с любым крупным поставщиком LLM и позволяет вам адаптировать его к вашему рабочему процессу, а не адаптироваться к нему.
 
-**Repository:** [github.com/badlogic/pi-mono](https://github.com/badlogic/pi-mono)  
-**Package:** `@mariozechner/pi-coding-agent`  
-**Website:** [shittycodingagent.ai](https://shittycodingagent.ai)
+**Репозиторий:** [github.com/badlogic/pi-mono](https://github.com/badlogic/pi-mono)
+**Пакет:** `@mariozechner/pi-coding-agent`
+**Веб-сайт:** [shittycodingagent.ai](https://shittycodingagent.ai)
 
 ---

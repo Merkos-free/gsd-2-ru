@@ -1,10 +1,10 @@
-# The Context Pipeline
+# Контекстный конвейер
 
-The full journey of a user prompt from keypress to LLM input, through every transformation stage. Understanding this pipeline is the foundation of all context engineering in pi.
+Полный путь пользовательской подсказки от нажатия клавиши до ввода LLM на каждом этапе преобразования. Понимание этого конвейера является основой всей контекстной инженерии в pi.
 
 ---
 
-## The Pipeline at a Glance
+## Коротко о трубопроводе
 
 ```
 User types prompt and hits Enter
@@ -61,15 +61,15 @@ User types prompt and hits Enter
 
 ---
 
-## Stage-by-Stage Detail
+## Подробности поэтапно
 
-### Stage 1: Extension Command Check
+### Этап 1. Проверка команд расширения
 
-The first thing that happens. If the text starts with `/` and matches a registered extension command, the command handler runs and **the prompt never reaches the agent**. No events fire. No LLM call happens.
+Первое, что происходит. Если текст начинается с `/` и соответствует зарегистрированной команде расширения, запускается обработчик команды, и **приглашение никогда не доходит до агента**. Никакие события не срабатывают. Никакого вызова LLM не происходит.
 
-This means extension commands are fully synchronous escape hatches — they execute even during streaming (they're checked before any queuing logic).
+Это означает, что команды расширения представляют собой полностью синхронные аварийные выходы — они выполняются даже во время потоковой передачи (они проверяются перед любой логикой организации очереди).
 
-### Stage 2: Input Event
+### Этап 2: Входное событие
 
 ```typescript
 pi.on("input", async (event, ctx) => {
@@ -84,15 +84,15 @@ pi.on("input", async (event, ctx) => {
 });
 ```
 
-**Chaining:** Multiple `input` handlers chain. If handler A returns `transform`, handler B sees the transformed text. If any handler returns `handled`, the pipeline stops — no LLM call.
+**Объединение**: цепочка из нескольких обработчиков `input`. Если обработчик A возвращает `transform`, обработчик B видит преобразованный текст. Если какой-либо обработчик возвращает `handled`, конвейер останавливается — вызов LLM отсутствует.
 
-**Timing:** Fires before skill/template expansion. Your handler sees the raw `/skill:name args` text, not the expanded content.
+**Время:** срабатывает перед расширением навыка/шаблона. Ваш обработчик видит необработанный текст `/skill:name args`, а не расширенное содержимое.
 
-### Stage 3: Skill and Template Expansion
+### Этап 3: Расширение навыков и шаблонов
 
-Deterministic text substitution. `/skill:name args` becomes the skill file content wrapped in `<skill>` tags. `/template args` becomes the template file content. These are string replacements — no events fire.
+Детерминированная замена текста. `/skill:name args` становится содержимым файла навыков, заключенным в теги `<skill>`. `/template args` становится содержимым файла шаблона. Это замены строк — никаких событий не происходит.
 
-### Stage 4: before_agent_start
+### Этап 4: before_agent_start
 
 ```typescript
 pi.on("before_agent_start", async (event, ctx) => {
@@ -111,24 +111,24 @@ pi.on("before_agent_start", async (event, ctx) => {
 });
 ```
 
-**Critical facts:**
-- Fires **once** per user prompt, not per turn
-- System prompts **chain**: Extension A modifies it, Extension B sees the modified version in `event.systemPrompt`
-- Messages **accumulate**: All extensions' messages are collected and injected as separate entries
-- If no extension returns a `systemPrompt`, the base system prompt is restored (previous turn's modifications don't persist)
+**Важные факты:**
+- Срабатывает **один раз** для каждого запроса пользователя, а не за ход.
+- Системные подсказки **цепочка**: расширение A изменяет его, расширение B видит измененную версию в `event.systemPrompt`.
+- Сообщения **накапливаются**: сообщения всех расширений собираются и вводятся как отдельные записи.
+- Если ни одно расширение не возвращает `systemPrompt`, базовая системная подсказка восстанавливается (изменения предыдущего хода не сохраняются).
 
-**Message injection order in the final array:**
+**Порядок внедрения сообщений в конечный массив:**
 ```
 [user message] → [nextTurn messages] → [extension messages from before_agent_start]
 ```
 
-### Stage 5: The Turn Loop
+### Этап 5: Петля поворота
 
-This is where the LLM is actually called. The turn loop repeats for each LLM response that includes tool calls.
+Именно здесь на самом деле называется LLM. Цикл поворота повторяется для каждого ответа LLM, включающего вызовы инструментов.
 
-#### 5a: transformContext / context event
+#### 5a: transformContext / контекстное событие
 
-The `context` event is wired as the `transformContext` callback on the Agent. It fires on **every turn** within the agent loop.
+Событие `context` подключается как обратный вызов `transformContext` на агенте. Он срабатывает **каждый ход** в цикле агента.
 
 ```typescript
 // Inside the agent loop (agent-loop.ts):
@@ -139,7 +139,7 @@ if (config.transformContext) {
 const llmMessages = await config.convertToLlm(messages);
 ```
 
-The `context` event handler in the runner creates a `structuredClone` deep copy:
+Обработчик событий `context` в бегуне создает глубокую копию `structuredClone`:
 
 ```typescript
 // runner.ts emitContext():
@@ -147,36 +147,36 @@ let currentMessages = structuredClone(messages);
 // ...each handler receives and can modify currentMessages
 ```
 
-**This means:**
-- You get a deep copy — safe to mutate, splice, filter, or replace
-- You work at the `AgentMessage[]` level (includes custom types)
-- Multiple handlers chain: each sees the output of the previous
-- **You cannot modify the system prompt here** — only `before_agent_start` can do that
-- The messages include everything: user messages, assistant responses, tool results, custom messages, bash executions, compaction summaries, branch summaries
+**Это означает:**
+- Вы получаете глубокую копию, которую можно безопасно изменять, объединять, фильтровать или заменять.
+- Вы работаете на уровне `AgentMessage[]` (включая нестандартные типы)
+- Несколько цепочек обработчиков: каждый видит вывод предыдущего
+- **Здесь нельзя изменить системное приглашение** — это может сделать только `before_agent_start`.
+- Сообщения включают в себя все: сообщения пользователя, ответы помощника, результаты инструментов, пользовательские сообщения, выполнения bash, сводки уплотнения, сводки ветвей.
 
-#### 5b: convertToLlm
+#### 5б: convertToLlm
 
-After `context` event processing, `convertToLlm` maps `AgentMessage[]` to `Message[]`:
+После обработки события `context` `convertToLlm` сопоставляет `AgentMessage[]` с `Message[]`:
 
-| AgentMessage role | Converted to | Notes |
+| Роль AgentMessage | Преобразовано в | Заметки |
 |---|---|---|
-| `user` | `user` | Pass through |
-| `assistant` | `assistant` | Pass through |
-| `toolResult` | `toolResult` | Pass through |
-| `custom` | `user` | Content preserved, `display` field ignored |
-| `bashExecution` | `user` | Unless `excludeFromContext` (`!!` prefix) → filtered out |
-| `compactionSummary` | `user` | Wrapped in `<summary>` tags |
-| `branchSummary` | `user` | Wrapped in `<summary>` tags |
+| `user` | `user` | Пройти |
+| `assistant` | `assistant` | Пройти |
+| `toolResult` | `toolResult` | Пройти |
+| `custom` | `user` | Содержимое сохранено, поле `display` игнорируется |
+| `bashExecution` | `user` | Если только `excludeFromContext` (префикс `!!`) → отфильтровано |
+| `compactionSummary` | `user` | Завернуты в теги `<summary>` |
+| `branchSummary` | `user` | Обернутый тегами `<summary>` |
 
-**`convertToLlm` is not extensible.** It's a hardcoded function in `messages.ts`. If you need to change how messages appear to the LLM, do it in the `context` event handler before this stage.
+**`convertToLlm` не подлежит расширению.** Это жестко запрограммированная функция в `messages.ts`. Если вам нужно изменить способ отображения сообщений для LLM, сделайте это в обработчике событий `context` перед этим этапом.
 
-#### 5c: LLM Call
+#### 5c: LLM Звонок
 
-The converted messages plus system prompt plus tool definitions go to the LLM provider. The system prompt used is whatever was set by `before_agent_start` (or the base prompt if no extension modified it).
+Преобразованные сообщения, системные приглашения и определения инструментов передаются поставщику LLM. Используемое системное приглашение — это то, что было установлено с помощью `before_agent_start` (или базовое приглашение, если никакое расширение не изменило его).
 
-#### 5d: Tool Execution and Interception
+#### 5d: Выполнение и перехват инструмента
 
-When the LLM responds with tool calls, they execute sequentially:
+Когда LLM отвечает вызовами инструментов, они выполняются последовательно:
 
 ```
 For each tool call:
@@ -192,18 +192,18 @@ For each tool call:
     Steering messages become input for next turn
 ```
 
-### Stage 6: Follow-up and Continuation
+### Этап 6: Последующие действия и продолжение
 
-When the LLM finishes and has no more tool calls:
-1. Check for steering messages → if any, start new turn with them
-2. Check for follow-up messages → if any, start new turn with them  
-3. If neither → `agent_end` fires, agent goes idle
+Когда LLM завершается и больше нет вызовов инструмента:
+1. Проверьте сообщения рулевого управления → если они есть, начните с них новый поворот.
+2. Проверьте наличие последующих сообщений → если они есть, начните с них новый ход.
+3. Если ни один из → `agent_end` не сработает, агент переходит в режим ожидания.
 
 ---
 
-## What the LLM Actually Sees
+## Что на самом деле видит LLM
 
-For any given turn, the LLM receives:
+За любой ход LLM получает:
 
 ```
 System prompt (base + before_agent_start modifications)
@@ -213,37 +213,37 @@ Messages (after context event filtering, after convertToLlm mapping)
 Tool definitions (active tools with names, descriptions, parameter schemas)
 ```
 
-The system prompt includes:
-- Base prompt (tool descriptions, guidelines, pi docs reference, date/time, cwd)
-- `promptSnippet` overrides from active tools (replaces tool description in "Available tools")
-- `promptGuidelines` from active tools (appended to "Guidelines" section)
-- `appendSystemPrompt` from settings/config
-- Project context files (AGENTS.md, CLAUDE.md from cwd ancestors)
-- Skills listing (names + descriptions, agent uses `read` to load them)
-- Any `before_agent_start` modifications
+Системная подсказка включает в себя:
+- Базовая подсказка (описания инструментов, рекомендации, ссылки на документы Pi, дата/время, cwd)
+- `promptSnippet` переопределяет активные инструменты (заменяет описание инструмента в «Доступные инструменты»)
+- `promptGuidelines` из активных инструментов (добавлено в раздел «Рекомендации»)
+- `appendSystemPrompt` из настроек/конфигурации
+- Файлы контекста проекта (AGENTS.md, CLAUDE.md из предков cwd)
+- Список навыков (имена + описания, агент использует `read` для их загрузки)
+- Любые модификации `before_agent_start`
 
 ---
 
-## Key Timing Distinctions
+## Ключевые временные различия
 
-| Hook | When | How often | Can modify |
+| Крюк | Когда | Как часто | Можно изменить |
 |------|------|-----------|-----------|
-| `input` | Before expansion | Once per user input | Input text |
-| `before_agent_start` | After expansion, before agent loop | Once per user prompt | System prompt + inject messages |
-| `context` | Before each LLM call | Every turn in agent loop | Message array |
-| `tool_call` | Before each tool execution | Per tool call | Block execution |
-| `tool_result` | After each tool execution | Per tool call | Result content/details |
+| `input` | До расширения | Один раз для каждого пользовательского ввода | Введите текст |
+| `before_agent_start` | После расширения, перед циклом агента | Один раз для каждого пользователя | Системная подсказка + вставка сообщений |
+| `context` | Перед каждым звонком LLM | Каждый ход в цикле агента | Массив сообщений |
+| `tool_call` | Перед каждым выполнением инструмента | За вызов инструмента | Блок исполнения |
+| `tool_result` | После каждого выполнения инструмента | За вызов инструмента | Содержание результата/детали |
 
 ---
 
-## The Deep Copy Question
+## Вопрос о глубоком копировании
 
-When do you get a safe-to-mutate copy vs a reference?
+Когда вы получаете копию, безопасную для мутаций, а не ссылку?
 
-| Hook | What you receive | Safe to mutate? |
+| Крюк | Что вы получаете | Безопасно мутировать? |
 |------|-----------------|-----------------|
-| `context` | `structuredClone` deep copy | Yes |
-| `before_agent_start` | `event.systemPrompt` is a string (immutable) | Return new string |
-| `tool_call` | `event.input` is the raw args object | Do not mutate — return `block` |
-| `tool_result` | `{ ...event }` shallow spread | Return new values, don't mutate |
-| `input` | `event.text` is a string (immutable) | Return new text via `transform` |
+| `context` | `structuredClone` глубокая копия | Да |
+| `before_agent_start` | `event.systemPrompt` — строка (неизменяемая) | Вернуть новую строку |
+| `tool_call` | `event.input` — это необработанный объект args | Не мутировать — вернуть `block` |
+| `tool_result` | `{ ...event }` мелкое распространение | Возвращать новые значения, не мутировать |
+| `input` | `event.text` — строка (неизменяемая) | Вернуть новый текст с помощью `transform` |

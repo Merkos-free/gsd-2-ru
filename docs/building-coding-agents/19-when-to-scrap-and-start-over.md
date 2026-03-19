@@ -1,27 +1,27 @@
-# When to Scrap and Start Over
+# Когда нужно отказаться и начать все сначала
 
-### The Four Signals (Cross-Model Convergence)
+### Четыре сигнала (межмодельная конвергенция)
 
-| Signal | What It Looks Like |
+| Сигнал | Как это выглядит |
 |--------|-------------------|
-| **Iteration count trending upward** | Task 1: 3 iterations. Task 2: 5. Task 3: 8. Complexity compounding, not resolving. |
-| **Test flakiness increasing** | Previously passing tests intermittently fail — hidden coupling being strained |
-| **Same files modified repeatedly** | Every task touches the same core module — god object absorbing too much responsibility |
-| **Acceptance criteria requiring exceptions** | "Works except when X" / "Passes if you ignore test Y" — agent negotiating with criteria |
+| **Количество итераций имеет тенденцию к увеличению** | Задача 1: 3 итерации. Задание 2: 5. Задание 3: 8. Сложность усугубляется, а не разрешается. |
+| **Увеличение рассыпчатости теста** | Ранее пройденные тесты периодически терпели неудачу — скрытая связь испытывает напряжение |
+| **Одни и те же файлы неоднократно изменялись** | Каждая задача затрагивает один и тот же основной модуль — объект-бог берет на себя слишком много ответственности |
+| **Критерии приемки, требующие исключений** | «Работает, кроме случаев X» / «Проходит, если вы игнорируете тест Y» — агент согласовывает критерии |
 
-### The Reassessment Protocol
+### Протокол повторной оценки
 
-When thresholds are crossed, trigger a **focused LLM call** with: manifest + original spec + task summaries + signal data. Prompt: *"Is the current approach viable or would a different architecture serve better? If different, what and why?"*
+При превышении пороговых значений инициируйте **целенаправленный вызов LLM** с помощью: манифеста + исходной спецификации + сводки задач + данных сигнала. Подсказка: *"Жизнеспособен ли нынешний подход или лучше подойдет другая архитектура? Если другая, то какая и почему?"*
 
-### The Critical Architectural Enabler: Make Rewrites Cheap
+### Критический архитектурный инструмент: сделайте переписывание дешевым
 
-- Clean interface contracts + good test suites → rewriting internals while preserving interfaces is low-risk
-- Tests verify new implementation against same criteria
-- Interface contracts ensure nothing downstream breaks
-- **Every major approach on a branch** that can be discarded without affecting anything else
+- Чистые контракты на интерфейс + хорошие наборы тестов → переписывание внутренних компонентов с сохранением интерфейсов с низким риском.
+- Тесты проверяют новую реализацию по тем же критериям.
+- Контракты интерфейса гарантируют, что ничего не сломается в дальнейшем
+- **Каждый основной подход в ветке**, который можно отбросить, не затрагивая ничего другого.
 
-Gemini's **"Sunk-Cost Heuristic"**: Monitor "Task Re-entry Rate." If the same 3 tests have been attempted >5 times, or if the refactor-to-feature ratio exceeds 4:1, trigger a "Whiteboard Session."
+**"Эвристика невозвратных затрат"** компании Gemini: отслеживание частоты повторных входов задач. Если одни и те же 3 теста были предприняты >5 раз или если соотношение рефакторинга и функций превышает 4:1, инициируйте «сеанс доски».
 
-Grok adds **parallel experimentation**: create a "Rewrite Branch" subgraph, run the same vision on a clean slate for one vertical slice, compare metrics. Only merge if superior. Cost is near-zero because it runs in parallel and is discarded on failure.
+Грок добавляет **параллельные эксперименты**: создайте подграф «Переписать ветвь», запустите ту же концепцию с чистого листа для одного вертикального среза, сравните показатели. Объединяйтесь только в том случае, если вы превосходите. Стоимость близка к нулю, поскольку она выполняется параллельно и отбрасывается в случае сбоя.
 
 ---

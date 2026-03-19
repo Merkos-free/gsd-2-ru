@@ -57,7 +57,7 @@ export async function handleDoctor(args: string, ctx: ExtensionCommandContext, p
     scope: effectiveScope,
     includeWarnings: mode === "audit",
     maxIssues: mode === "audit" ? 50 : 12,
-    title: mode === "audit" ? "GSD doctor audit." : mode === "heal" ? "GSD doctor heal prep." : undefined,
+    title: mode === "audit" ? "Аудит GSD doctor." : mode === "heal" ? "Подготовка GSD doctor heal." : undefined,
   });
 
   ctx.ui.notify(reportText, report.ok ? "info" : "warning");
@@ -69,13 +69,13 @@ export async function handleDoctor(args: string, ctx: ExtensionCommandContext, p
     });
     const actionable = unresolved.filter(issue => issue.severity === "error" || issue.code === "all_tasks_done_missing_slice_uat" || issue.code === "slice_checked_missing_uat");
     if (actionable.length === 0) {
-      ctx.ui.notify("Doctor heal found nothing actionable to hand off to the LLM.", "info");
+      ctx.ui.notify("Doctor heal не нашёл ничего, что можно передать LLM.", "info");
       return;
     }
 
     const structuredIssues = formatDoctorIssuesForPrompt(actionable);
     dispatchDoctorHeal(pi, effectiveScope, reportText, structuredIssues);
-    ctx.ui.notify(`Doctor heal dispatched ${actionable.length} issue(s) to the LLM.`, "info");
+    ctx.ui.notify(`Doctor heal отправил в LLM ${actionable.length} проблем(ы).`, "info");
   }
 }
 
@@ -104,7 +104,7 @@ export async function handleSkillHealth(args: string, ctx: ExtensionCommandConte
 
   if (decliningOnly) {
     if (report.decliningSkills.length === 0) {
-      ctx.ui.notify("No skills flagged for declining performance.", "info");
+      ctx.ui.notify("Не найдено skills с признаками ухудшения качества.", "info");
       return;
     }
     const filtered = {
@@ -122,7 +122,7 @@ export async function handleCapture(args: string, ctx: ExtensionCommandContext):
   // Strip surrounding quotes from the argument
   let text = args.trim();
   if (!text) {
-    ctx.ui.notify('Usage: /gsd capture "your thought here"', "warning");
+    ctx.ui.notify('Использование: /gsd capture "your thought here"', "warning");
     return;
   }
   // Remove wrapping quotes (single or double)
@@ -130,7 +130,7 @@ export async function handleCapture(args: string, ctx: ExtensionCommandContext):
     text = text.slice(1, -1);
   }
   if (!text) {
-    ctx.ui.notify('Usage: /gsd capture "your thought here"', "warning");
+    ctx.ui.notify('Использование: /gsd capture "your thought here"', "warning");
     return;
   }
 
@@ -143,17 +143,17 @@ export async function handleCapture(args: string, ctx: ExtensionCommandContext):
   }
 
   const id = appendCapture(basePath, text);
-  ctx.ui.notify(`Captured: ${id} — "${text.length > 60 ? text.slice(0, 57) + "..." : text}"`, "info");
+  ctx.ui.notify(`Захвачено: ${id} — "${text.length > 60 ? text.slice(0, 57) + "..." : text}"`, "info");
 }
 
 export async function handleTriage(ctx: ExtensionCommandContext, pi: ExtensionAPI, basePath: string): Promise<void> {
   if (!hasPendingCaptures(basePath)) {
-    ctx.ui.notify("No pending captures to triage.", "info");
+    ctx.ui.notify("Нет ожидающих captures для triage.", "info");
     return;
   }
 
   const pending = loadPendingCaptures(basePath);
-  ctx.ui.notify(`Triaging ${pending.length} pending capture${pending.length === 1 ? "" : "s"}...`, "info");
+  ctx.ui.notify(`Выполняется triage для ${pending.length} capture${pending.length === 1 ? "" : "s"}...`, "info");
 
   // Build context for the triage prompt
   const state = await deriveState(basePath);
@@ -224,7 +224,7 @@ export async function handleSteer(change: string, ctx: ExtensionCommandContext, 
       ].join("\n"),
       display: false,
     }, { triggerTurn: true });
-    ctx.ui.notify(`Override registered: "${change}". Will be applied before next task dispatch.`, "info");
+    ctx.ui.notify(`Override зарегистрирован: "${change}". Будет применён перед следующим dispatch задачи.`, "info");
   } else {
     pi.sendMessage({
       customType: "gsd-hard-steer",
@@ -239,7 +239,7 @@ export async function handleSteer(change: string, ctx: ExtensionCommandContext, 
       ].join("\n"),
       display: false,
     }, { triggerTurn: true });
-    ctx.ui.notify(`Override registered: "${change}". Update plan documents to reflect this change.`, "info");
+    ctx.ui.notify(`Override зарегистрирован: "${change}". Обновите документы плана, чтобы отразить это изменение.`, "info");
   }
 }
 
@@ -249,7 +249,7 @@ export async function handleKnowledge(args: string, ctx: ExtensionCommandContext
 
   if (!typeArg || !["rule", "pattern", "lesson"].includes(typeArg)) {
     ctx.ui.notify(
-      "Usage: /gsd knowledge <rule|pattern|lesson> <description>\nExample: /gsd knowledge rule Use real DB for integration tests",
+      "Использование: /gsd knowledge <rule|pattern|lesson> <description>\nПример: /gsd knowledge rule Use real DB for integration tests",
       "warning",
     );
     return;
@@ -257,7 +257,7 @@ export async function handleKnowledge(args: string, ctx: ExtensionCommandContext
 
   const entryText = parts.slice(1).join(" ").trim();
   if (!entryText) {
-    ctx.ui.notify(`Usage: /gsd knowledge ${typeArg} <description>`, "warning");
+    ctx.ui.notify(`Использование: /gsd knowledge ${typeArg} <description>`, "warning");
     return;
   }
 
@@ -269,22 +269,22 @@ export async function handleKnowledge(args: string, ctx: ExtensionCommandContext
     : "global";
 
   await appendKnowledge(basePath, type, entryText, scope);
-  ctx.ui.notify(`Added ${type} to KNOWLEDGE.md: "${entryText}"`, "success");
+  ctx.ui.notify(`Добавлено в KNOWLEDGE.md (${type}): "${entryText}"`, "success");
 }
 
 export async function handleRunHook(args: string, ctx: ExtensionCommandContext, pi: ExtensionAPI): Promise<void> {
   const parts = args.trim().split(/\s+/);
   if (parts.length < 3) {
-    ctx.ui.notify(`Usage: /gsd run-hook <hook-name> <unit-type> <unit-id>
+    ctx.ui.notify(`Использование: /gsd run-hook <hook-name> <unit-type> <unit-id>
 
-Unit types:
-  execute-task   - Task execution (unit-id: M001/S01/T01)
-  plan-slice     - Slice planning (unit-id: M001/S01)
-  research-milestone - Milestone research (unit-id: M001)
-  complete-slice - Slice completion (unit-id: M001/S01)
-  complete-milestone - Milestone completion (unit-id: M001)
+Типы unit:
+  execute-task   - Выполнение задачи (unit-id: M001/S01/T01)
+  plan-slice     - Планирование slice (unit-id: M001/S01)
+  research-milestone - Исследование milestone (unit-id: M001)
+  complete-slice - Завершение slice (unit-id: M001/S01)
+  complete-milestone - Завершение milestone (unit-id: M001)
 
-Examples:
+Примеры:
   /gsd run-hook code-review execute-task M001/S01/T01
   /gsd run-hook lint-check plan-slice M001/S01`, "warning");
     return;
@@ -301,25 +301,25 @@ Examples:
   const hooks = getHookStatus();
   const hookExists = hooks.some(h => h.name === hookName);
   if (!hookExists) {
-    ctx.ui.notify(`Hook "${hookName}" not found. Configured hooks:\n${formatHookStatus()}`, "error");
+    ctx.ui.notify(`Hook "${hookName}" не найден. Настроенные hooks:\n${formatHookStatus()}`, "error");
     return;
   }
 
   // Validate unit ID format
   const unitIdPattern = /^M\d{3}\/S\d{2,3}\/T\d{2,3}$/;
   if (!unitIdPattern.test(unitId)) {
-    ctx.ui.notify(`Invalid unit ID format: "${unitId}". Expected format: M004/S04/T03`, "warning");
+    ctx.ui.notify(`Неверный формат unit ID: "${unitId}". Ожидаемый формат: M004/S04/T03`, "warning");
     return;
   }
 
   // Trigger the hook manually
   const hookUnit = triggerHookManually(hookName, unitType, unitId, basePath);
   if (!hookUnit) {
-    ctx.ui.notify(`Failed to trigger hook "${hookName}". The hook may be disabled or not configured for unit type "${unitType}".`, "error");
+    ctx.ui.notify(`Не удалось запустить hook "${hookName}". Возможно, hook отключён или не настроен для unit type "${unitType}".`, "error");
     return;
   }
 
-  ctx.ui.notify(`Manually triggering hook: ${hookName} for ${unitType} ${unitId}`, "info");
+  ctx.ui.notify(`Ручной запуск hook: ${hookName} для ${unitType} ${unitId}`, "info");
 
   // Dispatch the hook unit directly, bypassing normal pre-dispatch hooks
   const success = await dispatchHookUnit(
@@ -334,7 +334,7 @@ Examples:
   );
 
   if (!success) {
-    ctx.ui.notify("Failed to dispatch hook. Auto-mode may have been cancelled.", "error");
+    ctx.ui.notify("Не удалось отправить hook на выполнение. Возможно, auto-mode был отменён.", "error");
   }
 }
 
@@ -358,7 +358,7 @@ export async function handleUpdate(ctx: ExtensionCommandContext): Promise<void> 
   const NPM_PACKAGE = "gsd-pi";
   const current = process.env.GSD_VERSION || "0.0.0";
 
-  ctx.ui.notify(`Current version: v${current}\nChecking npm registry...`, "info");
+  ctx.ui.notify(`Текущая версия: v${current}\nПроверка реестра npm...`, "info");
 
   let latest: string;
   try {
@@ -367,28 +367,28 @@ export async function handleUpdate(ctx: ExtensionCommandContext): Promise<void> 
       stdio: ["ignore", "pipe", "ignore"],
     }).trim();
   } catch {
-    ctx.ui.notify("Failed to reach npm registry. Check your network connection.", "error");
+    ctx.ui.notify("Не удалось обратиться к реестру npm. Проверьте подключение к сети.", "error");
     return;
   }
 
   if (compareSemverLocal(latest, current) <= 0) {
-    ctx.ui.notify(`Already up to date (v${current}).`, "info");
+    ctx.ui.notify(`Уже используется актуальная версия (v${current}).`, "info");
     return;
   }
 
-  ctx.ui.notify(`Updating: v${current} → v${latest}...`, "info");
+  ctx.ui.notify(`Обновление: v${current} → v${latest}...`, "info");
 
   try {
     execSync(`npm install -g ${NPM_PACKAGE}@latest`, {
       stdio: ["ignore", "pipe", "ignore"],
     });
     ctx.ui.notify(
-      `Updated to v${latest}. Restart your GSD session to use the new version.`,
+      `Обновлено до v${latest}. Перезапустите сессию GSD, чтобы использовать новую версию.`,
       "info",
     );
   } catch {
     ctx.ui.notify(
-      `Update failed. Try manually: npm install -g ${NPM_PACKAGE}@latest`,
+      `Обновление не удалось. Попробуйте вручную: npm install -g ${NPM_PACKAGE}@latest`,
       "error",
     );
   }

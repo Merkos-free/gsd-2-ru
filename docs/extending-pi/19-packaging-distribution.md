@@ -1,9 +1,9 @@
-# Packaging & Distribution
+# Упаковка и распространение
 
 
-### Creating a Pi Package
+### Создание пакета Pi
 
-Add a `pi` manifest to `package.json`:
+Добавьте манифест `pi` в `package.json`:
 
 ```json
 {
@@ -18,7 +18,7 @@ Add a `pi` manifest to `package.json`:
 }
 ```
 
-### Installing Packages
+### Установка пакетов
 
 ```bash
 pi install npm:@foo/bar@1.0.0
@@ -29,15 +29,15 @@ pi install ./local/path
 pi -e npm:@foo/bar
 ```
 
-### Convention Directories (no manifest needed)
+### Каталоги соглашений (манифест не требуется)
 
-If no `pi` manifest exists, pi auto-discovers:
-- `extensions/` → `.ts` and `.js` files
-- `skills/` → `SKILL.md` folders
-- `prompts/` → `.md` files
-- `themes/` → `.json` files
+Если манифест `pi` не существует, pi автоматически обнаруживает:
+- Файлы `extensions/` → `.ts` и `.js`
+- Папки `skills/` → `SKILL.md`
+- Файлы `prompts/` → `.md`
+- файлы `themes/` → `.json`
 
-### Gallery Metadata
+### Метаданные галереи
 
 ```json
 {
@@ -48,9 +48,9 @@ If no `pi` manifest exists, pi auto-discovers:
 }
 ```
 
-### Dependencies
+### Зависимости
 
-- List `@mariozechner/pi-ai`, `@mariozechner/pi-coding-agent`, `@mariozechner/pi-tui`, `@sinclair/typebox` in `peerDependencies` with `"*"` — they're bundled by pi.
-- Other npm deps go in `dependencies`. Pi runs `npm install` on package installation.
+- Перечислите `@mariozechner/pi-ai`, `@mariozechner/pi-coding-agent`, `@mariozechner/pi-tui`, `@sinclair/typebox` в `peerDependencies` с `"*"` — они объединены по пи.
+- Другие отделы npm идут в `dependencies`. Pi запускает `npm install` при установке пакета.
 
 ---

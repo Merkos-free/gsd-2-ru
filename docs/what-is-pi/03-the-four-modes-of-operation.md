@@ -1,10 +1,10 @@
-# The Four Modes of Operation
+# Четыре режима работы
 
-Pi runs in four modes, each serving a different use case:
+Pi работает в четырех режимах, каждый из которых предназначен для разных вариантов использования:
 
-### Interactive Mode (default)
+### Интерактивный режим (по умолчанию)
 
-The full TUI experience. You type prompts, see responses stream, watch tool calls execute, and interact with the agent in real-time. This is how most people use pi day-to-day.
+Полный опыт TUI. Вы вводите подсказки, просматриваете поток ответов, наблюдаете за выполнением вызовов инструментов и взаимодействуете с агентом в режиме реального времени. Именно так большинство людей используют число Пи изо дня в день.
 
 ```bash
 pi                                    # Start interactive
@@ -13,9 +13,9 @@ pi -c                                 # Continue last session
 pi -r                                 # Browse and resume a session
 ```
 
-### Print Mode (`-p`)
+### Режим печати (`-p`)
 
-Non-interactive. Sends a prompt, prints the response, exits. Perfect for scripting and pipelines.
+Неинтерактивный. Отправляет запрос, печатает ответ и завершает работу. Идеально подходит для сценариев и конвейеров.
 
 ```bash
 pi -p "Summarize this codebase"
@@ -23,17 +23,17 @@ pi -p @screenshot.png "What's in this image?"
 pi -p --tools read,grep "Review the code in src/"
 ```
 
-### JSON Mode (`--mode json`)
+### Режим JSON (`--mode json`)
 
-Streams all events as JSON lines to stdout. For building tools that consume pi's output programmatically.
+Передаёт все события в виде строк JSON на стандартный вывод. Для создания инструментов, которые программно обрабатывают выходные данные числа pi.
 
 ```bash
 pi --mode json "Fix the bug in auth.ts"
 ```
 
-### RPC Mode (`--mode rpc`)
+### Режим RPC (`--mode rpc`)
 
-Full bidirectional JSON protocol over stdin/stdout. For embedding pi in IDEs, custom UIs, or other applications. The host sends commands, pi streams events back.
+Полный двунаправленный протокол JSON через стандартный ввод/вывод. Для встраивания числа Пи в IDEs, пользовательский UIs или другие приложения. Хост отправляет команды, Pi передает события обратно.
 
 ```bash
 pi --mode rpc --provider anthropic
